@@ -1,0 +1,23 @@
+version: '3.7'
+services:
+  app:
+    build:
+      context: .
+      target: release
+    ports:
+      - 5000:5000
+    # command: go run .
+    depends_on:
+      - mysql
+    # volumes:
+    #   - '.:/go/src/github.com/AngelVlc/lists-backend'
+    # env_file: 
+    #   - ./local.env
+    init: true
+  
+  mysql:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: 'pass'
+    ports:
+      - 3306:3306

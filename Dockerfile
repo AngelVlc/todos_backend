@@ -3,8 +3,8 @@ FROM golang:1.13 as base
 ENV APP /go/src
 WORKDIR $APP
 
-ADD https://github.com/golang-migrate/migrate/releases/download/v4.10.0/migrate.linux-amd64.tar.gz /migrate.tar.gz
-RUN tar -xzf /migrate.tar.gz -C $APP/
+ADD https://github.com/golang-migrate/migrate/releases/download/v4.10.0/migrate.linux-amd64.tar.gz /bin/migrate.tar.gz
+RUN tar -xzf /bin/migrate.tar.gz -C /bin/
 
 COPY go.mod $APP
 COPY go.sum $APP

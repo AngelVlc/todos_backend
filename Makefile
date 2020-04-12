@@ -1,5 +1,5 @@
 
-MIGRATE_COMMAND=./migrate.linux-amd64 -database "mysql://root:pass@tcp(mysql:3306)/todos?query"  -path db/migrations
+MIGRATE_COMMAND=/bin/migrate.linux-amd64 -database "mysql://root:pass@tcp(mysql:3306)/todos?query"  -path db/migrations
 MYSQL_COMMAND=mysql mysql -h mysql -u root -p
 
 build:
@@ -25,3 +25,6 @@ db-migrate-down:
 
 mysql-client:
 	docker-compose exec mysql ${MYSQL_COMMAND} -D todos
+
+fmt:
+	go fmt ./...

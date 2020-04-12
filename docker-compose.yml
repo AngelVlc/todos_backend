@@ -9,10 +9,10 @@ services:
     command: go run .
     depends_on:
       - mysql
-    # volumes:
-    #   - '.:/go/src/github.com/AngelVlc/lists-backend'
-    # env_file: 
-    #   - ./local.env
+    volumes:
+      - '.:/go/src'
+    env_file: 
+      - ./local.env
     init: true
   
   mysql:

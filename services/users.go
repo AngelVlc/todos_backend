@@ -7,28 +7,26 @@ import (
 )
 
 type UsersService struct {
-	db     *gorm.DB
-	config *ConfigurationService
+	db *gorm.DB
 }
 
-func NewUsersService(db *gorm.DB, config *ConfigurationService) UsersService {
-	return UsersService{db, config}
+func NewUsersService(db *gorm.DB) UsersService {
+	return UsersService{db}
 }
 
-func (u *UsersService) CreateAdminIfNotExists() error {
-	adminPass := u.config.GetAdminPassword()
-	hashedPass, err := u.getPasswordHash(adminPass)
+func (s *UsersService) CreateAdminIfNotExists(password string) error {
+	hashedPass, err := s.getPasswordHash(password)
 	if err != nil {
 		return err
 	}
 
 	var user models.User
-	u.db.Where(models.User{Name: "admin"}).Attrs(models.User{PasswordHash: hashedPass, IsAdmin: true}).FirstOrCreate(&user)
+	s.db.Where(models.User{Name: "admin"}).Attrs(models.User{PasswordHash: hashedPass, IsAdmin: true}).FirstOrCreate(&user)
 
 	return nil
 }
 
-func (u *UsersService) getPasswordHash(p string) (string, error) {
+func (s *UsersService) getPasswordHash(p string) (string, error) {
 	hasshedPass, err := bcrypt.GenerateFromPassword([]byte(p), 10)
 	if err != nil {
 		return "", err

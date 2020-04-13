@@ -8,8 +8,14 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func initUsersService(db *gorm.DB, config *services.ConfigurationService) services.UsersService {
+func initUsersService(db *gorm.DB) services.UsersService {
 	wire.Build(services.NewUsersService)
 
 	return services.UsersService{}
+}
+
+func initCountersService(db *gorm.DB) services.CountersService {
+	wire.Build(services.NewCountersService)
+
+	return services.CountersService{}
 }

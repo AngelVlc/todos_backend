@@ -16,7 +16,12 @@ import (
 
 // Injectors from wire.go:
 
-func initUsersService(db *gorm.DB, config *services.ConfigurationService) services.UsersService {
-	usersService := services.NewUsersService(db, config)
+func initUsersService(db *gorm.DB) services.UsersService {
+	usersService := services.NewUsersService(db)
 	return usersService
+}
+
+func initCountersService(db *gorm.DB) services.CountersService {
+	countersService := services.NewCountersService(db)
+	return countersService
 }

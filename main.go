@@ -17,12 +17,15 @@ func main() {
 	}
 	defer db.Close()
 
-	usrSvc := initUsersService(db, &cfg)
-	
-	err = usrSvc.CreateAdminIfNotExists()
+	usrSvc := initUsersService(db)
+
+	err = usrSvc.CreateAdminIfNotExists(cfg.GetAdminPassword())
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	countSvc := initCountersService(db)
+	countSvc.CreateCounterIfNotExists("requests")
 
 	fmt.Println("hola caracola")
 }

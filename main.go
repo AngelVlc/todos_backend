@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/AngelVlc/todos/services"
+	"github.com/AngelVlc/todos/wire"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
-	"log"
 )
 
 func main() {
@@ -17,17 +20,24 @@ func main() {
 	}
 	defer db.Close()
 
-	usrSvc := initUsersService(db)
+	usrSvc := wire.InitUsersService(db)
 
 	err = usrSvc.CreateAdminIfNotExists(cfg.GetAdminPassword())
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	countSvc := initCountersService(db)
+	countSvc := wire.InitCountersService(db)
 	countSvc.CreateCounterIfNotExists("requests")
 
-	fmt.Println("hola caracola")
+	s := newServer(db)
+
+	port := cfg.GetPort()
+	address := fmt.Sprintf(":%v", port)
+	log.Printf("Listening on port %v ...\n", port)
+	if err = http.ListenAndServe(address, s); err != nil {
+		log.Fatalf("could not listen on port %v %v", port, err)
+	}
 }
 
 func initDb(c *services.ConfigurationService) (*gorm.DB, error) {

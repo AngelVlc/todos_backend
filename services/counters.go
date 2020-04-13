@@ -17,3 +17,11 @@ func (s *CountersService) CreateCounterIfNotExists(name string) {
 	var counter models.Counter
 	s.db.Where(models.Counter{Name: name}).Attrs(models.Counter{Value: 0}).FirstOrCreate(&counter)
 }
+
+func (s *CountersService) IncrementCounter(name string) int32 {
+	var counter models.Counter
+	s.db.Where(models.Counter{Name: name}).First(&counter)
+	counter.Value++
+	s.db.Save(&counter)
+	return counter.Value
+}

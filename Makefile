@@ -9,10 +9,10 @@ up:
 	docker-compose up -d
 
 run:
-	docker-compose run --rm app go run .
+	docker-compose run --rm -p 5001:5001 app go run .
 
 console:
-	docker-compose run --rm app bash
+	docker-compose run --rm -p 5001:5001 app bash
 
 db-create:
 	docker-compose run --rm mysql ${MYSQL_COMMAND} -e "CREATE DATABASE todos"
@@ -33,5 +33,5 @@ fmt:
 	go fmt ./...
 
 generate:
-	wire
+	wire wire/wire.go 
 

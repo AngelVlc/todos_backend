@@ -24,3 +24,11 @@ func (c *ConfigurationService) GetDasource() string {
 func (c *ConfigurationService) GetAdminPassword() string {
 	return os.Getenv("ADMIN_PASSWORD")
 }
+
+func (c *ConfigurationService) GetPort() string {
+	return os.Getenv("PORT")
+}
+
+func (c *ConfigurationService) GetJwtSecret() string {
+	return os.Getenv("JWT_SECRET")
+}

@@ -5,7 +5,7 @@ services:
       context: .
       target: test
     ports:
-      - 5000:5000
+      - 5001:5001
     command: go run .
     depends_on:
       - mysql

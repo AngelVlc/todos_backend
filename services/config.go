@@ -1,11 +1,17 @@
-package main
+package services
 
 import (
 	"fmt"
 	"os"
 )
 
-func getDasource() string {
+type ConfigurationService struct{}
+
+func NewConfigurationService() ConfigurationService {
+	return ConfigurationService{}
+}
+
+func (c *ConfigurationService) GetDasource() string {
 	host := os.Getenv("MYSQL_HOST")
 	port := os.Getenv("MYSQL_PORT")
 	user := os.Getenv("MYSQL_USER")
@@ -15,6 +21,6 @@ func getDasource() string {
 	return fmt.Sprintf("%v:%v@(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, dbname)
 }
 
-func getAdminPassword() string {
+func (c *ConfigurationService) GetAdminPassword() string {
 	return os.Getenv("ADMIN_PASSWORD")
 }

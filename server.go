@@ -1,9 +1,10 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/AngelVlc/todos/controllers"
 	"github.com/jinzhu/gorm"
-	"net/http"
 )
 
 type server struct {
@@ -19,8 +20,8 @@ func newServer(db *gorm.DB) *server {
 
 	// router.Handle("/lists", s.getHandler(controllers.ListsHandler, true, false))
 	// router.Handle("/lists/", s.getHandler(controllers.ListsHandler, true, false))
-	// router.Handle("/users", s.getHandler(controllers.UsersHandler, true, true))
-	// router.Handle("/users/", s.getHandler(controllers.UsersHandler, true, true))
+	router.Handle("/users", s.getHandler(controllers.UsersHandler, true, true))
+	router.Handle("/users/", s.getHandler(controllers.UsersHandler, true, true))
 	router.Handle("/auth/token", s.getHandler(controllers.TokenHandler, false, false))
 	router.Handle("/auth/refreshtoken", s.getHandler(controllers.RefreshTokenHandler, false, false))
 

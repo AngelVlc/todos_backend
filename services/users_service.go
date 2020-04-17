@@ -68,3 +68,46 @@ func (s *UsersService) getUserByUserName(userName string) *models.User {
 
 	return &foundUser
 }
+
+// AddUser  adds a user
+func (s *UsersService) AddUser(dto *models.UserDto) (int32, error) {
+	if dto.NewPassword != dto.ConfirmNewPassword {
+		return -1, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
+	}
+
+	userExists, err := s.existsUser(dto.Name)
+	if err != nil {
+		return -1, err
+	}
+
+	if userExists {
+		return -1, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
+	}
+
+	user := dto.ToUser()
+
+	hasshedPass, err := bcrypt.GenerateFromPassword([]byte(dto.NewPassword), 10)
+	if err != nil {
+		return -1, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
+	}
+
+	user.PasswordHash = string(hasshedPass)
+
+	err = s.db.Create(&user).Error
+	if err != nil {
+		return -1, &appErrors.UnexpectedError{
+			Msg:           "Error inserting in the database",
+			InternalError: err,
+		}
+	}
+
+	return user.ID, nil
+}
+
+func (s *UsersService) existsUser(userName string) (bool, error) {
+	var foundUsers int32
+	if err := s.db.Where(models.User{Name: userName}).Table("users").Count(&foundUsers).Error; err != nil {
+		return false, &appErrors.UnexpectedError{Msg: "Error checking if user name exists", InternalError: err}
+	}
+	return foundUsers > 0, nil
+}

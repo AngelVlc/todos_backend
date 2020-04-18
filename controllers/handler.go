@@ -169,10 +169,10 @@ func (h Handler) addRequestIDToContext(r *http.Request) *http.Request {
 	return r.WithContext(ctx)
 }
 
-func getUserIDFromContext(r *http.Request) string {
+func getUserIDFromContext(r *http.Request) int32 {
 	userIDRaw := r.Context().Value(reqContextUserKey)
 
-	userID, _ := userIDRaw.(string)
+	userID, _ := userIDRaw.(int32)
 
 	return userID
 }

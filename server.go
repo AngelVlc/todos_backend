@@ -18,8 +18,8 @@ func newServer(db *gorm.DB) *server {
 
 	router := http.NewServeMux()
 
-	// router.Handle("/lists", s.getHandler(controllers.ListsHandler, true, false))
-	// router.Handle("/lists/", s.getHandler(controllers.ListsHandler, true, false))
+	router.Handle("/lists", s.getHandler(controllers.ListsHandler, true, false))
+	router.Handle("/lists/", s.getHandler(controllers.ListsHandler, true, false))
 	router.Handle("/users", s.getHandler(controllers.UsersHandler, true, true))
 	router.Handle("/users/", s.getHandler(controllers.UsersHandler, true, true))
 	router.Handle("/auth/token", s.getHandler(controllers.TokenHandler, false, false))

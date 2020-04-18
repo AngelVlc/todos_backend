@@ -1,4 +1,6 @@
-package models
+package dtos
+
+import "github.com/AngelVlc/todos/models"
 
 // UserDto is the struct used as DTO for a user
 type UserDto struct {
@@ -9,16 +11,9 @@ type UserDto struct {
 }
 
 // ToUser returns a User from the Dto
-func (dto *UserDto) ToUser() User {
-	return User{
+func (dto *UserDto) ToUser() models.User {
+	return models.User{
 		Name:    dto.Name,
 		IsAdmin: dto.IsAdmin,
 	}
-}
-
-// GetUsersResultDto is the struct used as result for the GetUsers method
-type GetUsersResultDto struct {
-	ID      string `json:"id"`
-	Name    string `json:"name"`
-	IsAdmin bool   `json:"isAdmin"`
 }

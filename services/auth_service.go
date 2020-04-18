@@ -89,6 +89,7 @@ func (s *AuthService) getJwtInfo(token interface{}) *models.JwtClaimsInfo {
 		UserID:   parseInt32Claim(claims["userId"]),
 		IsAdmin:  parseBoolClaim(claims["isAdmin"]),
 	}
+
 	return &info
 }
 
@@ -108,8 +109,8 @@ func parseStringClaim(value interface{}) string {
 }
 
 func parseInt32Claim(value interface{}) int32 {
-	result, _ := value.(int32)
-	return result
+	result, _ := value.(float64)
+	return int32(result)
 }
 
 func parseBoolClaim(value interface{}) bool {

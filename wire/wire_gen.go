@@ -22,6 +22,11 @@ func InitCountersService(db *gorm.DB) services.CountersService {
 	return countersService
 }
 
+func InitListsService(db *gorm.DB) services.ListsService {
+	listsService := services.NewListsService(db)
+	return listsService
+}
+
 func InitJwtProvider() services.JwtProvider {
 	configurationService := services.NewConfigurationService()
 	jwtProvider := services.NewJwtProvider(configurationService)

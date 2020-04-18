@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
-	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/wire"
 	"github.com/jinzhu/gorm"
 )
@@ -33,12 +33,12 @@ func processUsersPOST(r *http.Request, db *gorm.DB) handlerResult {
 	return okResult{id, http.StatusCreated}
 }
 
-func parseUserBody(r *http.Request) (models.UserDto, error) {
+func parseUserBody(r *http.Request) (dtos.UserDto, error) {
 	decoder := json.NewDecoder(r.Body)
-	var dto models.UserDto
+	var dto dtos.UserDto
 	err := decoder.Decode(&dto)
 	if err != nil {
-		return models.UserDto{}, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+		return dtos.UserDto{}, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
 	}
 
 	return dto, nil

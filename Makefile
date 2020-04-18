@@ -21,7 +21,7 @@ db-migrate:
 	docker-compose run --rm app ${MIGRATE_COMMAND} up
 
 db-migrate-down:
-	docker-compose run --rm app ${MIGRATE_COMMAND} down
+	docker-compose run --rm app ${MIGRATE_COMMAND} down 1
 
 db-version:
 	docker-compose run --rm app ${MIGRATE_COMMAND} version
@@ -32,6 +32,6 @@ mysql-client:
 fmt:
 	go fmt ./...
 
-generate:
+generate-wire:
 	wire wire/wire.go 
 

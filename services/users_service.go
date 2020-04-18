@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/jinzhu/gorm"
@@ -70,7 +71,7 @@ func (s *UsersService) getUserByUserName(userName string) *models.User {
 }
 
 // AddUser  adds a user
-func (s *UsersService) AddUser(dto *models.UserDto) (int32, error) {
+func (s *UsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	if dto.NewPassword != dto.ConfirmNewPassword {
 		return -1, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
 	}

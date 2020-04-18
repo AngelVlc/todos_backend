@@ -20,6 +20,12 @@ func InitCountersService(db *gorm.DB) services.CountersService {
 	return services.CountersService{}
 }
 
+func InitListsService(db *gorm.DB) services.ListsService {
+	wire.Build(services.NewListsService)
+
+	return services.ListsService{}
+}
+
 func InitJwtProvider() services.JwtProvider {
 	wire.Build(services.NewConfigurationService, services.NewJwtProvider)
 

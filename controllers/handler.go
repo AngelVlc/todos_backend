@@ -11,6 +11,7 @@ import (
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/wire"
+	"github.com/gorilla/mux"
 
 	// "github.com/AngelVlc/todos/services"
 	"github.com/jinzhu/gorm"
@@ -183,4 +184,24 @@ func (h Handler) getRequestIDFromContext(r *http.Request) string {
 	requestID, _ := requestIDRaw.(string)
 
 	return requestID
+}
+
+func parseBody(r *http.Request, dto interface{}) error {
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(dto)
+	if err != nil {
+		return &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+	}
+
+	return nil
+}
+
+func parseInt32UrlVar(r *http.Request, varName string) (int32, error) {
+	vars := mux.Vars(r)
+	value := vars[varName]
+	res, err := strconv.ParseInt(value, 10, 32)
+	if err != nil {
+		return -1, &appErrors.BadRequestError{Msg: "Invalid id in url", InternalError: err}
+	}
+	return int32(res), nil
 }

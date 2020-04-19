@@ -1,122 +1,104 @@
 package controllers
 
 import (
-	"encoding/json"
 	"net/http"
-	"net/url"
-	"strconv"
 
 	"github.com/AngelVlc/todos/dtos"
-	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/wire"
 	"github.com/jinzhu/gorm"
 )
 
-// ListsHandler is the handler for the lists endpoints
-func ListsHandler(r *http.Request, db *gorm.DB) handlerResult {
-	switch r.Method {
-	case http.MethodGet:
-		return processListsGET(r, db)
-	case http.MethodPost:
-		return processListsPOST(r, db)
-	case http.MethodDelete:
-		return processListsDELETE(r, db)
-	case http.MethodPut:
-		return processListsPUT(r, db)
-	default:
-		return okResult{nil, http.StatusMethodNotAllowed}
-	}
-}
-
-func processListsGET(r *http.Request, db *gorm.DB) handlerResult {
-	listID := getListIDFromURL(r.URL)
+func GetUserLists(r *http.Request, db *gorm.DB) handlerResult {
 	userID := getUserIDFromContext(r)
 
 	listSrv := wire.InitListsService(db)
-	if listID == 0 {
-		r := []dtos.GetListsResultDto{}
-		err := listSrv.GetUserLists(userID, &r)
-		if err != nil {
-			return errorResult{err}
-		}
-		return okResult{r, http.StatusOK}
+	res := []dtos.GetListsResultDto{}
+	err := listSrv.GetUserLists(userID, &res)
+	if err != nil {
+		return errorResult{err}
+	}
+	return okResult{res, http.StatusOK}
+}
+
+func GetUserSingleList(r *http.Request, db *gorm.DB) handlerResult {
+	userID := getUserIDFromContext(r)
+
+	listID, err := parseInt32UrlVar(r, "id")
+	if err != nil {
+		return errorResult{err}
 	}
 
+	listSrv := wire.InitListsService(db)
+
 	l := dtos.GetSingleListResultDto{}
-	err := listSrv.GetSingleUserList(listID, userID, &l)
+	err = listSrv.GetSingleUserList(listID, userID, &l)
 	if err != nil {
 		return errorResult{err}
 	}
 	return okResult{l, http.StatusOK}
 }
 
-func processListsPOST(r *http.Request, db *gorm.DB) handlerResult {
-	l, err := parseListBody(r)
+func AddUserList(r *http.Request, db *gorm.DB) handlerResult {
 	userID := getUserIDFromContext(r)
 
+	l, err := parseListBody(r)
 	if err != nil {
 		return errorResult{err}
 	}
 
 	listSrv := wire.InitListsService(db)
 
-	id, err := listSrv.AddUserList(userID, &l)
+	id, err := listSrv.AddUserList(userID, l)
 	if err != nil {
 		return errorResult{err}
 	}
 	return okResult{id, http.StatusCreated}
 }
 
-func processListsPUT(r *http.Request, db *gorm.DB) handlerResult {
-	listID := getListIDFromURL(r.URL)
+func UpdateUserList(r *http.Request, db *gorm.DB) handlerResult {
 	userID := getUserIDFromContext(r)
+
+	listID, err := parseInt32UrlVar(r, "id")
+	if err != nil {
+		return errorResult{err}
+	}
 
 	l, err := parseListBody(r)
 	if err != nil {
 		return errorResult{err}
 	}
+
 	listSrv := wire.InitListsService(db)
-	err = listSrv.UpdateUserList(listID, userID, &l)
+	err = listSrv.UpdateUserList(listID, userID, l)
 	if err != nil {
 		return errorResult{err}
 	}
 	return okResult{l, http.StatusOK}
 }
 
-func processListsDELETE(r *http.Request, db *gorm.DB) handlerResult {
-	listID := getListIDFromURL(r.URL)
+func DeleteUserList(r *http.Request, db *gorm.DB) handlerResult {
 	userID := getUserIDFromContext(r)
 
+	listID, err := parseInt32UrlVar(r, "id")
+	if err != nil {
+		return errorResult{err}
+	}
+
 	listSrv := wire.InitListsService(db)
-	err := listSrv.RemoveUserList(listID, userID)
+	err = listSrv.RemoveUserList(listID, userID)
 	if err != nil {
 		return errorResult{err}
 	}
 	return okResult{nil, http.StatusNoContent}
 }
 
-func getListIDFromURL(u *url.URL) int32 {
-	var r int32
-
-	if len(u.Path) > len("/lists") {
-		listID := u.Path[len("/lists/"):]
-		i, _ := strconv.ParseInt(listID, 10, 32)
-		r = int32(i)
-	}
-
-	return r
-}
-
-func parseListBody(r *http.Request) (models.List, error) {
-	decoder := json.NewDecoder(r.Body)
+func parseListBody(r *http.Request) (*models.List, error) {
 	var dto dtos.ListDto
-	err := decoder.Decode(&dto)
+	err := parseBody(r, &dto)
 	if err != nil {
-		return models.List{}, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+		return nil, err
 	}
-
 	l := dto.ToList()
-
-	return l, nil
+	return &l, nil
 }

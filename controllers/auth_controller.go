@@ -12,10 +12,6 @@ import (
 
 // TokenHandler is the handler for the auth/token endpoint
 func TokenHandler(r *http.Request, db *gorm.DB) handlerResult {
-	if r.Method != http.MethodPost {
-		return okResult{nil, http.StatusMethodNotAllowed}
-	}
-
 	l, err := parseTokenBody(r)
 	if err != nil {
 		return errorResult{err}
@@ -39,10 +35,6 @@ func TokenHandler(r *http.Request, db *gorm.DB) handlerResult {
 
 // RefreshTokenHandler is the handler for the auth/refreshtoken endpoint
 func RefreshTokenHandler(r *http.Request, db *gorm.DB) handlerResult {
-	if r.Method != http.MethodPost {
-		return okResult{nil, http.StatusMethodNotAllowed}
-	}
-
 	rt, err := parseRefreshTokenBody(r)
 	if err != nil {
 		return errorResult{err}

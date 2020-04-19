@@ -27,7 +27,7 @@ db-version:
 	docker-compose run --rm app ${MIGRATE_COMMAND} version
 
 mysql-client:
-	docker-compose exec mysql ${MYSQL_COMMAND} -D todos
+	docker-compose exec mysql ${MYSQL_COMMAND}
 
 fmt:
 	go fmt ./...

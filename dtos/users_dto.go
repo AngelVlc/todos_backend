@@ -4,10 +4,10 @@ import "github.com/AngelVlc/todos/models"
 
 // UserDto is the struct used as DTO for a user
 type UserDto struct {
-	Name               string
-	NewPassword        string
-	ConfirmNewPassword string
-	IsAdmin            bool
+	Name               string `json:"name"`
+	NewPassword        string `json:"newPassword"`
+	ConfirmNewPassword string `json:"confirmNewPassword"`
+	IsAdmin            bool   `json:"isAdmin"`
 }
 
 // ToUser returns a User from the Dto

@@ -2,6 +2,8 @@ package consts
 
 type contextKey string
 
-const ReqContextUserKey contextKey = "userID"
+const ReqContextUserIDKey contextKey = "userID"
+const ReqContextUserNameKey contextKey = "userName"
+const ReqContextUserIsAdminKey contextKey = "userIsAdmin"
 
 const ReqContextRequestKey contextKey = "requestID"

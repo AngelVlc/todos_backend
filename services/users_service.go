@@ -65,7 +65,7 @@ func (s *UsersService) getPasswordHash(p string) (string, error) {
 func (s *UsersService) getUserByUserName(userName string) *models.User {
 	foundUser := models.User{}
 
-	s.db.Where(models.User{Name: "admin"}).First(&foundUser)
+	s.db.Where(models.User{Name: userName}).First(&foundUser)
 
 	return &foundUser
 }
@@ -87,12 +87,12 @@ func (s *UsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 
 	user := dto.ToUser()
 
-	hasshedPass, err := bcrypt.GenerateFromPassword([]byte(dto.NewPassword), 10)
+	hasshedPass, err := s.getPasswordHash(dto.NewPassword)
 	if err != nil {
 		return -1, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 	}
 
-	user.PasswordHash = string(hasshedPass)
+	user.PasswordHash = hasshedPass
 
 	err = s.db.Create(&user).Error
 	if err != nil {

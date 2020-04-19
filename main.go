@@ -15,7 +15,7 @@ func main() {
 	cfg := services.NewConfigurationService()
 
 	db, err := initDb(&cfg)
-	db.LogMode(true)
+	// db.LogMode(true)
 	if err != nil {
 		log.Fatal(err)
 	}

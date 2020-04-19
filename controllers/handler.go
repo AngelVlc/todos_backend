@@ -8,12 +8,12 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/AngelVlc/todos/consts"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/wire"
 	"github.com/gorilla/mux"
 
-	// "github.com/AngelVlc/todos/services"
 	"github.com/jinzhu/gorm"
 )
 
@@ -25,7 +25,7 @@ type Handler struct {
 	RequireAdmin bool
 }
 
-type handlerResult interface {
+type HandlerResult interface {
 	IsError() bool
 }
 
@@ -47,17 +47,10 @@ func (r okResult) IsError() bool {
 }
 
 // HandlerFunc is the type for the handler functions
-type HandlerFunc func(*http.Request, *gorm.DB) handlerResult
-
-type contextKey string
-
-const reqContextUserKey contextKey = "userID"
-const reqContextRequestKey contextKey = "requestID"
+type HandlerFunc func(*http.Request, *gorm.DB) HandlerResult
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var jwtInfo *models.JwtClaimsInfo
-
-	r = h.addRequestIDToContext(r)
 
 	if h.RequireAuth {
 		token, err := h.getAuthToken(r)
@@ -154,24 +147,13 @@ func (h Handler) getAuthToken(r *http.Request) (string, error) {
 
 func (h Handler) addUserIDToContext(userID int32, r *http.Request) *http.Request {
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, reqContextUserKey, userID)
-
-	return r.WithContext(ctx)
-}
-
-func (h Handler) addRequestIDToContext(r *http.Request) *http.Request {
-	s := wire.InitCountersService(h.Db)
-
-	v := s.IncrementCounter("requests")
-
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, reqContextRequestKey, strconv.Itoa(int(v)))
+	ctx = context.WithValue(ctx, consts.ReqContextUserKey, userID)
 
 	return r.WithContext(ctx)
 }
 
 func getUserIDFromContext(r *http.Request) int32 {
-	userIDRaw := r.Context().Value(reqContextUserKey)
+	userIDRaw := r.Context().Value(consts.ReqContextUserKey)
 
 	userID, _ := userIDRaw.(int32)
 
@@ -179,7 +161,7 @@ func getUserIDFromContext(r *http.Request) int32 {
 }
 
 func (h Handler) getRequestIDFromContext(r *http.Request) string {
-	requestIDRaw := r.Context().Value(reqContextRequestKey)
+	requestIDRaw := r.Context().Value(consts.ReqContextRequestKey)
 
 	requestID, _ := requestIDRaw.(string)
 

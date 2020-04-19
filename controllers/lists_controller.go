@@ -9,7 +9,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func GetUserLists(r *http.Request, db *gorm.DB) handlerResult {
+func GetUserLists(r *http.Request, db *gorm.DB) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	listSrv := wire.InitListsService(db)
@@ -21,7 +21,7 @@ func GetUserLists(r *http.Request, db *gorm.DB) handlerResult {
 	return okResult{res, http.StatusOK}
 }
 
-func GetUserSingleList(r *http.Request, db *gorm.DB) handlerResult {
+func GetUserSingleList(r *http.Request, db *gorm.DB) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	listID, err := parseInt32UrlVar(r, "id")
@@ -39,7 +39,7 @@ func GetUserSingleList(r *http.Request, db *gorm.DB) handlerResult {
 	return okResult{l, http.StatusOK}
 }
 
-func AddUserList(r *http.Request, db *gorm.DB) handlerResult {
+func AddUserList(r *http.Request, db *gorm.DB) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	l, err := parseListBody(r)
@@ -56,7 +56,7 @@ func AddUserList(r *http.Request, db *gorm.DB) handlerResult {
 	return okResult{id, http.StatusCreated}
 }
 
-func UpdateUserList(r *http.Request, db *gorm.DB) handlerResult {
+func UpdateUserList(r *http.Request, db *gorm.DB) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	listID, err := parseInt32UrlVar(r, "id")
@@ -77,7 +77,7 @@ func UpdateUserList(r *http.Request, db *gorm.DB) handlerResult {
 	return okResult{l, http.StatusOK}
 }
 
-func DeleteUserList(r *http.Request, db *gorm.DB) handlerResult {
+func DeleteUserList(r *http.Request, db *gorm.DB) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	listID, err := parseInt32UrlVar(r, "id")

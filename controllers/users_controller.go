@@ -8,7 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func AddUserHandler(r *http.Request, db *gorm.DB) handlerResult {
+func AddUserHandler(r *http.Request, db *gorm.DB) HandlerResult {
 	var dto dtos.UserDto
 	err := parseBody(r, &dto)
 	if err != nil {

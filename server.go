@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/controllers"
+	"github.com/AngelVlc/todos/midlewares"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 )
@@ -34,6 +35,9 @@ func newServer(db *gorm.DB) *server {
 	authSubRouter.Handle("/refreshtoken", s.getHandler(controllers.RefreshTokenHandler, false, false)).Methods(http.MethodPost)
 
 	s.Handler = router
+
+	countersMdw := midlewares.NewRequestCounterMidleware(s.db)
+	router.Use(countersMdw.Middleware)
 
 	return s
 }

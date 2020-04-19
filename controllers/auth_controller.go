@@ -25,7 +25,7 @@ func TokenHandler(r *http.Request, db *gorm.DB) HandlerResult {
 
 	authSrv := wire.InitAuthService()
 
-	tokens, err := authSrv.CreateTokens(foundUser)
+	tokens, err := authSrv.GetTokens(foundUser)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -53,7 +53,7 @@ func RefreshTokenHandler(r *http.Request, db *gorm.DB) HandlerResult {
 		return errorResult{&appErrors.BadRequestError{Msg: "The user is no longer valid", InternalError: nil}}
 	}
 
-	tokens, err := authSrv.CreateTokens(foundUser)
+	tokens, err := authSrv.GetTokens(foundUser)
 	if err != nil {
 		return errorResult{err}
 	}

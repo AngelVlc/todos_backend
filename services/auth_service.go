@@ -17,26 +17,15 @@ func NewAuthService(jwtp JwtProvider) AuthService {
 	return AuthService{jwtp}
 }
 
-// CreateTokens returns a new jwt token and a refresh token for the given user
-func (s *AuthService) CreateTokens(u *models.User) (map[string]string, error) {
-	t := s.jwtPrv.NewToken()
-
-	tc := s.jwtPrv.GetTokenClaims(t)
-	tc["userName"] = u.Name
-	tc["isAdmin"] = u.IsAdmin
-	tc["userId"] = u.ID
-	tc["exp"] = time.Now().Add(time.Minute * 15).Unix()
-
+// GetTokens returns a new jwt token and a refresh token for the given user
+func (s *AuthService) GetTokens(u *models.User) (map[string]string, error) {
+	t := s.getNewToken(u)
 	st, err := s.jwtPrv.SignToken(t)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	rt := s.jwtPrv.NewToken()
-	rtc := s.jwtPrv.GetTokenClaims(rt)
-	rtc["userId"] = u.ID
-	rtc["exp"] = time.Now().Add(time.Hour * 24).Unix()
-
+	rt := s.getNewRefreshToken(u)
 	srt, err := s.jwtPrv.SignToken(rt)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
@@ -80,14 +69,35 @@ func (s *AuthService) ParseRefreshToken(refreshTokenString string) (*models.Refr
 	return s.getRefreshTokenInfo(refreshToken), nil
 }
 
+func (s *AuthService) getNewToken(u *models.User) interface{} {
+	t := s.jwtPrv.NewToken()
+
+	tc := s.jwtPrv.GetTokenClaims(t)
+	tc["userName"] = u.Name
+	tc["isAdmin"] = u.IsAdmin
+	tc["userId"] = u.ID
+	tc["exp"] = time.Now().Add(time.Minute * 15).Unix()
+
+	return t
+}
+
+func (s *AuthService) getNewRefreshToken(u *models.User) interface{} {
+	rt := s.jwtPrv.NewToken()
+	rtc := s.jwtPrv.GetTokenClaims(rt)
+	rtc["userId"] = u.ID
+	rtc["exp"] = time.Now().Add(time.Hour * 24).Unix()
+
+	return rt
+}
+
 // GetJwtInfo returns a JwtClaimsInfo got from the token claims
 func (s *AuthService) getJwtInfo(token interface{}) *models.JwtClaimsInfo {
 	claims := s.jwtPrv.GetTokenClaims(token)
 
 	info := models.JwtClaimsInfo{
-		UserName: parseStringClaim(claims["userName"]),
-		UserID:   parseInt32Claim(claims["userId"]),
-		IsAdmin:  parseBoolClaim(claims["isAdmin"]),
+		UserName: s.parseStringClaim(claims["userName"]),
+		UserID:   s.parseInt32Claim(claims["userId"]),
+		IsAdmin:  s.parseBoolClaim(claims["isAdmin"]),
 	}
 
 	return &info
@@ -98,22 +108,22 @@ func (s *AuthService) getRefreshTokenInfo(refreshToken interface{}) *models.Refr
 	claims := s.jwtPrv.GetTokenClaims(refreshToken)
 
 	info := models.RefreshTokenClaimsInfo{
-		UserID: parseInt32Claim(claims["userId"]),
+		UserID: s.parseInt32Claim(claims["userId"]),
 	}
 	return &info
 }
 
-func parseStringClaim(value interface{}) string {
+func (s *AuthService) parseStringClaim(value interface{}) string {
 	result, _ := value.(string)
 	return result
 }
 
-func parseInt32Claim(value interface{}) int32 {
+func (s *AuthService) parseInt32Claim(value interface{}) int32 {
 	result, _ := value.(float64)
 	return int32(result)
 }
 
-func parseBoolClaim(value interface{}) bool {
+func (s *AuthService) parseBoolClaim(value interface{}) bool {
 	result, _ := value.(bool)
 	return result
 }

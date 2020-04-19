@@ -17,7 +17,7 @@ func NewJwtProvider(cfgSvc ConfigurationService) JwtProvider {
 }
 
 // NewToken returns a new Jwt tooken
-func (p *JwtProvider) NewToken() interface{} {
+func (p *JwtProvider) NewToken() *jwt.Token {
 	return jwt.New(jwt.SigningMethodHS256)
 }
 

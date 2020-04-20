@@ -4,3 +4,5 @@ Dockerfile
 docker-compose.yml
 Makefile
 README.md
+.circleci
+.terraform

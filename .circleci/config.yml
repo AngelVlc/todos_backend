@@ -1,0 +1,48 @@
+version: 2.1
+
+workflows:
+    version: 2
+    build_and_test:
+      jobs:
+        - test
+        - deploy:
+            requires:
+              - test
+            filters:
+              branches:
+                only: master
+
+commands:
+  install_terraform:
+    steps:
+    - run: curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.12/terraform_0.12.12_linux_amd64.zip
+    - run: unzip /tmp/terraform.zip -d /tmp
+    - run: mv /tmp/terraform ~/bin
+    - run: export PATH="~/bin:$PATH"
+  init_terraform:
+    steps:
+    - run: cd terraform && terraform init -input=false -backend-config="conn_str=$TERRAFORM_BACKEND"
+
+jobs:
+  test:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - install_terraform
+      - run: make build
+      - init_terraform
+      - run: cd terraform && terraform plan -var heroku_username=$HEROKU_USERNAME -var heroku_api_key=$HEROKU_API_KEY -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD
+  deploy:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - install_terraform
+      - run: heroku container:login
+      - init_terraform
+      - run: cd terraform && terraform apply -input=false -auto-approve -var heroku_username=$HEROKU_USERNAME -var heroku_api_key=$HEROKU_API_KEY -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD
+      - run: docker build -t todos-release --target release .
+      - run: docker tag todos-release registry.heroku.com/$APP_NAME/web
+      - run: docker push registry.heroku.com/$APP_NAME/web
+      - run: heroku container:release --app $APP_NAME web

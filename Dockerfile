@@ -18,10 +18,12 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/app
 FROM base as test
 # RUN go get -u github.com/stretchr/testify
 
-FROM scratch as release
+# FROM scratch as release
+FROM alpine as release
 
-COPY --from=base /go/bin/app /
-COPY --from=base /migrate.linux-amd64 /migrate
-COPY --from=base /go/src/db/migrations /db/migrations
+COPY --from=base /go/src/start.sh /app/
+COPY --from=base /go/bin/app /app/
+COPY --from=base /bin/migrate.linux-amd64 /app/
+COPY --from=base /go/src/db/migrations /app/db/migrations/
 
-CMD [ "./app" ]
+CMD [ "bin/sh", "/app/start.sh" ]

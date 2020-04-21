@@ -29,8 +29,9 @@ jobs:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
-      - install_terraform
       - run: make build
+      - run: make test
+      - install_terraform
       - init_terraform
       - run: cd terraform && terraform plan -var heroku_username=$HEROKU_USERNAME -var heroku_api_key=$HEROKU_API_KEY -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD
   deploy:

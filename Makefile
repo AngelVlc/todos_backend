@@ -32,6 +32,15 @@ mysql-client:
 fmt:
 	go fmt ./...
 
+test:
+	docker-compose run --rm app go test ./...
+
+coverage:
+	docker-compose run --rm app go test ./... -cover
+
+coverage-html:
+	docker-compose run --rm app go test ./... -cover -coverprofile coverage.out && go tool cover -html=coverage.out	
+
 generate-wire:
 	wire wire/wire.go 
 

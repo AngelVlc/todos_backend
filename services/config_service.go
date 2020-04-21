@@ -1,25 +1,28 @@
 package services
 
 import (
-	"strings"
 	"fmt"
-	"os"
+	"strings"
+
+	"github.com/AngelVlc/todos/providers"
 )
 
-type ConfigurationService struct{}
-
-func NewConfigurationService() ConfigurationService {
-	return ConfigurationService{}
+type ConfigurationService struct {
+	eg providers.EnvGetter
 }
 
-func (c *ConfigurationService) GetDasource() string {
-	host := os.Getenv("MYSQL_HOST")
-	port := os.Getenv("MYSQL_PORT")
-	user := os.Getenv("MYSQL_USER")
-	pass := os.Getenv("MYSQL_PASSWORD")
-	dbname := os.Getenv("MYSQL_DATABASE")
+func NewConfigurationService(eg providers.EnvGetter) ConfigurationService {
+	return ConfigurationService{eg}
+}
 
-	clearDbUrl := os.Getenv("CLEARDB_DATABASE_URL")
+func (c *ConfigurationService) GetDatasource() string {
+	host := c.eg.Getenv("MYSQL_HOST")
+	port := c.eg.Getenv("MYSQL_PORT")
+	user := c.eg.Getenv("MYSQL_USER")
+	pass := c.eg.Getenv("MYSQL_PASSWORD")
+	dbname := c.eg.Getenv("MYSQL_DATABASE")
+
+	clearDbUrl := c.eg.Getenv("CLEARDB_DATABASE_URL")
 	if len(clearDbUrl) > 0 {
 		clearDbUrl = strings.Replace(clearDbUrl, "mysql://", "", 1)
 		clearDbUrl = strings.Replace(clearDbUrl, "?reconnect=true", "", 1)
@@ -37,13 +40,13 @@ func (c *ConfigurationService) GetDasource() string {
 }
 
 func (c *ConfigurationService) GetAdminPassword() string {
-	return os.Getenv("ADMIN_PASSWORD")
+	return c.eg.Getenv("ADMIN_PASSWORD")
 }
 
 func (c *ConfigurationService) GetPort() string {
-	return os.Getenv("PORT")
+	return c.eg.Getenv("PORT")
 }
 
 func (c *ConfigurationService) GetJwtSecret() string {
-	return os.Getenv("JWT_SECRET")
+	return c.eg.Getenv("JWT_SECRET")
 }

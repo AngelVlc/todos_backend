@@ -6,7 +6,9 @@
 package wire
 
 import (
+	"github.com/AngelVlc/todos/providers"
 	"github.com/AngelVlc/todos/services"
+	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 )
 
@@ -28,14 +30,26 @@ func InitListsService(db *gorm.DB) services.ListsService {
 }
 
 func InitJwtProvider() services.JwtProvider {
-	configurationService := services.NewConfigurationService()
+	osEnvGetter := providers.NewOsEnvGetter()
+	configurationService := services.NewConfigurationService(osEnvGetter)
 	jwtProvider := services.NewJwtProvider(configurationService)
 	return jwtProvider
 }
 
 func InitAuthService() services.AuthService {
-	configurationService := services.NewConfigurationService()
+	osEnvGetter := providers.NewOsEnvGetter()
+	configurationService := services.NewConfigurationService(osEnvGetter)
 	jwtProvider := services.NewJwtProvider(configurationService)
 	authService := services.NewAuthService(jwtProvider)
 	return authService
 }
+
+func InitConfigurationService() services.ConfigurationService {
+	osEnvGetter := providers.NewOsEnvGetter()
+	configurationService := services.NewConfigurationService(osEnvGetter)
+	return configurationService
+}
+
+// wire.go:
+
+var ConfigurationServiceSet = wire.NewSet(providers.NewOsEnvGetter, wire.Bind(new(providers.EnvGetter), new(*providers.OsEnvGetter)), services.NewConfigurationService)

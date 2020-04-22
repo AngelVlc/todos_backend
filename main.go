@@ -29,7 +29,10 @@ func main() {
 	}
 
 	countSvc := wire.InitCountersService(db)
-	countSvc.CreateCounterIfNotExists("requests")
+	err = countSvc.CreateCounterIfNotExists("requests")
+	if err != nil {
+		log.Fatal("error checking requests counter: ", err)
+	}
 
 	s := newServer(db)
 

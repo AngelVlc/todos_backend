@@ -1,7 +1,6 @@
 package services
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/AngelVlc/todos/models"
@@ -25,12 +24,12 @@ func (s *CountersService) IncrementCounter(name string) (int32, error) {
 	var counter models.Counter
 	err := s.db.Where(models.Counter{Name: name}).First(&counter).Error
 	if err != nil {
-		return -1, errors.New(fmt.Sprintf("error getting '%v' counter: %v", name, err))
+		return -1, fmt.Errorf("error getting '%v' counter: %v", name, err)
 	}
 	counter.Value++
 	err = s.db.Save(&counter).Error
 	if err != nil {
-		return -1, errors.New(fmt.Sprintf("error saving new '%v' counter value: %v", name, err))
+		return -1, fmt.Errorf("error saving new '%v' counter value: %v", name, err)
 	}
 	return counter.Value, nil
 }

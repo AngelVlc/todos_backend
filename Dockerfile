@@ -16,9 +16,7 @@ COPY . $APP
 RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/app
 
 FROM base as test
-# RUN go get -u github.com/stretchr/testify
 
-# FROM scratch as release
 FROM alpine as release
 
 COPY --from=base /go/src/start.sh /app/

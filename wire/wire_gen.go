@@ -29,18 +29,11 @@ func InitListsService(db *gorm.DB) services.ListsService {
 	return listsService
 }
 
-func InitJwtProvider() services.JwtProvider {
-	osEnvGetter := providers.NewOsEnvGetter()
-	configurationService := services.NewConfigurationService(osEnvGetter)
-	jwtProvider := services.NewJwtProvider(configurationService)
-	return jwtProvider
-}
-
 func InitAuthService() services.AuthService {
+	jwtTokenProvider := providers.NewJwtTokenProvider()
 	osEnvGetter := providers.NewOsEnvGetter()
 	configurationService := services.NewConfigurationService(osEnvGetter)
-	jwtProvider := services.NewJwtProvider(configurationService)
-	authService := services.NewAuthService(jwtProvider)
+	authService := services.NewAuthService(jwtTokenProvider, configurationService)
 	return authService
 }
 
@@ -53,3 +46,5 @@ func InitConfigurationService() services.ConfigurationService {
 // wire.go:
 
 var ConfigurationServiceSet = wire.NewSet(providers.NewOsEnvGetter, wire.Bind(new(providers.EnvGetter), new(*providers.OsEnvGetter)), services.NewConfigurationService)
+
+var TokenProviderSet = wire.NewSet(providers.NewJwtTokenProvider, wire.Bind(new(providers.TokenProvider), new(*providers.JwtTokenProvider)))

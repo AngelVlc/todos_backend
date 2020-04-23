@@ -5,28 +5,30 @@ import (
 
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
+	"github.com/AngelVlc/todos/providers"
 )
 
 // AuthService is the service for auth methods
 type AuthService struct {
-	jwtPrv JwtProvider
+	jwtPrv providers.TokenProvider
+	cfgSvc ConfigurationService
 }
 
 // NewAuthService returns a new auth service
-func NewAuthService(jwtp JwtProvider) AuthService {
-	return AuthService{jwtp}
+func NewAuthService(jwtp providers.TokenProvider, cfgSvc ConfigurationService) AuthService {
+	return AuthService{jwtp, cfgSvc}
 }
 
 // GetTokens returns a new jwt token and a refresh token for the given user
 func (s *AuthService) GetTokens(u *models.User) (map[string]string, error) {
 	t := s.getNewToken(u)
-	st, err := s.jwtPrv.SignToken(t)
+	st, err := s.jwtPrv.SignToken(t, s.cfgSvc.GetJwtSecret())
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
 	rt := s.getNewRefreshToken(u)
-	srt, err := s.jwtPrv.SignToken(rt)
+	srt, err := s.jwtPrv.SignToken(rt, s.cfgSvc.GetJwtSecret())
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
 	}
@@ -42,7 +44,7 @@ func (s *AuthService) GetTokens(u *models.User) (map[string]string, error) {
 // ParseToken takes a token string, parses it and if it is valid returns a JwtClaimsInfo
 // with its claims values
 func (s *AuthService) ParseToken(tokenString string) (*models.JwtClaimsInfo, error) {
-	token, err := s.jwtPrv.ParseToken(tokenString)
+	token, err := s.jwtPrv.ParseToken(tokenString, s.cfgSvc.GetJwtSecret())
 	if err != nil {
 		return nil, &appErrors.UnauthorizedError{Msg: "Invalid token", InternalError: err}
 	}
@@ -57,7 +59,7 @@ func (s *AuthService) ParseToken(tokenString string) (*models.JwtClaimsInfo, err
 // ParseRefreshToken takes a refresh token string, parses it and if it is valid returns a
 // RefreshTokenClaimsInfo with its claims values
 func (s *AuthService) ParseRefreshToken(refreshTokenString string) (*models.RefreshTokenClaimsInfo, error) {
-	refreshToken, err := s.jwtPrv.ParseToken(refreshTokenString)
+	refreshToken, err := s.jwtPrv.ParseToken(refreshTokenString, s.cfgSvc.GetJwtSecret())
 	if err != nil {
 		return nil, &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}
 	}

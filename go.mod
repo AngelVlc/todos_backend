@@ -3,6 +3,7 @@ module github.com/AngelVlc/todos
 go 1.13
 
 require (
+	github.com/AngelVlc/lists-backend v0.0.0-20191022211504-16aa9221dfa2
 	github.com/DATA-DOG/go-sqlmock v1.4.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-sql-driver/mysql v1.5.0 // indirect

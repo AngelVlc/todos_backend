@@ -1,3 +1,5 @@
+github.com/AngelVlc/lists-backend v0.0.0-20191022211504-16aa9221dfa2 h1:tA27TzOtaUPoogTWk9oN1N0yvgRo6kGrjDd1YZwjae8=
+github.com/AngelVlc/lists-backend v0.0.0-20191022211504-16aa9221dfa2/go.mod h1:d0j3SmG8+2DCbRV6DH4O6jW/XH2KV4rEK52qawS5aTY=
 github.com/DATA-DOG/go-sqlmock v1.4.1 h1:ThlnYciV1iM/V0OSF/dtkqWb6xo5qITT1TJBG1MRDJM=
 github.com/DATA-DOG/go-sqlmock v1.4.1/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=

@@ -7,7 +7,7 @@ import (
 )
 
 type TokenProvider interface {
-	NewToken() *jwt.Token
+	NewToken() interface{}
 	GetTokenClaims(token interface{}) map[string]interface{}
 	SignToken(token interface{}, secret string) (string, error)
 	ParseToken(tokenString string, secret string) (interface{}, error)
@@ -25,7 +25,7 @@ func NewJwtTokenProvider() *JwtTokenProvider {
 }
 
 // NewToken returns a new Jwt tooken
-func (p *JwtTokenProvider) NewToken() *jwt.Token {
+func (p *JwtTokenProvider) NewToken() interface{} {
 	return jwt.New(jwt.SigningMethodHS256)
 }
 

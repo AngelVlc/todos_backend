@@ -28,14 +28,11 @@ func (m *MockedCryptoHelper) CompareHashAndPassword(hashedPassword, password []b
 	return args.Error(0)
 }
 
-var (
-	columns     = []string{"id", "name", "password_hash", "is_admin"}
-	pass        = "password"
-	hasshedPass = "hassedPassword"
-	user        = "user"
-)
-
 func TestUsersService(t *testing.T) {
+	columns := []string{"id", "name", "password_hash", "is_admin"}
+	hasshedPass := "hassedPassword"
+	user := "user"
+
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)

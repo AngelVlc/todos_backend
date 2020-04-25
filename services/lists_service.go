@@ -1,6 +1,8 @@
 package services
 
 import (
+	"log"
+
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
@@ -20,7 +22,7 @@ func NewListsService(db *gorm.DB) ListsService {
 // AddUserList  adds a list
 func (s *ListsService) AddUserList(userID int32, l *models.List) (int32, error) {
 	l.UserID = userID
-	if err := s.db.Save(&l).Error; err != nil {
+	if err := s.db.Create(&l).Error; err != nil {
 		return 0, &appErrors.UnexpectedError{Msg: "Error inserting list", InternalError: err}
 	}
 
@@ -50,10 +52,10 @@ func (s *ListsService) UpdateUserList(id int32, userID int32, l *models.List) er
 // GetSingleUserList returns a single list from its id
 func (s *ListsService) GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error {
 	if err := s.db.Where(models.List{ID: id, UserID: userID}).Preload("ListItems").Find(&l).Error; err != nil {
+		log.Println("···", err)
 		return &appErrors.UnexpectedError{Msg: "Error getting user list", InternalError: err}
 	}
 
-	// return s.listsRepository().GetOne(l, bson.D{{"_id", id}, {"userId", userID}}, nil)
 	return nil
 }
 

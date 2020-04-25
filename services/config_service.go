@@ -3,15 +3,13 @@ package services
 import (
 	"fmt"
 	"strings"
-
-	"github.com/AngelVlc/todos/providers"
 )
 
 type ConfigurationService struct {
-	eg providers.EnvGetter
+	eg EnvGetter
 }
 
-func NewConfigurationService(eg providers.EnvGetter) ConfigurationService {
+func NewConfigurationService(eg EnvGetter) ConfigurationService {
 	return ConfigurationService{eg}
 }
 

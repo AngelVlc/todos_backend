@@ -3,7 +3,6 @@
 package wire
 
 import (
-	"github.com/AngelVlc/todos/providers"
 	"github.com/AngelVlc/todos/services"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
@@ -39,10 +38,10 @@ func InitConfigurationService() services.ConfigurationService {
 }
 
 var ConfigurationServiceSet = wire.NewSet(
-	providers.NewOsEnvGetter,
-	wire.Bind(new(providers.EnvGetter), new(*providers.OsEnvGetter)),
+	services.NewOsEnvGetter,
+	wire.Bind(new(services.EnvGetter), new(*services.OsEnvGetter)),
 	services.NewConfigurationService)
 
 var TokenProviderSet = wire.NewSet(
-	providers.NewJwtTokenProvider,
-	wire.Bind(new(providers.TokenProvider), new(*providers.JwtTokenProvider)))
+	services.NewJwtTokenHelper,
+	wire.Bind(new(services.TokenHelper), new(*services.JwtTokenHelper)))

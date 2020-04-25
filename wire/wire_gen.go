@@ -6,7 +6,6 @@
 package wire
 
 import (
-	"github.com/AngelVlc/todos/providers"
 	"github.com/AngelVlc/todos/services"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
@@ -30,21 +29,21 @@ func InitListsService(db *gorm.DB) services.ListsService {
 }
 
 func InitAuthService() services.AuthService {
-	jwtTokenProvider := providers.NewJwtTokenProvider()
-	osEnvGetter := providers.NewOsEnvGetter()
+	jwtTokenHelper := services.NewJwtTokenHelper()
+	osEnvGetter := services.NewOsEnvGetter()
 	configurationService := services.NewConfigurationService(osEnvGetter)
-	authService := services.NewAuthService(jwtTokenProvider, configurationService)
+	authService := services.NewAuthService(jwtTokenHelper, configurationService)
 	return authService
 }
 
 func InitConfigurationService() services.ConfigurationService {
-	osEnvGetter := providers.NewOsEnvGetter()
+	osEnvGetter := services.NewOsEnvGetter()
 	configurationService := services.NewConfigurationService(osEnvGetter)
 	return configurationService
 }
 
 // wire.go:
 
-var ConfigurationServiceSet = wire.NewSet(providers.NewOsEnvGetter, wire.Bind(new(providers.EnvGetter), new(*providers.OsEnvGetter)), services.NewConfigurationService)
+var ConfigurationServiceSet = wire.NewSet(services.NewOsEnvGetter, wire.Bind(new(services.EnvGetter), new(*services.OsEnvGetter)), services.NewConfigurationService)
 
-var TokenProviderSet = wire.NewSet(providers.NewJwtTokenProvider, wire.Bind(new(providers.TokenProvider), new(*providers.JwtTokenProvider)))
+var TokenProviderSet = wire.NewSet(services.NewJwtTokenHelper, wire.Bind(new(services.TokenHelper), new(*services.JwtTokenHelper)))

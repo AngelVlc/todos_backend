@@ -5,17 +5,16 @@ import (
 
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
-	"github.com/AngelVlc/todos/providers"
 )
 
 // AuthService is the service for auth methods
 type AuthService struct {
-	jwtPrv providers.TokenProvider
+	jwtPrv TokenHelper
 	cfgSvc ConfigurationService
 }
 
 // NewAuthService returns a new auth service
-func NewAuthService(jwtp providers.TokenProvider, cfgSvc ConfigurationService) AuthService {
+func NewAuthService(jwtp TokenHelper, cfgSvc ConfigurationService) AuthService {
 	return AuthService{jwtp, cfgSvc}
 }
 

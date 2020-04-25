@@ -1,4 +1,4 @@
-package providers
+package services
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-type TokenProvider interface {
+type TokenHelper interface {
 	NewToken() interface{}
 	GetTokenClaims(token interface{}) map[string]interface{}
 	SignToken(token interface{}, secret string) (string, error)
@@ -14,33 +14,33 @@ type TokenProvider interface {
 	IsTokenValid(token interface{}) bool
 }
 
-// JwtTokenProvider is the type used as JwtTokenProvider
-type JwtTokenProvider struct {
+// JwtTokenHelper is the type used as JwtTokenHelper
+type JwtTokenHelper struct {
 	secret string
 }
 
-// NewJwtTokenProvider returns a new JwtTokenProvider
-func NewJwtTokenProvider() *JwtTokenProvider {
-	return &JwtTokenProvider{}
+// NewJwtTokenHelper returns a new JwtTokenHelper
+func NewJwtTokenHelper() *JwtTokenHelper {
+	return &JwtTokenHelper{}
 }
 
 // NewToken returns a new Jwt tooken
-func (p *JwtTokenProvider) NewToken() interface{} {
+func (p *JwtTokenHelper) NewToken() interface{} {
 	return jwt.New(jwt.SigningMethodHS256)
 }
 
 // GetTokenClaims returns the claims for the given token as a map
-func (p *JwtTokenProvider) GetTokenClaims(token interface{}) map[string]interface{} {
+func (p *JwtTokenHelper) GetTokenClaims(token interface{}) map[string]interface{} {
 	return p.getJwtToken(token).Claims.(jwt.MapClaims)
 }
 
 // SignToken signs the given token
-func (p *JwtTokenProvider) SignToken(token interface{}, secret string) (string, error) {
+func (p *JwtTokenHelper) SignToken(token interface{}, secret string) (string, error) {
 	return p.getJwtToken(token).SignedString([]byte(secret))
 }
 
 // ParseToken parses the string and checks the signing method
-func (p *JwtTokenProvider) ParseToken(tokenString string, secret string) (interface{}, error) {
+func (p *JwtTokenHelper) ParseToken(tokenString string, secret string) (interface{}, error) {
 	return jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
@@ -50,11 +50,11 @@ func (p *JwtTokenProvider) ParseToken(tokenString string, secret string) (interf
 }
 
 // IsTokenValid returns true if the given token is valid
-func (p *JwtTokenProvider) IsTokenValid(token interface{}) bool {
+func (p *JwtTokenHelper) IsTokenValid(token interface{}) bool {
 	return p.getJwtToken(token).Valid
 }
 
-func (p *JwtTokenProvider) getJwtToken(token interface{}) *jwt.Token {
+func (p *JwtTokenHelper) getJwtToken(token interface{}) *jwt.Token {
 	jwtToken, _ := token.(*jwt.Token)
 	return jwtToken
 }

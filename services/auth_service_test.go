@@ -8,7 +8,6 @@ import (
 
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
-	"github.com/AngelVlc/todos/providers"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -257,7 +256,7 @@ func TestAuthServiceParseRefreshToken(t *testing.T) {
 }
 
 func TestAuthServiceJwtProviderIntegration(t *testing.T) {
-	jwtPrv := providers.NewJwtTokenProvider()
+	jwtPrv := NewJwtTokenHelper()
 
 	mockedEg := MockedEnvGetter{}
 	mockedEg.On("Getenv", "JWT_SECRET").Return("jwtSecret")

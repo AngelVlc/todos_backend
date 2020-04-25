@@ -33,8 +33,8 @@ func InitAuthService() services.AuthService {
 	jwtTokenHelper := services.NewJwtTokenHelper()
 	osEnvGetter := services.NewOsEnvGetter()
 	configurationService := services.NewConfigurationService(osEnvGetter)
-	authService := services.NewAuthService(jwtTokenHelper, configurationService)
-	return authService
+	defaultAuthService := services.NewDefaultAuthService(jwtTokenHelper, configurationService)
+	return defaultAuthService
 }
 
 func InitConfigurationService() services.ConfigurationService {
@@ -50,3 +50,5 @@ var EnvGetterSet = wire.NewSet(services.NewOsEnvGetter, wire.Bind(new(services.E
 var TokenProviderSet = wire.NewSet(services.NewJwtTokenHelper, wire.Bind(new(services.TokenHelper), new(*services.JwtTokenHelper)))
 
 var CryptoProviderSet = wire.NewSet(services.NewBcryptHelper, wire.Bind(new(services.CryptoHelper), new(*services.BcryptHelper)))
+
+var AuthServiceSet = wire.NewSet(services.NewDefaultAuthService, wire.Bind(new(services.AuthService), new(*services.DefaultAuthService)))

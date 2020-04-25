@@ -56,7 +56,7 @@ func TestAuthServiceGetTokens(t *testing.T) {
 	mockedEg.On("Getenv", "JWT_SECRET").Return(jwtSecret)
 	cfgSvc := NewConfigurationService(&mockedEg)
 
-	service := NewAuthService(mockedJwtProvider, cfgSvc)
+	service := NewDefaultAuthService(mockedJwtProvider, cfgSvc)
 
 	u := models.User{}
 	token := struct{}{}
@@ -124,7 +124,7 @@ func TestAuthServiceParseToken(t *testing.T) {
 	mockedEg.On("Getenv", "JWT_SECRET").Return(jwtSecret)
 	cfgSvc := NewConfigurationService(&mockedEg)
 
-	service := NewAuthService(mockedJwtProvider, cfgSvc)
+	service := NewDefaultAuthService(mockedJwtProvider, cfgSvc)
 
 	theToken := "theToken"
 
@@ -187,7 +187,7 @@ func TestAuthServiceParseRefreshToken(t *testing.T) {
 	mockedEg.On("Getenv", "JWT_SECRET").Return(jwtSecret)
 	cfgSvc := NewConfigurationService(&mockedEg)
 
-	service := NewAuthService(mockedJwtProvider, cfgSvc)
+	service := NewDefaultAuthService(mockedJwtProvider, cfgSvc)
 
 	theRefreshToken := "theRefreshToken"
 
@@ -244,7 +244,7 @@ func TestAuthServiceJwtProviderIntegration(t *testing.T) {
 	mockedEg.On("Getenv", "JWT_SECRET").Return("jwtSecret")
 	cfgSvc := NewConfigurationService(&mockedEg)
 
-	service := NewAuthService(jwtPrv, cfgSvc)
+	service := NewDefaultAuthService(jwtPrv, cfgSvc)
 
 	u := models.User{
 		Name:    "wadus",

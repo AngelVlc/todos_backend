@@ -16,56 +16,40 @@ func NewUsersService(crypto CryptoHelper, db *gorm.DB) UsersService {
 	return UsersService{crypto, db}
 }
 
-func (s *UsersService) CreateAdminIfNotExists(password string) error {
-	hashedPass, err := s.getPasswordHash(password)
-	if err != nil {
-		return err
+func (s *UsersService) FindUserByName(name string) (*models.User, error) {
+	foundUser := models.User{}
+	err := s.db.Where(models.User{Name: name}).Table("users").First(&foundUser).Error
+
+	if gorm.IsRecordNotFoundError(err) {
+		return nil, nil
 	}
 
-	var user models.User
-	return s.db.Where(models.User{Name: "admin"}).Attrs(models.User{PasswordHash: hashedPass, IsAdmin: true}).FirstOrCreate(&user).Error
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
+	}
+
+	return &foundUser, nil
 }
 
 // CheckIfUserPasswordIsOk returns nil if the password is correct or an error if it isn't
-func (s *UsersService) CheckIfUserPasswordIsOk(userName string, password string) (*models.User, error) {
-	foundUser := s.getUserByUserName(userName)
-
-	if foundUser == nil {
-		return nil, &appErrors.BadRequestError{Msg: "The user does not exist", InternalError: nil}
-	}
-
-	err := s.crypto.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password))
-	if err != nil {
-		return nil, &appErrors.BadRequestError{Msg: "Invalid password", InternalError: nil}
-	}
-
-	return foundUser, nil
+func (s *UsersService) CheckIfUserPasswordIsOk(user *models.User, password string) error {
+	return s.crypto.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 }
 
-// GetUserByID returns a single user from its id
-func (s *UsersService) GetUserByID(id int32) *models.User {
+// FindUserByID returns a single user from its id
+func (s *UsersService) FindUserByID(id int32) (*models.User, error) {
 	foundUser := models.User{}
+	err := s.db.Where(models.User{ID: id}).Table("users").First(&foundUser).Error
 
-	s.db.Where(models.User{ID: id}).First(&foundUser)
-
-	return &foundUser
-}
-
-func (s *UsersService) getPasswordHash(p string) (string, error) {
-	hasshedPass, err := s.crypto.GenerateFromPassword([]byte(p), 10)
-	if err != nil {
-		return "", err
+	if gorm.IsRecordNotFoundError(err) {
+		return nil, nil
 	}
 
-	return string(hasshedPass), nil
-}
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user id", InternalError: err}
+	}
 
-func (s *UsersService) getUserByUserName(userName string) *models.User {
-	foundUser := models.User{}
-
-	s.db.Where(models.User{Name: userName}).First(&foundUser)
-
-	return &foundUser
+	return &foundUser, nil
 }
 
 // AddUser  adds a user
@@ -74,12 +58,12 @@ func (s *UsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 		return -1, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
 	}
 
-	userExists, err := s.existsUser(dto.Name)
+	foundUser, err := s.FindUserByName(dto.Name)
 	if err != nil {
 		return -1, err
 	}
 
-	if userExists {
+	if foundUser != nil {
 		return -1, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
 	}
 
@@ -103,10 +87,11 @@ func (s *UsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	return user.ID, nil
 }
 
-func (s *UsersService) existsUser(userName string) (bool, error) {
-	var foundUsers int32
-	if err := s.db.Where(models.User{Name: userName}).Table("users").Count(&foundUsers).Error; err != nil {
-		return false, &appErrors.UnexpectedError{Msg: "Error checking if user name exists", InternalError: err}
+func (s *UsersService) getPasswordHash(p string) (string, error) {
+	hasshedPass, err := s.crypto.GenerateFromPassword([]byte(p))
+	if err != nil {
+		return "", err
 	}
-	return foundUsers > 0, nil
+
+	return string(hasshedPass), nil
 }

@@ -1,7 +1,7 @@
 package services
 
 import (
-	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -67,15 +67,12 @@ func TestAuthServiceGetTokens(t *testing.T) {
 	t.Run("should return an UnexpectedError if sign token fails", func(t *testing.T) {
 		mockedJwtProvider.On("NewToken").Return(token).Once()
 		mockedJwtProvider.On("GetTokenClaims", token).Return(claims).Once()
-		mockedJwtProvider.On("SignToken", token, jwtSecret).Return("", errors.New("wadus")).Once()
+		mockedJwtProvider.On("SignToken", token, jwtSecret).Return("", fmt.Errorf("wadus")).Once()
 
 		tokens, err := service.GetTokens(&u)
 
 		assert.Nil(t, tokens)
-		assert.NotNil(t, err)
-		unexpectedErr, isUnexpectedErr := err.(*appErrors.UnexpectedError)
-		assert.Equal(t, true, isUnexpectedErr, "should be an unexpected error")
-		assert.Equal(t, "Error creating jwt token", unexpectedErr.Error())
+		appErrors.CheckUnexpectedError(t, err, "Error creating jwt token", "wadus")
 		mockedJwtProvider.AssertExpectations(t)
 	})
 
@@ -85,15 +82,12 @@ func TestAuthServiceGetTokens(t *testing.T) {
 		mockedJwtProvider.On("NewToken").Return(refreshToken).Once()
 		mockedJwtProvider.On("GetTokenClaims", refreshToken).Return(refreshTokenClaims).Once()
 		mockedJwtProvider.On("SignToken", token, jwtSecret).Return("token", nil).Once()
-		mockedJwtProvider.On("SignToken", refreshToken, jwtSecret).Return("", errors.New("wadus")).Once()
+		mockedJwtProvider.On("SignToken", refreshToken, jwtSecret).Return("", fmt.Errorf("wadus")).Once()
 
 		tokens, err := service.GetTokens(&u)
 
 		assert.Nil(t, tokens)
-		assert.NotNil(t, err)
-		unexpectedErr, isUnexpectedErr := err.(*appErrors.UnexpectedError)
-		assert.Equal(t, true, isUnexpectedErr, "should be an unexpected error")
-		assert.Equal(t, "Error creating jwt refresh token", unexpectedErr.Error())
+		appErrors.CheckUnexpectedError(t, err, "Error creating jwt refresh token", "wadus")
 		mockedJwtProvider.AssertExpectations(t)
 	})
 
@@ -135,15 +129,12 @@ func TestAuthServiceParseToken(t *testing.T) {
 	theToken := "theToken"
 
 	t.Run("should return an unathorized error when jwt ParseToken() fails", func(t *testing.T) {
-		mockedJwtProvider.On("ParseToken", theToken, jwtSecret).Return(nil, errors.New("wadus")).Once()
+		mockedJwtProvider.On("ParseToken", theToken, jwtSecret).Return(nil, fmt.Errorf("wadus")).Once()
 
 		jwtInfo, err := service.ParseToken(theToken)
 
 		assert.Nil(t, jwtInfo)
-		assert.NotNil(t, err)
-		unauthErr, isUnauthErr := err.(*appErrors.UnauthorizedError)
-		assert.Equal(t, true, isUnauthErr, "should be an unauthorized error")
-		assert.Equal(t, "Invalid token", unauthErr.Error())
+		appErrors.CheckUnathorizedError(t, err, "Invalid token", "wadus")
 		mockedJwtProvider.AssertExpectations(t)
 	})
 
@@ -156,10 +147,7 @@ func TestAuthServiceParseToken(t *testing.T) {
 		jwtInfo, err := service.ParseToken(theToken)
 
 		assert.Nil(t, jwtInfo)
-		assert.NotNil(t, err)
-		unauthErr, isUnauthErr := err.(*appErrors.UnauthorizedError)
-		assert.Equal(t, true, isUnauthErr, "should be an unauthorized error")
-		assert.Equal(t, "Invalid token", unauthErr.Error())
+		appErrors.CheckUnathorizedError(t, err, "Invalid token", "")
 		mockedJwtProvider.AssertExpectations(t)
 	})
 
@@ -204,15 +192,12 @@ func TestAuthServiceParseRefreshToken(t *testing.T) {
 	theRefreshToken := "theRefreshToken"
 
 	t.Run("should return an unathorized error when jwt ParseToken() fails", func(t *testing.T) {
-		mockedJwtProvider.On("ParseToken", theRefreshToken, jwtSecret).Return(nil, errors.New("wadus")).Once()
+		mockedJwtProvider.On("ParseToken", theRefreshToken, jwtSecret).Return(nil, fmt.Errorf("wadus")).Once()
 
 		jwtInfo, err := service.ParseRefreshToken(theRefreshToken)
 
 		assert.Nil(t, jwtInfo)
-		assert.NotNil(t, err)
-		unauthErr, isUnauthErr := err.(*appErrors.UnauthorizedError)
-		assert.Equal(t, true, isUnauthErr, "should be an unauthorized error")
-		assert.Equal(t, "Invalid refresh token", unauthErr.Error())
+		appErrors.CheckUnathorizedError(t, err, "Invalid refresh token", "wadus")
 		mockedJwtProvider.AssertExpectations(t)
 	})
 
@@ -225,10 +210,7 @@ func TestAuthServiceParseRefreshToken(t *testing.T) {
 		rtInfo, err := service.ParseRefreshToken(theRefreshToken)
 
 		assert.Nil(t, rtInfo)
-		assert.NotNil(t, err)
-		unauthErr, isUnauthErr := err.(*appErrors.UnauthorizedError)
-		assert.Equal(t, true, isUnauthErr, "should be an unauthorized error")
-		assert.Equal(t, "Invalid refresh token", unauthErr.Error())
+		appErrors.CheckUnathorizedError(t, err, "Invalid refresh token", "")
 		mockedJwtProvider.AssertExpectations(t)
 	})
 

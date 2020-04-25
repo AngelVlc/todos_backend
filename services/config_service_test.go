@@ -31,6 +31,8 @@ func TestConfigService(t *testing.T) {
 		res := svc.GetDatasource()
 
 		assert.Equal(t, "user:password@(host:port)/database?charset=utf8&parseTime=True&loc=Local", res)
+
+		mockedEg.AssertExpectations(t)
 	})
 
 	t.Run("GetDataSource() should return the data source from the CLEARDB_DATABASE_URL env vars when it isn't empty", func(t *testing.T) {
@@ -38,6 +40,8 @@ func TestConfigService(t *testing.T) {
 		res := svc.GetDatasource()
 
 		assert.Equal(t, "user:pass@(host:3306)/database?charset=utf8&parseTime=True&loc=Local", res)
+
+		mockedEg.AssertExpectations(t)
 	})
 
 }

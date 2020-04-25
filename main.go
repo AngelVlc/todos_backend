@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/AngelVlc/todos/dtos"
+
 	"github.com/AngelVlc/todos/services"
 	"github.com/AngelVlc/todos/wire"
 	"github.com/jinzhu/gorm"
@@ -23,10 +25,29 @@ func main() {
 
 	usrSvc := wire.InitUsersService(db)
 
-	err = usrSvc.CreateAdminIfNotExists(cfg.GetAdminPassword())
+	foundAdmin, err := usrSvc.FindUserByName("admin")
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	if foundAdmin == nil {
+		adminPass := cfg.GetAdminPassword()
+		dto := dtos.UserDto{
+			Name:               "admin",
+			NewPassword:        adminPass,
+			ConfirmNewPassword: adminPass,
+			IsAdmin:            true,
+		}
+		_, err = usrSvc.AddUser(&dto)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+
+	// err = usrSvc.CreateAdminIfNotExists(cfg.GetAdminPassword())
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
 	countSvc := wire.InitCountersService(db)
 	err = countSvc.CreateCounterIfNotExists("requests")

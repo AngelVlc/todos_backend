@@ -6,7 +6,7 @@ import (
 
 // CryptoHelper is the interface which contains the methods used to use encrypt the passwords
 type CryptoHelper interface {
-	GenerateFromPassword(password []byte, cost int) ([]byte, error)
+	GenerateFromPassword(password []byte) ([]byte, error)
 	CompareHashAndPassword(hashedPassword, password []byte) error
 }
 
@@ -19,8 +19,8 @@ func NewBcryptHelper() *BcryptHelper {
 }
 
 // GenerateFromPassword generates a hashed password
-func (b *BcryptHelper) GenerateFromPassword(password []byte, cost int) ([]byte, error) {
-	return bcrypt.GenerateFromPassword(password, cost)
+func (b *BcryptHelper) GenerateFromPassword(password []byte) ([]byte, error) {
+	return bcrypt.GenerateFromPassword(password, 10)
 }
 
 // CompareHashAndPassword checks if the given hashed password and the password matches

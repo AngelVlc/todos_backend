@@ -14,6 +14,7 @@ func AddUserHandler(r *http.Request, db *gorm.DB) HandlerResult {
 	if err != nil {
 		return errorResult{err}
 	}
+
 	userSrv := wire.InitUsersService(db)
 	id, err := userSrv.AddUser(&dto)
 	if err != nil {

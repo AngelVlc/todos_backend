@@ -18,9 +18,19 @@ func TokenHandler(r *http.Request, db *gorm.DB) HandlerResult {
 	}
 
 	userSrv := wire.InitUsersService(db)
-	foundUser, err := userSrv.CheckIfUserPasswordIsOk(l.UserName, l.Password)
+
+	foundUser, err := userSrv.FindUserByName(l.UserName)
 	if err != nil {
 		return errorResult{err}
+	}
+
+	if foundUser == nil {
+		return errorResult{&appErrors.BadRequestError{Msg: "The user does not exist", InternalError: nil}}
+	}
+
+	err = userSrv.CheckIfUserPasswordIsOk(foundUser, l.Password)
+	if err != nil {
+		return errorResult{&appErrors.BadRequestError{Msg: "Invalid password", InternalError: err}}
 	}
 
 	authSrv := wire.InitAuthService()
@@ -48,7 +58,11 @@ func RefreshTokenHandler(r *http.Request, db *gorm.DB) HandlerResult {
 
 	userSrv := wire.InitUsersService(db)
 
-	foundUser := userSrv.GetUserByID(rtInfo.UserID)
+	foundUser, err := userSrv.FindUserByID(rtInfo.UserID)
+	if err != nil {
+		return errorResult{err}
+	}
+
 	if foundUser == nil {
 		return errorResult{&appErrors.BadRequestError{Msg: "The user is no longer valid", InternalError: nil}}
 	}

@@ -44,11 +44,6 @@ func main() {
 		}
 	}
 
-	// err = usrSvc.CreateAdminIfNotExists(cfg.GetAdminPassword())
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	countSvc := wire.InitCountersService(db)
 	err = countSvc.CreateCounterIfNotExists("requests")
 	if err != nil {

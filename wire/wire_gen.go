@@ -14,7 +14,8 @@ import (
 // Injectors from wire.go:
 
 func InitUsersService(db *gorm.DB) services.UsersService {
-	usersService := services.NewUsersService(db)
+	bcryptHelper := services.NewBcryptHelper()
+	usersService := services.NewUsersService(bcryptHelper, db)
 	return usersService
 }
 
@@ -44,6 +45,8 @@ func InitConfigurationService() services.ConfigurationService {
 
 // wire.go:
 
-var ConfigurationServiceSet = wire.NewSet(services.NewOsEnvGetter, wire.Bind(new(services.EnvGetter), new(*services.OsEnvGetter)), services.NewConfigurationService)
+var EnvGetterSet = wire.NewSet(services.NewOsEnvGetter, wire.Bind(new(services.EnvGetter), new(*services.OsEnvGetter)))
 
 var TokenProviderSet = wire.NewSet(services.NewJwtTokenHelper, wire.Bind(new(services.TokenHelper), new(*services.JwtTokenHelper)))
+
+var CryptoProviderSet = wire.NewSet(services.NewBcryptHelper, wire.Bind(new(services.CryptoHelper), new(*services.BcryptHelper)))

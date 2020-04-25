@@ -5,15 +5,15 @@ import (
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/jinzhu/gorm"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UsersService struct {
-	db *gorm.DB
+	crypto CryptoHelper
+	db     *gorm.DB
 }
 
-func NewUsersService(db *gorm.DB) UsersService {
-	return UsersService{db}
+func NewUsersService(crypto CryptoHelper, db *gorm.DB) UsersService {
+	return UsersService{crypto, db}
 }
 
 func (s *UsersService) CreateAdminIfNotExists(password string) error {
@@ -23,9 +23,7 @@ func (s *UsersService) CreateAdminIfNotExists(password string) error {
 	}
 
 	var user models.User
-	s.db.Where(models.User{Name: "admin"}).Attrs(models.User{PasswordHash: hashedPass, IsAdmin: true}).FirstOrCreate(&user)
-
-	return nil
+	return s.db.Where(models.User{Name: "admin"}).Attrs(models.User{PasswordHash: hashedPass, IsAdmin: true}).FirstOrCreate(&user).Error
 }
 
 // CheckIfUserPasswordIsOk returns nil if the password is correct or an error if it isn't
@@ -36,7 +34,7 @@ func (s *UsersService) CheckIfUserPasswordIsOk(userName string, password string)
 		return nil, &appErrors.BadRequestError{Msg: "The user does not exist", InternalError: nil}
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password))
+	err := s.crypto.CompareHashAndPassword([]byte(foundUser.PasswordHash), []byte(password))
 	if err != nil {
 		return nil, &appErrors.BadRequestError{Msg: "Invalid password", InternalError: nil}
 	}
@@ -54,7 +52,7 @@ func (s *UsersService) GetUserByID(id int32) *models.User {
 }
 
 func (s *UsersService) getPasswordHash(p string) (string, error) {
-	hasshedPass, err := bcrypt.GenerateFromPassword([]byte(p), 10)
+	hasshedPass, err := s.crypto.GenerateFromPassword([]byte(p), 10)
 	if err != nil {
 		return "", err
 	}

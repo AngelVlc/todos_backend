@@ -16,9 +16,7 @@ import (
 // Handler is the type used to handle the endpoints
 type Handler struct {
 	HandlerFunc
-	Db           *gorm.DB
-	RequireAuth  bool
-	RequireAdmin bool
+	Db *gorm.DB
 }
 
 type HandlerResult interface {

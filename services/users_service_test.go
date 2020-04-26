@@ -42,7 +42,7 @@ func TestUsersService(t *testing.T) {
 
 	mockedCh := MockedCryptoHelper{}
 
-	svc := NewUsersService(&mockedCh, db)
+	svc := NewDefaultUsersService(&mockedCh, db)
 
 	t.Run("FindUserByName() should not return a user if it does not exist", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`name` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).

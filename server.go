@@ -52,8 +52,5 @@ func newServer(db *gorm.DB) *server {
 }
 
 func (s *server) getHandler(handlerFunc handlers.HandlerFunc) handlers.Handler {
-	return handlers.Handler{
-		HandlerFunc: handlerFunc,
-		Db:          s.db,
-	}
+	return handlers.NewHandler(handlerFunc, s.db)
 }

@@ -23,6 +23,13 @@ type HandlerResult interface {
 	IsError() bool
 }
 
+func NewHandler(f HandlerFunc, db *gorm.DB) Handler {
+	return Handler{
+		HandlerFunc: f,
+		Db:          db,
+	}
+}
+
 type errorResult struct {
 	err error
 }

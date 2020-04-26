@@ -5,18 +5,62 @@ import (
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/jinzhu/gorm"
+	"github.com/stretchr/testify/mock"
 )
 
-type UsersService struct {
+type UsersService interface {
+	FindUserByName(name string) (*models.User, error)
+	CheckIfUserPasswordIsOk(user *models.User, password string) error
+	FindUserByID(id int32) (*models.User, error)
+	AddUser(dto *dtos.UserDto) (int32, error)
+}
+
+type MockedUsersService struct {
+	mock.Mock
+}
+
+func NewMockedUsersService() *MockedUsersService {
+	return &MockedUsersService{}
+}
+
+func (m *MockedUsersService) FindUserByName(name string) (*models.User, error) {
+	args := m.Called(name)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *MockedUsersService) CheckIfUserPasswordIsOk(user *models.User, password string) error {
+	args := m.Called(user, password)
+	return args.Error(0)
+}
+
+func (m *MockedUsersService) FindUserByID(id int32) (*models.User, error) {
+	args := m.Called(id)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *MockedUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
+	args := m.Called(dto)
+	return args.Get(0).(int32), args.Error(1)
+}
+
+type DefaultUsersService struct {
 	crypto CryptoHelper
 	db     *gorm.DB
 }
 
-func NewUsersService(crypto CryptoHelper, db *gorm.DB) UsersService {
-	return UsersService{crypto, db}
+func NewDefaultUsersService(crypto CryptoHelper, db *gorm.DB) *DefaultUsersService {
+	return &DefaultUsersService{crypto, db}
 }
 
-func (s *UsersService) FindUserByName(name string) (*models.User, error) {
+func (s *DefaultUsersService) FindUserByName(name string) (*models.User, error) {
 	foundUser := models.User{}
 	err := s.db.Where(models.User{Name: name}).Table("users").First(&foundUser).Error
 
@@ -32,12 +76,12 @@ func (s *UsersService) FindUserByName(name string) (*models.User, error) {
 }
 
 // CheckIfUserPasswordIsOk returns nil if the password is correct or an error if it isn't
-func (s *UsersService) CheckIfUserPasswordIsOk(user *models.User, password string) error {
+func (s *DefaultUsersService) CheckIfUserPasswordIsOk(user *models.User, password string) error {
 	return s.crypto.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 }
 
 // FindUserByID returns a single user from its id
-func (s *UsersService) FindUserByID(id int32) (*models.User, error) {
+func (s *DefaultUsersService) FindUserByID(id int32) (*models.User, error) {
 	foundUser := models.User{}
 	err := s.db.Where(models.User{ID: id}).Table("users").First(&foundUser).Error
 
@@ -53,7 +97,7 @@ func (s *UsersService) FindUserByID(id int32) (*models.User, error) {
 }
 
 // AddUser  adds a user
-func (s *UsersService) AddUser(dto *dtos.UserDto) (int32, error) {
+func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	if dto.NewPassword != dto.ConfirmNewPassword {
 		return -1, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
 	}
@@ -87,7 +131,7 @@ func (s *UsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	return user.ID, nil
 }
 
-func (s *UsersService) getPasswordHash(p string) (string, error) {
+func (s *DefaultUsersService) getPasswordHash(p string) (string, error) {
 	hasshedPass, err := s.crypto.GenerateFromPassword([]byte(p))
 	if err != nil {
 		return "", err

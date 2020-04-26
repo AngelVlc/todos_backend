@@ -14,12 +14,6 @@ import (
 
 // Injectors from wire.go:
 
-func InitUsersService(db *gorm.DB) services.UsersService {
-	bcryptHelper := services.NewBcryptHelper()
-	usersService := services.NewUsersService(bcryptHelper, db)
-	return usersService
-}
-
 func InitCountersService(db *gorm.DB) services.CountersService {
 	countersService := services.NewCountersService(db)
 	return countersService
@@ -43,6 +37,17 @@ func initMockedAuthService() services.AuthService {
 	return mockedAuthService
 }
 
+func initDefaultUsersService(db *gorm.DB) services.UsersService {
+	bcryptHelper := services.NewBcryptHelper()
+	defaultUsersService := services.NewDefaultUsersService(bcryptHelper, db)
+	return defaultUsersService
+}
+
+func initMockedUsersService(db *gorm.DB) services.UsersService {
+	mockedUsersService := services.NewMockedUsersService()
+	return mockedUsersService
+}
+
 func InitConfigurationService() services.ConfigurationService {
 	osEnvGetter := services.NewOsEnvGetter()
 	defaultConfigurationService := services.NewDefaultConfigurationService(osEnvGetter)
@@ -52,11 +57,23 @@ func InitConfigurationService() services.ConfigurationService {
 // wire.go:
 
 func InitAuthService() services.AuthService {
-	if len(os.Getenv("TESTING")) > 0 {
+	if inTestingMode() {
 		return initMockedAuthService()
 	} else {
 		return initDefaultAuthService()
 	}
+}
+
+func InitUsersService(db *gorm.DB) services.UsersService {
+	if inTestingMode() {
+		return initMockedUsersService(db)
+	} else {
+		return initDefaultUsersService(db)
+	}
+}
+
+func inTestingMode() bool {
+	return len(os.Getenv("TESTING")) > 0
 }
 
 var EnvGetterSet = wire.NewSet(services.NewOsEnvGetter, wire.Bind(new(services.EnvGetter), new(*services.OsEnvGetter)))
@@ -75,3 +92,7 @@ var MockedConfigurationServiceSet = wire.NewSet(services.NewMockedConfigurationS
 var AuthServiceSet = wire.NewSet(services.NewDefaultAuthService, wire.Bind(new(services.AuthService), new(*services.DefaultAuthService)))
 
 var MockedAuthServiceSet = wire.NewSet(services.NewMockedAuthService, wire.Bind(new(services.AuthService), new(*services.MockedAuthService)))
+
+var UsersServiceSet = wire.NewSet(services.NewDefaultUsersService, wire.Bind(new(services.UsersService), new(*services.DefaultUsersService)))
+
+var MockedUsersServiceSet = wire.NewSet(services.NewMockedUsersService, wire.Bind(new(services.UsersService), new(*services.MockedUsersService)))

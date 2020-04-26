@@ -10,12 +10,6 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func InitUsersService(db *gorm.DB) services.UsersService {
-	wire.Build(CryptoHelperSet, services.NewUsersService)
-
-	return services.UsersService{}
-}
-
 func InitCountersService(db *gorm.DB) services.CountersService {
 	wire.Build(services.NewCountersService)
 
@@ -29,7 +23,7 @@ func InitListsService(db *gorm.DB) services.ListsService {
 }
 
 func InitAuthService() services.AuthService {
-	if len(os.Getenv("TESTING")) > 0 {
+	if inTestingMode() {
 		return initMockedAuthService()
 	} else {
 		return initDefaultAuthService()
@@ -46,9 +40,31 @@ func initMockedAuthService() services.AuthService {
 	return nil
 }
 
+func InitUsersService(db *gorm.DB) services.UsersService {
+	if inTestingMode() {
+		return initMockedUsersService(db)
+	} else {
+		return initDefaultUsersService(db)
+	}
+}
+
+func initDefaultUsersService(db *gorm.DB) services.UsersService {
+	wire.Build(CryptoHelperSet, UsersServiceSet)
+	return nil
+}
+
+func initMockedUsersService(db *gorm.DB) services.UsersService {
+	wire.Build(MockedUsersServiceSet)
+	return nil
+}
+
 func InitConfigurationService() services.ConfigurationService {
 	wire.Build(ConfigurationServiceSet)
 	return nil
+}
+
+func inTestingMode() bool {
+	return len(os.Getenv("TESTING")) > 0
 }
 
 var EnvGetterSet = wire.NewSet(
@@ -83,3 +99,11 @@ var AuthServiceSet = wire.NewSet(
 var MockedAuthServiceSet = wire.NewSet(
 	services.NewMockedAuthService,
 	wire.Bind(new(services.AuthService), new(*services.MockedAuthService)))
+
+var UsersServiceSet = wire.NewSet(
+	services.NewDefaultUsersService,
+	wire.Bind(new(services.UsersService), new(*services.DefaultUsersService)))
+
+var MockedUsersServiceSet = wire.NewSet(
+	services.NewMockedUsersService,
+	wire.Bind(new(services.UsersService), new(*services.MockedUsersService)))

@@ -41,10 +41,10 @@ func (r okResult) IsError() bool {
 }
 
 // HandlerFunc is the type for the handler functions
-type HandlerFunc func(*http.Request, *gorm.DB) HandlerResult
+type HandlerFunc func(*http.Request, Handler) HandlerResult
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	res := h.HandlerFunc(r, h.Db)
+	res := h.HandlerFunc(r, h)
 
 	if res.IsError() {
 		errorRes, _ := res.(errorResult)

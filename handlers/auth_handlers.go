@@ -7,17 +7,16 @@ import (
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/wire"
-	"github.com/jinzhu/gorm"
 )
 
 // TokenHandler is the handler for the auth/token endpoint
-func TokenHandler(r *http.Request, db *gorm.DB) HandlerResult {
+func TokenHandler(r *http.Request, h Handler) HandlerResult {
 	l, err := parseTokenBody(r)
 	if err != nil {
 		return errorResult{err}
 	}
 
-	userSrv := wire.InitUsersService(db)
+	userSrv := wire.InitUsersService(h.Db)
 
 	foundUser, err := userSrv.FindUserByName(l.UserName)
 	if err != nil {
@@ -44,7 +43,7 @@ func TokenHandler(r *http.Request, db *gorm.DB) HandlerResult {
 }
 
 // RefreshTokenHandler is the handler for the auth/refreshtoken endpoint
-func RefreshTokenHandler(r *http.Request, db *gorm.DB) HandlerResult {
+func RefreshTokenHandler(r *http.Request, h Handler) HandlerResult {
 	rt, err := parseRefreshTokenBody(r)
 	if err != nil {
 		return errorResult{err}
@@ -56,7 +55,7 @@ func RefreshTokenHandler(r *http.Request, db *gorm.DB) HandlerResult {
 		return errorResult{err}
 	}
 
-	userSrv := wire.InitUsersService(db)
+	userSrv := wire.InitUsersService(h.Db)
 
 	foundUser, err := userSrv.FindUserByID(rtInfo.UserID)
 	if err != nil {

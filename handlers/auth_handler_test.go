@@ -12,7 +12,7 @@ func TestTokenHandler(t *testing.T) {
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
 
-		result := TokenHandler(request, nil)
+		result := TokenHandler(request, Handler{})
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -27,7 +27,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, nil)
+		result := TokenHandler(request, Handler{})
 
 		CheckBadRequestErrorResult(t, result, "UserName is mandatory")
 	})
@@ -42,7 +42,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, nil)
+		result := TokenHandler(request, Handler{})
 
 		CheckBadRequestErrorResult(t, result, "Password is mandatory")
 	})

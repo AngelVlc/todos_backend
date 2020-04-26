@@ -5,17 +5,16 @@ import (
 
 	"github.com/AngelVlc/todos/dtos"
 	"github.com/AngelVlc/todos/wire"
-	"github.com/jinzhu/gorm"
 )
 
-func AddUserHandler(r *http.Request, db *gorm.DB) HandlerResult {
+func AddUserHandler(r *http.Request, h Handler) HandlerResult {
 	var dto dtos.UserDto
 	err := parseBody(r, &dto)
 	if err != nil {
 		return errorResult{err}
 	}
 
-	userSrv := wire.InitUsersService(db)
+	userSrv := wire.InitUsersService(h.Db)
 	id, err := userSrv.AddUser(&dto)
 	if err != nil {
 		return errorResult{err}

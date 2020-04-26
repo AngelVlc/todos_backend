@@ -6,13 +6,12 @@ import (
 	"github.com/AngelVlc/todos/dtos"
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/wire"
-	"github.com/jinzhu/gorm"
 )
 
-func GetUserLists(r *http.Request, db *gorm.DB) HandlerResult {
+func GetUserLists(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
-	listSrv := wire.InitListsService(db)
+	listSrv := wire.InitListsService(h.Db)
 	res := []dtos.GetListsResultDto{}
 	err := listSrv.GetUserLists(userID, &res)
 	if err != nil {
@@ -21,7 +20,7 @@ func GetUserLists(r *http.Request, db *gorm.DB) HandlerResult {
 	return okResult{res, http.StatusOK}
 }
 
-func GetUserSingleList(r *http.Request, db *gorm.DB) HandlerResult {
+func GetUserSingleList(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	listID, err := parseInt32UrlVar(r, "id")
@@ -29,7 +28,7 @@ func GetUserSingleList(r *http.Request, db *gorm.DB) HandlerResult {
 		return errorResult{err}
 	}
 
-	listSrv := wire.InitListsService(db)
+	listSrv := wire.InitListsService(h.Db)
 
 	l := dtos.GetSingleListResultDto{}
 	err = listSrv.GetSingleUserList(listID, userID, &l)
@@ -39,7 +38,7 @@ func GetUserSingleList(r *http.Request, db *gorm.DB) HandlerResult {
 	return okResult{l, http.StatusOK}
 }
 
-func AddUserList(r *http.Request, db *gorm.DB) HandlerResult {
+func AddUserList(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	l, err := parseListBody(r)
@@ -47,7 +46,7 @@ func AddUserList(r *http.Request, db *gorm.DB) HandlerResult {
 		return errorResult{err}
 	}
 
-	listSrv := wire.InitListsService(db)
+	listSrv := wire.InitListsService(h.Db)
 
 	id, err := listSrv.AddUserList(userID, l)
 	if err != nil {
@@ -56,7 +55,7 @@ func AddUserList(r *http.Request, db *gorm.DB) HandlerResult {
 	return okResult{id, http.StatusCreated}
 }
 
-func UpdateUserList(r *http.Request, db *gorm.DB) HandlerResult {
+func UpdateUserList(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	listID, err := parseInt32UrlVar(r, "id")
@@ -69,7 +68,7 @@ func UpdateUserList(r *http.Request, db *gorm.DB) HandlerResult {
 		return errorResult{err}
 	}
 
-	listSrv := wire.InitListsService(db)
+	listSrv := wire.InitListsService(h.Db)
 	err = listSrv.UpdateUserList(listID, userID, l)
 	if err != nil {
 		return errorResult{err}
@@ -77,7 +76,7 @@ func UpdateUserList(r *http.Request, db *gorm.DB) HandlerResult {
 	return okResult{l, http.StatusOK}
 }
 
-func DeleteUserList(r *http.Request, db *gorm.DB) HandlerResult {
+func DeleteUserList(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	listID, err := parseInt32UrlVar(r, "id")
@@ -85,7 +84,7 @@ func DeleteUserList(r *http.Request, db *gorm.DB) HandlerResult {
 		return errorResult{err}
 	}
 
-	listSrv := wire.InitListsService(db)
+	listSrv := wire.InitListsService(h.Db)
 	err = listSrv.RemoveUserList(listID, userID)
 	if err != nil {
 		return errorResult{err}

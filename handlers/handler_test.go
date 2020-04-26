@@ -8,13 +8,12 @@ import (
 	"testing"
 
 	appErrors "github.com/AngelVlc/todos/errors"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler(t *testing.T) {
 	t.Run("Returns 200 when no error", func(t *testing.T) {
-		f := func(r *http.Request, db *gorm.DB) HandlerResult {
+		f := func(r *http.Request, h Handler) HandlerResult {
 			return okResult{nil, http.StatusOK}
 		}
 
@@ -31,7 +30,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("Returns 200 with content when no error", func(t *testing.T) {
-		f := func(r *http.Request, db *gorm.DB) HandlerResult {
+		f := func(r *http.Request, h Handler) HandlerResult {
 			obj := struct {
 				Field1 string
 				Field2 string
@@ -58,7 +57,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("Returns 500 when an unexpected error happens", func(t *testing.T) {
-		f := func(r *http.Request, db *gorm.DB) HandlerResult {
+		f := func(r *http.Request, h Handler) HandlerResult {
 			return errorResult{&appErrors.UnexpectedError{Msg: "error", InternalError: errors.New("msg")}}
 		}
 
@@ -76,7 +75,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("Returns 404 when a not found error happens", func(t *testing.T) {
-		f := func(r *http.Request, db *gorm.DB) HandlerResult {
+		f := func(r *http.Request, h Handler) HandlerResult {
 			return errorResult{&appErrors.NotFoundError{Model: "model"}}
 		}
 
@@ -94,7 +93,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("Returns 400 when a bad request error happens", func(t *testing.T) {
-		f := func(r *http.Request, db *gorm.DB) HandlerResult {
+		f := func(r *http.Request, h Handler) HandlerResult {
 			return errorResult{&appErrors.BadRequestError{Msg: fmt.Sprintf("%q is not a valid id", "id")}}
 		}
 
@@ -112,7 +111,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("Returns 401 when an unauthorized error happens", func(t *testing.T) {
-		f := func(r *http.Request, db *gorm.DB) HandlerResult {
+		f := func(r *http.Request, h Handler) HandlerResult {
 			return errorResult{&appErrors.UnauthorizedError{Msg: "wadus"}}
 		}
 
@@ -130,7 +129,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("Returns 500 when an unhandled error happens", func(t *testing.T) {
-		f := func(r *http.Request, db *gorm.DB) HandlerResult {
+		f := func(r *http.Request, h Handler) HandlerResult {
 			return errorResult{errors.New("wadus")}
 		}
 

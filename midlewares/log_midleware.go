@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/consts"
-	"github.com/AngelVlc/todos/controllers"
+	"github.com/AngelVlc/todos/handlers"
 )
 
 type LogMiddleware struct {
@@ -17,7 +17,7 @@ func NewLogMiddleware() LogMiddleware {
 
 func (m *LogMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestID := controllers.GetRequestIDFromContext(r)
+		requestID := handlers.GetRequestIDFromContext(r)
 		userName := m.getUserNameFromContext(r)
 		if len(userName) > 0 {
 			log.Printf("[%v] %v %q", requestID, r.Method, r.URL)

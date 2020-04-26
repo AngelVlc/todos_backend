@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/AngelVlc/todos/consts"
-	"github.com/AngelVlc/todos/controllers"
+	"github.com/AngelVlc/todos/handlers"
 	"github.com/AngelVlc/todos/wire"
 	"github.com/jinzhu/gorm"
 )
@@ -27,7 +27,7 @@ func (m *RequestCounterMiddleware) Middleware(next http.Handler) http.Handler {
 		v, err := s.IncrementCounter("requests")
 		if err != nil {
 			log.Printf("[] %v %q", r.Method, r.URL)
-			controllers.WriteErrorResponse(r, w, http.StatusInternalServerError, "Error incrementing requests counter", err)
+			handlers.WriteErrorResponse(r, w, http.StatusInternalServerError, "Error incrementing requests counter", err)
 			return
 		}
 

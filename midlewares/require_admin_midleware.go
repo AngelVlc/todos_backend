@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/consts"
-	"github.com/AngelVlc/todos/controllers"
+	"github.com/AngelVlc/todos/handlers"
 )
 
 type RequireAdminMiddleware struct {
@@ -17,7 +17,7 @@ func NewRequireAdminMiddleware() RequireAdminMiddleware {
 func (m *RequireAdminMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !m.getUserIsAdminFromContext(r) {
-			controllers.WriteErrorResponse(r, w, http.StatusForbidden, "Access forbidden", nil)
+			handlers.WriteErrorResponse(r, w, http.StatusForbidden, "Access forbidden", nil)
 			return
 		}
 		next.ServeHTTP(w, r)

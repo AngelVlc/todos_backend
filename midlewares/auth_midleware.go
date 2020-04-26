@@ -6,8 +6,8 @@ import (
 	"strings"
 
 	"github.com/AngelVlc/todos/consts"
-	"github.com/AngelVlc/todos/controllers"
 	appErrors "github.com/AngelVlc/todos/errors"
+	"github.com/AngelVlc/todos/handlers"
 	"github.com/AngelVlc/todos/services"
 	"github.com/AngelVlc/todos/wire"
 )
@@ -24,13 +24,13 @@ func (m *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := m.getAuthToken(r)
 		if err != nil {
-			controllers.WriteErrorResponse(r, w, http.StatusUnauthorized, err.Error(), nil)
+			handlers.WriteErrorResponse(r, w, http.StatusUnauthorized, err.Error(), nil)
 			return
 		}
 
 		jwtInfo, err := m.auth.ParseToken(token)
 		if err != nil {
-			controllers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
+			handlers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
 			return
 		}
 

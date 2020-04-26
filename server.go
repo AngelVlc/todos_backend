@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos/controllers"
+	"github.com/AngelVlc/todos/handlers"
 	"github.com/AngelVlc/todos/midlewares"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -27,21 +27,21 @@ func newServer(db *gorm.DB) *server {
 	requireAdminMdw := midlewares.NewRequireAdminMiddleware()
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
-	listsSubRouter.Handle("", s.getHandler(controllers.GetUserLists)).Methods(http.MethodGet)
-	listsSubRouter.Handle("", s.getHandler(controllers.AddUserList)).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{id}", s.getHandler(controllers.GetUserSingleList)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{id}", s.getHandler(controllers.DeleteUserList)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{id}", s.getHandler(controllers.UpdateUserList)).Methods(http.MethodPut)
+	listsSubRouter.Handle("", s.getHandler(handlers.GetUserLists)).Methods(http.MethodGet)
+	listsSubRouter.Handle("", s.getHandler(handlers.AddUserList)).Methods(http.MethodPost)
+	listsSubRouter.Handle("/{id}", s.getHandler(handlers.GetUserSingleList)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{id}", s.getHandler(handlers.DeleteUserList)).Methods(http.MethodDelete)
+	listsSubRouter.Handle("/{id}", s.getHandler(handlers.UpdateUserList)).Methods(http.MethodPut)
 	listsSubRouter.Use(authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
-	usersSubRouter.Handle("", s.getHandler(controllers.AddUserHandler)).Methods(http.MethodPost)
+	usersSubRouter.Handle("", s.getHandler(handlers.AddUserHandler)).Methods(http.MethodPost)
 	usersSubRouter.Use(authMdw.Middleware)
 	usersSubRouter.Use(requireAdminMdw.Middleware)
 
 	authSubRouter := router.PathPrefix("/auth").Subrouter()
-	authSubRouter.Handle("/token", s.getHandler(controllers.TokenHandler)).Methods(http.MethodPost)
-	authSubRouter.Handle("/refreshtoken", s.getHandler(controllers.RefreshTokenHandler)).Methods(http.MethodPost)
+	authSubRouter.Handle("/token", s.getHandler(handlers.TokenHandler)).Methods(http.MethodPost)
+	authSubRouter.Handle("/refreshtoken", s.getHandler(handlers.RefreshTokenHandler)).Methods(http.MethodPost)
 
 	logMdw := midlewares.NewLogMiddleware()
 	router.Use(logMdw.Middleware)
@@ -51,8 +51,8 @@ func newServer(db *gorm.DB) *server {
 	return s
 }
 
-func (s *server) getHandler(handlerFunc controllers.HandlerFunc) controllers.Handler {
-	return controllers.Handler{
+func (s *server) getHandler(handlerFunc handlers.HandlerFunc) handlers.Handler {
+	return handlers.Handler{
 		HandlerFunc: handlerFunc,
 		Db:          s.db,
 	}

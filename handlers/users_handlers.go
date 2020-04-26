@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/dtos"
-	"github.com/AngelVlc/todos/wire"
 )
 
 func AddUserHandler(r *http.Request, h Handler) HandlerResult {
@@ -14,8 +13,7 @@ func AddUserHandler(r *http.Request, h Handler) HandlerResult {
 		return errorResult{err}
 	}
 
-	userSrv := wire.InitUsersService(h.Db)
-	id, err := userSrv.AddUser(&dto)
+	id, err := h.usersSrv.AddUser(&dto)
 	if err != nil {
 		return errorResult{err}
 	}

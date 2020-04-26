@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/stretchr/testify/mock"
 )
 
 type TokenHelper interface {
@@ -12,6 +13,46 @@ type TokenHelper interface {
 	SignToken(token interface{}, secret string) (string, error)
 	ParseToken(tokenString string, secret string) (interface{}, error)
 	IsTokenValid(token interface{}) bool
+}
+
+type MockedTokenHelper struct {
+	mock.Mock
+}
+
+func NewMockedTokenHelper() *MockedTokenHelper {
+	return &MockedTokenHelper{}
+}
+
+func (m *MockedTokenHelper) NewToken() interface{} {
+	args := m.Called()
+	return args.Get(0).(interface{})
+}
+
+func (m *MockedTokenHelper) GetTokenClaims(token interface{}) map[string]interface{} {
+	args := m.Called(token)
+	return args.Get(0).(map[string]interface{})
+}
+
+func (m *MockedTokenHelper) SignToken(token interface{}, secret string) (string, error) {
+	args := m.Called(token, secret)
+	return args.String(0), args.Error(1)
+}
+
+func (m *MockedTokenHelper) ParseToken(tokenString string, secret string) (interface{}, error) {
+	args := m.Called(tokenString, secret)
+
+	got := args.Get(0)
+
+	if got == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(interface{}), args.Error(1)
+}
+
+func (m *MockedTokenHelper) IsTokenValid(token interface{}) bool {
+	args := m.Called(token)
+	return args.Bool(0)
 }
 
 // JwtTokenHelper is the type used as JwtTokenHelper

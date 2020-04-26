@@ -4,21 +4,11 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
-
-type MockedEnvGetter struct {
-	mock.Mock
-}
-
-func (m *MockedEnvGetter) Getenv(key string) string {
-	args := m.Called(key)
-	return args.String(0)
-}
 
 func TestConfigService(t *testing.T) {
 	mockedEg := MockedEnvGetter{}
-	svc := NewConfigurationService(&mockedEg)
+	svc := NewDefaultConfigurationService(&mockedEg)
 
 	mockedEg.On("Getenv", "MYSQL_HOST").Return("host")
 	mockedEg.On("Getenv", "MYSQL_PORT").Return("port")

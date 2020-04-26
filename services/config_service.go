@@ -3,17 +3,54 @@ package services
 import (
 	"fmt"
 	"strings"
+
+	"github.com/stretchr/testify/mock"
 )
 
-type ConfigurationService struct {
+type ConfigurationService interface {
+	GetDatasource() string
+	GetAdminPassword() string
+	GetPort() string
+	GetJwtSecret() string
+}
+
+type MockedConfigurationService struct {
+	mock.Mock
+}
+
+func NewMockedConfigurationService() *MockedConfigurationService {
+	return &MockedConfigurationService{}
+}
+
+func (m *MockedConfigurationService) GetDatasource() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *MockedConfigurationService) GetAdminPassword() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *MockedConfigurationService) GetPort() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *MockedConfigurationService) GetJwtSecret() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+type DefaultConfigurationService struct {
 	eg EnvGetter
 }
 
-func NewConfigurationService(eg EnvGetter) ConfigurationService {
-	return ConfigurationService{eg}
+func NewDefaultConfigurationService(eg EnvGetter) *DefaultConfigurationService {
+	return &DefaultConfigurationService{eg}
 }
 
-func (c *ConfigurationService) GetDatasource() string {
+func (c *DefaultConfigurationService) GetDatasource() string {
 	host := c.eg.Getenv("MYSQL_HOST")
 	port := c.eg.Getenv("MYSQL_PORT")
 	user := c.eg.Getenv("MYSQL_USER")
@@ -37,14 +74,14 @@ func (c *ConfigurationService) GetDatasource() string {
 	return fmt.Sprintf("%v:%v@(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, dbname)
 }
 
-func (c *ConfigurationService) GetAdminPassword() string {
+func (c *DefaultConfigurationService) GetAdminPassword() string {
 	return c.eg.Getenv("ADMIN_PASSWORD")
 }
 
-func (c *ConfigurationService) GetPort() string {
+func (c *DefaultConfigurationService) GetPort() string {
 	return c.eg.Getenv("PORT")
 }
 
-func (c *ConfigurationService) GetJwtSecret() string {
+func (c *DefaultConfigurationService) GetJwtSecret() string {
 	return c.eg.Getenv("JWT_SECRET")
 }

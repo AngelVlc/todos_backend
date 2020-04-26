@@ -9,6 +9,7 @@ import (
 	"github.com/AngelVlc/todos/services"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
+	"os"
 )
 
 // Injectors from wire.go:
@@ -29,26 +30,48 @@ func InitListsService(db *gorm.DB) services.ListsService {
 	return listsService
 }
 
-func InitAuthService() services.AuthService {
+func initDefaultAuthService() services.AuthService {
 	jwtTokenHelper := services.NewJwtTokenHelper()
 	osEnvGetter := services.NewOsEnvGetter()
-	configurationService := services.NewConfigurationService(osEnvGetter)
-	defaultAuthService := services.NewDefaultAuthService(jwtTokenHelper, configurationService)
+	defaultConfigurationService := services.NewDefaultConfigurationService(osEnvGetter)
+	defaultAuthService := services.NewDefaultAuthService(jwtTokenHelper, defaultConfigurationService)
 	return defaultAuthService
+}
+
+func initMockedAuthService() services.AuthService {
+	mockedAuthService := services.NewMockedAuthService()
+	return mockedAuthService
 }
 
 func InitConfigurationService() services.ConfigurationService {
 	osEnvGetter := services.NewOsEnvGetter()
-	configurationService := services.NewConfigurationService(osEnvGetter)
-	return configurationService
+	defaultConfigurationService := services.NewDefaultConfigurationService(osEnvGetter)
+	return defaultConfigurationService
 }
 
 // wire.go:
 
+func InitAuthService() services.AuthService {
+	if len(os.Getenv("TESTING")) > 0 {
+		return initMockedAuthService()
+	} else {
+		return initDefaultAuthService()
+	}
+}
+
 var EnvGetterSet = wire.NewSet(services.NewOsEnvGetter, wire.Bind(new(services.EnvGetter), new(*services.OsEnvGetter)))
 
-var TokenProviderSet = wire.NewSet(services.NewJwtTokenHelper, wire.Bind(new(services.TokenHelper), new(*services.JwtTokenHelper)))
+var TokenHelperSet = wire.NewSet(services.NewJwtTokenHelper, wire.Bind(new(services.TokenHelper), new(*services.JwtTokenHelper)))
 
-var CryptoProviderSet = wire.NewSet(services.NewBcryptHelper, wire.Bind(new(services.CryptoHelper), new(*services.BcryptHelper)))
+var MockedTokenHelperSet = wire.NewSet(services.NewMockedTokenHelper, wire.Bind(new(services.TokenHelper), new(*services.MockedTokenHelper)))
+
+var CryptoHelperSet = wire.NewSet(services.NewBcryptHelper, wire.Bind(new(services.CryptoHelper), new(*services.BcryptHelper)))
+
+var ConfigurationServiceSet = wire.NewSet(
+	EnvGetterSet, services.NewDefaultConfigurationService, wire.Bind(new(services.ConfigurationService), new(*services.DefaultConfigurationService)))
+
+var MockedConfigurationServiceSet = wire.NewSet(services.NewMockedConfigurationService, wire.Bind(new(services.ConfigurationService), new(*services.MockedConfigurationService)))
 
 var AuthServiceSet = wire.NewSet(services.NewDefaultAuthService, wire.Bind(new(services.AuthService), new(*services.DefaultAuthService)))
+
+var MockedAuthServiceSet = wire.NewSet(services.NewMockedAuthService, wire.Bind(new(services.AuthService), new(*services.MockedAuthService)))

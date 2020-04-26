@@ -5,12 +5,45 @@ import (
 
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
+	"github.com/stretchr/testify/mock"
 )
 
 type AuthService interface {
 	GetTokens(u *models.User) (map[string]string, error)
 	ParseToken(tokenString string) (*models.JwtClaimsInfo, error)
 	ParseRefreshToken(refreshTokenString string) (*models.RefreshTokenClaimsInfo, error)
+}
+
+type MockedAuthService struct {
+	mock.Mock
+}
+
+func NewMockedAuthService() *MockedAuthService {
+	return &MockedAuthService{}
+}
+
+func (m *MockedAuthService) GetTokens(u *models.User) (map[string]string, error) {
+	args := m.Called(u)
+	return args.Get(0).(map[string]string), args.Error(1)
+}
+
+func (m *MockedAuthService) ParseToken(t string) (*models.JwtClaimsInfo, error) {
+	args := m.Called(t)
+
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.JwtClaimsInfo), args.Error(1)
+}
+
+func (m *MockedAuthService) ParseRefreshToken(t string) (*models.RefreshTokenClaimsInfo, error) {
+	args := m.Called(t)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.RefreshTokenClaimsInfo), args.Error(1)
 }
 
 // DefaultAuthService is the service for auth methods

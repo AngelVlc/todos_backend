@@ -8,14 +8,16 @@ import (
 	"github.com/AngelVlc/todos/consts"
 	"github.com/AngelVlc/todos/controllers"
 	appErrors "github.com/AngelVlc/todos/errors"
+	"github.com/AngelVlc/todos/services"
 	"github.com/AngelVlc/todos/wire"
 )
 
 type AuthMiddleware struct {
+	auth services.AuthService
 }
 
 func NewAuthMiddleware() AuthMiddleware {
-	return AuthMiddleware{}
+	return AuthMiddleware{wire.InitAuthService()}
 }
 
 func (m *AuthMiddleware) Middleware(next http.Handler) http.Handler {
@@ -26,10 +28,9 @@ func (m *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		authSrv := wire.InitAuthService()
-		jwtInfo, err := authSrv.ParseToken(token)
+		jwtInfo, err := m.auth.ParseToken(token)
 		if err != nil {
-			controllers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid auth token", err)
+			controllers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
 			return
 		}
 
@@ -49,7 +50,6 @@ func (m *AuthMiddleware) getAuthToken(r *http.Request) (string, error) {
 	}
 
 	authHeaderParts := strings.Split(authHeader, "Bearer ")
-
 	if len(authHeaderParts) != 2 {
 		return "", &appErrors.UnauthorizedError{Msg: "Invalid authorization header", InternalError: nil}
 	}

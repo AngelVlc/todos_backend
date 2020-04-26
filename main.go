@@ -16,7 +16,7 @@ import (
 func main() {
 	cfg := wire.InitConfigurationService()
 
-	db, err := initDb(&cfg)
+	db, err := initDb(cfg)
 	// db.LogMode(true)
 	if err != nil {
 		log.Fatal(err)
@@ -60,7 +60,7 @@ func main() {
 	}
 }
 
-func initDb(c *services.ConfigurationService) (*gorm.DB, error) {
+func initDb(c services.ConfigurationService) (*gorm.DB, error) {
 	db, err := gorm.Open("mysql", c.GetDatasource())
 	if err != nil {
 		return nil, err

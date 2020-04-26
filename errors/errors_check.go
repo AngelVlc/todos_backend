@@ -16,9 +16,11 @@ func CheckUnexpectedError(t *testing.T, err interface{}, errorMsg string, intern
 	assert.NotNil(t, err)
 	unexpectErr, isUnexpectError := err.(*UnexpectedError)
 	assert.Equal(t, true, isUnexpectError, "should be an unexpected error")
-	CheckErrorMsg(t, unexpectErr, errorMsg)
-	if len(internalErrorMsg) > 0 {
-		CheckErrorMsg(t, unexpectErr.InternalError, internalErrorMsg)
+	if isUnexpectError {
+		CheckErrorMsg(t, unexpectErr, errorMsg)
+		if len(internalErrorMsg) > 0 {
+			CheckErrorMsg(t, unexpectErr.InternalError, internalErrorMsg)
+		}
 	}
 }
 
@@ -26,9 +28,11 @@ func CheckUnathorizedError(t *testing.T, err interface{}, errorMsg string, inter
 	assert.NotNil(t, err)
 	unauthErr, isUnauthErr := err.(*UnauthorizedError)
 	assert.Equal(t, true, isUnauthErr, "should be an unauthorized error")
-	CheckErrorMsg(t, unauthErr, errorMsg)
-	if len(internalErrorMsg) > 0 {
-		CheckErrorMsg(t, unauthErr.InternalError, internalErrorMsg)
+	if isUnauthErr {
+		CheckErrorMsg(t, unauthErr, errorMsg)
+		if len(internalErrorMsg) > 0 {
+			CheckErrorMsg(t, unauthErr.InternalError, internalErrorMsg)
+		}
 	}
 }
 
@@ -36,8 +40,10 @@ func CheckBadRequestError(t *testing.T, err interface{}, errorMsg string, intern
 	assert.NotNil(t, err)
 	badReqErr, isBadReqErr := err.(*BadRequestError)
 	assert.Equal(t, true, isBadReqErr, "should be a bad request error")
-	CheckErrorMsg(t, badReqErr, errorMsg)
-	if len(internalErrorMsg) > 0 {
-		CheckErrorMsg(t, badReqErr.InternalError, internalErrorMsg)
+	if isBadReqErr {
+		CheckErrorMsg(t, badReqErr, errorMsg)
+		if len(internalErrorMsg) > 0 {
+			CheckErrorMsg(t, badReqErr.InternalError, internalErrorMsg)
+		}
 	}
 }

@@ -8,6 +8,8 @@ import (
 
 	"github.com/AngelVlc/todos/consts"
 	appErrors "github.com/AngelVlc/todos/errors"
+	"github.com/AngelVlc/todos/services"
+	"github.com/AngelVlc/todos/wire"
 	"github.com/gorilla/mux"
 
 	"github.com/jinzhu/gorm"
@@ -16,7 +18,9 @@ import (
 // Handler is the type used to handle the endpoints
 type Handler struct {
 	HandlerFunc
-	Db *gorm.DB
+	Db       *gorm.DB
+	usersSrv services.UsersService
+	authSrv  services.AuthService
 }
 
 type HandlerResult interface {
@@ -27,6 +31,8 @@ func NewHandler(f HandlerFunc, db *gorm.DB) Handler {
 	return Handler{
 		HandlerFunc: f,
 		Db:          db,
+		usersSrv:    wire.InitUsersService(db),
+		authSrv:     wire.InitAuthService(),
 	}
 }
 

@@ -29,6 +29,16 @@ func CheckUnexpectedErrorResult(t *testing.T, result interface{}, errorMsg strin
 	assert.Equal(t, true, isErrorResult, "should be an error result")
 
 	unexpErr, isUnexError := errorRes.err.(*appErrors.UnexpectedError)
-	assert.Equal(t, true, isUnexError, "should be a bad request error")
+	assert.Equal(t, true, isUnexError, "should be an unexpected error")
 	assert.Equal(t, errorMsg, unexpErr.Error())
+}
+
+func CheckUnauthorizedErrorErrorResult(t *testing.T, result interface{}, errorMsg string) {
+	assert.NotNil(t, result)
+	errorRes, isErrorResult := result.(errorResult)
+	assert.Equal(t, true, isErrorResult, "should be an error result")
+
+	unauthpErr, isUnauthError := errorRes.err.(*appErrors.UnauthorizedError)
+	assert.Equal(t, true, isUnauthError, "should be an unauthorized error")
+	assert.Equal(t, errorMsg, unauthpErr.Error())
 }

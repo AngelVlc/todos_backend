@@ -6,7 +6,6 @@ import (
 
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
-	"github.com/AngelVlc/todos/wire"
 )
 
 // TokenHandler is the handler for the auth/token endpoint
@@ -16,9 +15,7 @@ func TokenHandler(r *http.Request, h Handler) HandlerResult {
 		return errorResult{err}
 	}
 
-	userSrv := wire.InitUsersService(h.Db)
-
-	foundUser, err := userSrv.FindUserByName(l.UserName)
+	foundUser, err := h.usersSrv.FindUserByName(l.UserName)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -27,14 +24,12 @@ func TokenHandler(r *http.Request, h Handler) HandlerResult {
 		return errorResult{&appErrors.BadRequestError{Msg: "The user does not exist", InternalError: nil}}
 	}
 
-	err = userSrv.CheckIfUserPasswordIsOk(foundUser, l.Password)
+	err = h.usersSrv.CheckIfUserPasswordIsOk(foundUser, l.Password)
 	if err != nil {
 		return errorResult{&appErrors.BadRequestError{Msg: "Invalid password", InternalError: err}}
 	}
 
-	authSrv := wire.InitAuthService()
-
-	tokens, err := authSrv.GetTokens(foundUser)
+	tokens, err := h.authSrv.GetTokens(foundUser)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -49,15 +44,12 @@ func RefreshTokenHandler(r *http.Request, h Handler) HandlerResult {
 		return errorResult{err}
 	}
 
-	authSrv := wire.InitAuthService()
-	rtInfo, err := authSrv.ParseRefreshToken(rt.RefreshToken)
+	rtInfo, err := h.authSrv.ParseRefreshToken(rt.RefreshToken)
 	if err != nil {
 		return errorResult{err}
 	}
 
-	userSrv := wire.InitUsersService(h.Db)
-
-	foundUser, err := userSrv.FindUserByID(rtInfo.UserID)
+	foundUser, err := h.usersSrv.FindUserByID(rtInfo.UserID)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -66,7 +58,7 @@ func RefreshTokenHandler(r *http.Request, h Handler) HandlerResult {
 		return errorResult{&appErrors.BadRequestError{Msg: "The user is no longer valid", InternalError: nil}}
 	}
 
-	tokens, err := authSrv.GetTokens(foundUser)
+	tokens, err := h.authSrv.GetTokens(foundUser)
 	if err != nil {
 		return errorResult{err}
 	}

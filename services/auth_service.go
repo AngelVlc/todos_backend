@@ -24,6 +24,10 @@ func NewMockedAuthService() *MockedAuthService {
 
 func (m *MockedAuthService) GetTokens(u *models.User) (map[string]string, error) {
 	args := m.Called(u)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
 	return args.Get(0).(map[string]string), args.Error(1)
 }
 

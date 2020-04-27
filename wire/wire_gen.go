@@ -19,9 +19,14 @@ func InitCountersService(db *gorm.DB) services.CountersService {
 	return countersService
 }
 
-func InitListsService(db *gorm.DB) services.ListsService {
-	listsService := services.NewListsService(db)
-	return listsService
+func initDefaultListsService(db *gorm.DB) services.ListsService {
+	defaultListsService := services.NewDefaultListsService(db)
+	return defaultListsService
+}
+
+func initMockedListsService() services.ListsService {
+	mockedListsService := services.NewMockedListsService()
+	return mockedListsService
 }
 
 func initDefaultAuthService() services.AuthService {
@@ -43,7 +48,7 @@ func initDefaultUsersService(db *gorm.DB) services.UsersService {
 	return defaultUsersService
 }
 
-func initMockedUsersService(db *gorm.DB) services.UsersService {
+func initMockedUsersService() services.UsersService {
 	mockedUsersService := services.NewMockedUsersService()
 	return mockedUsersService
 }
@@ -56,6 +61,14 @@ func InitConfigurationService() services.ConfigurationService {
 
 // wire.go:
 
+func InitListsService(db *gorm.DB) services.ListsService {
+	if inTestingMode() {
+		return initMockedListsService()
+	} else {
+		return initDefaultListsService(db)
+	}
+}
+
 func InitAuthService() services.AuthService {
 	if inTestingMode() {
 		return initMockedAuthService()
@@ -66,7 +79,7 @@ func InitAuthService() services.AuthService {
 
 func InitUsersService(db *gorm.DB) services.UsersService {
 	if inTestingMode() {
-		return initMockedUsersService(db)
+		return initMockedUsersService()
 	} else {
 		return initDefaultUsersService(db)
 	}
@@ -96,3 +109,7 @@ var MockedAuthServiceSet = wire.NewSet(services.NewMockedAuthService, wire.Bind(
 var UsersServiceSet = wire.NewSet(services.NewDefaultUsersService, wire.Bind(new(services.UsersService), new(*services.DefaultUsersService)))
 
 var MockedUsersServiceSet = wire.NewSet(services.NewMockedUsersService, wire.Bind(new(services.UsersService), new(*services.MockedUsersService)))
+
+var ListsServiceSet = wire.NewSet(services.NewDefaultListsService, wire.Bind(new(services.ListsService), new(*services.DefaultListsService)))
+
+var MockedListsServiceSet = wire.NewSet(services.NewMockedListsService, wire.Bind(new(services.ListsService), new(*services.MockedListsService)))

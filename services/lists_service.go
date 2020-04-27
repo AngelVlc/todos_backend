@@ -7,20 +7,62 @@ import (
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/jinzhu/gorm"
+	"github.com/stretchr/testify/mock"
 )
 
-// ListsService is the service for the list entity
-type ListsService struct {
+type ListsService interface {
+	AddUserList(userID int32, l *models.List) (int32, error)
+	RemoveUserList(id int32, userID int32) error
+	UpdateUserList(id int32, userID int32, l *models.List) error
+	GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error
+	GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error
+}
+
+type MockedListsService struct {
+	mock.Mock
+}
+
+func NewMockedListsService() *MockedListsService {
+	return &MockedListsService{}
+}
+
+func (m *MockedListsService) AddUserList(userID int32, l *models.List) (int32, error) {
+	args := m.Called(userID, l)
+	return args.Get(0).(int32), args.Error(1)
+}
+
+func (m *MockedListsService) RemoveUserList(id int32, userID int32) error {
+	args := m.Called(userID, userID)
+	return args.Error(0)
+}
+
+func (m *MockedListsService) UpdateUserList(id int32, userID int32, l *models.List) error {
+	args := m.Called(id, userID, l)
+	return args.Error(0)
+}
+
+func (m *MockedListsService) GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error {
+	args := m.Called(id, userID, l)
+	return args.Error(0)
+}
+
+func (m *MockedListsService) GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error {
+	args := m.Called(userID, r)
+	return args.Error(0)
+}
+
+// DefaultListsService is the service for the list entity
+type DefaultListsService struct {
 	db *gorm.DB
 }
 
-// NewListsService returns a new lists service
-func NewListsService(db *gorm.DB) ListsService {
-	return ListsService{db}
+// NewDefaultListsService returns a new lists service
+func NewDefaultListsService(db *gorm.DB) *DefaultListsService {
+	return &DefaultListsService{db}
 }
 
 // AddUserList  adds a list
-func (s *ListsService) AddUserList(userID int32, l *models.List) (int32, error) {
+func (s *DefaultListsService) AddUserList(userID int32, l *models.List) (int32, error) {
 	l.UserID = userID
 	if err := s.db.Create(&l).Error; err != nil {
 		return 0, &appErrors.UnexpectedError{Msg: "Error inserting list", InternalError: err}
@@ -30,7 +72,7 @@ func (s *ListsService) AddUserList(userID int32, l *models.List) (int32, error) 
 }
 
 // RemoveUserList removes a list
-func (s *ListsService) RemoveUserList(id int32, userID int32) error {
+func (s *DefaultListsService) RemoveUserList(id int32, userID int32) error {
 	if err := s.db.Where(models.List{ID: id, UserID: userID}).Delete(models.List{}).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting user list", InternalError: err}
 	}
@@ -38,7 +80,7 @@ func (s *ListsService) RemoveUserList(id int32, userID int32) error {
 }
 
 // UpdateUserList updates an existing list
-func (s *ListsService) UpdateUserList(id int32, userID int32, l *models.List) error {
+func (s *DefaultListsService) UpdateUserList(id int32, userID int32, l *models.List) error {
 	l.ID = id
 	l.UserID = userID
 
@@ -50,7 +92,7 @@ func (s *ListsService) UpdateUserList(id int32, userID int32, l *models.List) er
 }
 
 // GetSingleUserList returns a single list from its id
-func (s *ListsService) GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error {
+func (s *DefaultListsService) GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error {
 	if err := s.db.Where(models.List{ID: id, UserID: userID}).Preload("ListItems").Find(&l).Error; err != nil {
 		log.Println("···", err)
 		return &appErrors.UnexpectedError{Msg: "Error getting user list", InternalError: err}
@@ -60,7 +102,7 @@ func (s *ListsService) GetSingleUserList(id int32, userID int32, l *dtos.GetSing
 }
 
 // GetUserLists returns the lists for the given user
-func (s *ListsService) GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error {
+func (s *DefaultListsService) GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error {
 	if err := s.db.Where(models.List{UserID: userID}).Select("id,name").Find(&r).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error getting user lists", InternalError: err}
 	}

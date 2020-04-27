@@ -21,6 +21,7 @@ type Handler struct {
 	Db       *gorm.DB
 	usersSrv services.UsersService
 	authSrv  services.AuthService
+	listsSrv services.ListsService
 }
 
 type HandlerResult interface {
@@ -33,6 +34,7 @@ func NewHandler(f HandlerFunc, db *gorm.DB) Handler {
 		Db:          db,
 		usersSrv:    wire.InitUsersService(db),
 		authSrv:     wire.InitAuthService(),
+		listsSrv:    wire.InitListsService(db),
 	}
 }
 

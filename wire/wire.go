@@ -17,9 +17,21 @@ func InitCountersService(db *gorm.DB) services.CountersService {
 }
 
 func InitListsService(db *gorm.DB) services.ListsService {
-	wire.Build(services.NewListsService)
+	if inTestingMode() {
+		return initMockedListsService()
+	} else {
+		return initDefaultListsService(db)
+	}
+}
 
-	return services.ListsService{}
+func initDefaultListsService(db *gorm.DB) services.ListsService {
+	wire.Build(ListsServiceSet)
+	return nil
+}
+
+func initMockedListsService() services.ListsService {
+	wire.Build(MockedListsServiceSet)
+	return nil
 }
 
 func InitAuthService() services.AuthService {
@@ -42,7 +54,7 @@ func initMockedAuthService() services.AuthService {
 
 func InitUsersService(db *gorm.DB) services.UsersService {
 	if inTestingMode() {
-		return initMockedUsersService(db)
+		return initMockedUsersService()
 	} else {
 		return initDefaultUsersService(db)
 	}
@@ -53,7 +65,7 @@ func initDefaultUsersService(db *gorm.DB) services.UsersService {
 	return nil
 }
 
-func initMockedUsersService(db *gorm.DB) services.UsersService {
+func initMockedUsersService() services.UsersService {
 	wire.Build(MockedUsersServiceSet)
 	return nil
 }
@@ -107,3 +119,11 @@ var UsersServiceSet = wire.NewSet(
 var MockedUsersServiceSet = wire.NewSet(
 	services.NewMockedUsersService,
 	wire.Bind(new(services.UsersService), new(*services.MockedUsersService)))
+
+var ListsServiceSet = wire.NewSet(
+	services.NewDefaultListsService,
+	wire.Bind(new(services.ListsService), new(*services.DefaultListsService)))
+
+var MockedListsServiceSet = wire.NewSet(
+	services.NewMockedListsService,
+	wire.Bind(new(services.ListsService), new(*services.MockedListsService)))

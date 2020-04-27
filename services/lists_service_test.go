@@ -24,7 +24,7 @@ func TestListsService(t *testing.T) {
 	db, err := gorm.Open("mysql", mockDb)
 	defer db.Close()
 
-	svc := NewListsService(db)
+	svc := NewDefaultListsService(db)
 
 	t.Run("AddUserList() should return an error if insert fails", func(t *testing.T) {
 		u := int32(11)

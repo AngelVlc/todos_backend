@@ -27,11 +27,11 @@ func newServer(db *gorm.DB) *server {
 	requireAdminMdw := midlewares.NewRequireAdminMiddleware()
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
-	listsSubRouter.Handle("", s.getHandler(handlers.GetUserLists)).Methods(http.MethodGet)
-	listsSubRouter.Handle("", s.getHandler(handlers.AddUserList)).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{id}", s.getHandler(handlers.GetUserSingleList)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{id}", s.getHandler(handlers.DeleteUserList)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{id}", s.getHandler(handlers.UpdateUserList)).Methods(http.MethodPut)
+	listsSubRouter.Handle("", s.getHandler(handlers.GetUserListsHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("", s.getHandler(handlers.AddUserListHandler)).Methods(http.MethodPost)
+	listsSubRouter.Handle("/{id}", s.getHandler(handlers.GetUserSingleListHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{id}", s.getHandler(handlers.DeleteUserListHandler)).Methods(http.MethodDelete)
+	listsSubRouter.Handle("/{id}", s.getHandler(handlers.UpdateUserListHandler)).Methods(http.MethodPut)
 	listsSubRouter.Use(authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()

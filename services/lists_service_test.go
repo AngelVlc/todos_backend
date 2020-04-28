@@ -172,7 +172,7 @@ func TestListsService(t *testing.T) {
 			WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", u))
 
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems`  WHERE (`listId` IN (?))")).
-			WithArgs("11").
+			WithArgs(int32(11)).
 			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(22, 11, "title", "description"))
 
 		err := svc.GetSingleUserList(11, u, &dto)

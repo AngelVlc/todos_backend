@@ -2,8 +2,8 @@ package dtos
 
 // GetSingleListResultDto is the struct used as result for the Get single list method
 type GetSingleListResultDto struct {
-	ID        string                       `json:"id" gorm:"type:varchar(10)"`
-	Name      string                       `json:"name" gorm:"foreignkey:ListID"`
+	ID        int32                        `json:"id" gorm:"type:int(32);primary_key"`
+	Name      string                       `json:"name" gorm:"type:varchar(50)"`
 	ListItems []GetSingleListResultItemDto `json:"items" gorm:"foreignkey:ListID"`
 }
 

@@ -32,7 +32,7 @@ func (m *MockedListsService) AddUserList(userID int32, l *models.List) (int32, e
 }
 
 func (m *MockedListsService) RemoveUserList(id int32, userID int32) error {
-	args := m.Called(userID, userID)
+	args := m.Called(id, userID)
 	return args.Error(0)
 }
 

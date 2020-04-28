@@ -20,7 +20,9 @@ func CheckBadRequestErrorResult(t *testing.T, result interface{}, errorMsg strin
 
 	badReqErr, isBadReqErr := errorRes.err.(*appErrors.BadRequestError)
 	assert.Equal(t, true, isBadReqErr, "should be a bad request error")
-	assert.Equal(t, errorMsg, badReqErr.Error())
+	if isBadReqErr {
+		assert.Equal(t, errorMsg, badReqErr.Error())
+	}
 }
 
 func CheckUnexpectedErrorResult(t *testing.T, result interface{}, errorMsg string) {
@@ -30,7 +32,9 @@ func CheckUnexpectedErrorResult(t *testing.T, result interface{}, errorMsg strin
 
 	unexpErr, isUnexError := errorRes.err.(*appErrors.UnexpectedError)
 	assert.Equal(t, true, isUnexError, "should be an unexpected error")
-	assert.Equal(t, errorMsg, unexpErr.Error())
+	if isUnexError {
+		assert.Equal(t, errorMsg, unexpErr.Error())
+	}
 }
 
 func CheckUnauthorizedErrorErrorResult(t *testing.T, result interface{}, errorMsg string) {
@@ -40,5 +44,7 @@ func CheckUnauthorizedErrorErrorResult(t *testing.T, result interface{}, errorMs
 
 	unauthpErr, isUnauthError := errorRes.err.(*appErrors.UnauthorizedError)
 	assert.Equal(t, true, isUnauthError, "should be an unauthorized error")
-	assert.Equal(t, errorMsg, unauthpErr.Error())
+	if isUnauthError {
+		assert.Equal(t, errorMsg, unauthpErr.Error())
+	}
 }

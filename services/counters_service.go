@@ -5,22 +5,46 @@ import (
 
 	"github.com/AngelVlc/todos/models"
 	"github.com/jinzhu/gorm"
+	"github.com/stretchr/testify/mock"
 )
 
-type CountersService struct {
+type CountersService interface {
+	CreateCounterIfNotExists(name string) error
+	IncrementCounter(name string) (int32, error)
+}
+
+type MockedCountersService struct {
+	mock.Mock
+}
+
+func NewMockedCountersService() *MockedCountersService {
+	return &MockedCountersService{}
+}
+
+func (m *MockedCountersService) CreateCounterIfNotExists(name string) error {
+	args := m.Called(name)
+	return args.Error(0)
+}
+
+func (m *MockedCountersService) IncrementCounter(name string) (int32, error) {
+	args := m.Called(name)
+	return args.Get(0).(int32), args.Error(1)
+}
+
+type DefaultCountersService struct {
 	db *gorm.DB
 }
 
-func NewCountersService(db *gorm.DB) CountersService {
-	return CountersService{db}
+func NewDefaultCountersService(db *gorm.DB) *DefaultCountersService {
+	return &DefaultCountersService{db}
 }
 
-func (s *CountersService) CreateCounterIfNotExists(name string) error {
+func (s *DefaultCountersService) CreateCounterIfNotExists(name string) error {
 	var counter models.Counter
 	return s.db.Where(models.Counter{Name: name}).Attrs(models.Counter{Value: 0}).FirstOrCreate(&counter).Error
 }
 
-func (s *CountersService) IncrementCounter(name string) (int32, error) {
+func (s *DefaultCountersService) IncrementCounter(name string) (int32, error) {
 	var counter models.Counter
 	err := s.db.Where(models.Counter{Name: name}).First(&counter).Error
 	if err != nil {

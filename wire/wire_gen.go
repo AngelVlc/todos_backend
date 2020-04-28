@@ -14,9 +14,14 @@ import (
 
 // Injectors from wire.go:
 
-func InitCountersService(db *gorm.DB) services.CountersService {
-	countersService := services.NewCountersService(db)
-	return countersService
+func initDefaultCountersService(db *gorm.DB) services.CountersService {
+	defaultCountersService := services.NewDefaultCountersService(db)
+	return defaultCountersService
+}
+
+func initMockedCountersService() services.CountersService {
+	mockedCountersService := services.NewMockedCountersService()
+	return mockedCountersService
 }
 
 func initDefaultListsService(db *gorm.DB) services.ListsService {
@@ -60,6 +65,14 @@ func InitConfigurationService() services.ConfigurationService {
 }
 
 // wire.go:
+
+func InitCountersService(db *gorm.DB) services.CountersService {
+	if inTestingMode() {
+		return initMockedCountersService()
+	} else {
+		return initDefaultCountersService(db)
+	}
+}
 
 func InitListsService(db *gorm.DB) services.ListsService {
 	if inTestingMode() {
@@ -113,3 +126,7 @@ var MockedUsersServiceSet = wire.NewSet(services.NewMockedUsersService, wire.Bin
 var ListsServiceSet = wire.NewSet(services.NewDefaultListsService, wire.Bind(new(services.ListsService), new(*services.DefaultListsService)))
 
 var MockedListsServiceSet = wire.NewSet(services.NewMockedListsService, wire.Bind(new(services.ListsService), new(*services.MockedListsService)))
+
+var CountersServiceSet = wire.NewSet(services.NewDefaultCountersService, wire.Bind(new(services.CountersService), new(*services.DefaultCountersService)))
+
+var MockedCountersServiceSet = wire.NewSet(services.NewMockedCountersService, wire.Bind(new(services.CountersService), new(*services.MockedCountersService)))

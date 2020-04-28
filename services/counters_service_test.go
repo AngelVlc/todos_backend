@@ -18,7 +18,7 @@ func TestCountersService(t *testing.T) {
 	}
 	db, err := gorm.Open("mysql", mockDb)
 	defer db.Close()
-	svc := CountersService{db}
+	svc := NewDefaultCountersService(db)
 
 	counterName := "counter"
 	columns := []string{"id", "name", "value"}

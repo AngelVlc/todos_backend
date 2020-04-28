@@ -11,9 +11,21 @@ import (
 )
 
 func InitCountersService(db *gorm.DB) services.CountersService {
-	wire.Build(services.NewCountersService)
+	if inTestingMode() {
+		return initMockedCountersService()
+	} else {
+		return initDefaultCountersService(db)
+	}
+}
 
-	return services.CountersService{}
+func initDefaultCountersService(db *gorm.DB) services.CountersService {
+	wire.Build(CountersServiceSet)
+	return nil
+}
+
+func initMockedCountersService() services.CountersService {
+	wire.Build(MockedCountersServiceSet)
+	return nil
 }
 
 func InitListsService(db *gorm.DB) services.ListsService {
@@ -127,3 +139,11 @@ var ListsServiceSet = wire.NewSet(
 var MockedListsServiceSet = wire.NewSet(
 	services.NewMockedListsService,
 	wire.Bind(new(services.ListsService), new(*services.MockedListsService)))
+
+var CountersServiceSet = wire.NewSet(
+	services.NewDefaultCountersService,
+	wire.Bind(new(services.CountersService), new(*services.DefaultCountersService)))
+
+var MockedCountersServiceSet = wire.NewSet(
+	services.NewMockedCountersService,
+	wire.Bind(new(services.CountersService), new(*services.MockedCountersService)))

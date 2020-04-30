@@ -5,10 +5,57 @@ package wire
 import (
 	"os"
 
+	"github.com/AngelVlc/todos/handlers"
 	"github.com/AngelVlc/todos/services"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 )
+
+func InitLogMiddleware() handlers.LogMiddleware {
+	wire.Build(handlers.NewLogMiddleware)
+	return handlers.LogMiddleware{}
+}
+
+func InitAuthMiddleware(db *gorm.DB) handlers.AuthMiddleware {
+	if inTestingMode() {
+		return initMockedAuthMiddleware()
+	} else {
+		return initDefaultAuthMiddleware(db)
+	}
+}
+
+func initDefaultAuthMiddleware(db *gorm.DB) handlers.AuthMiddleware {
+	wire.Build(AuthMiddlewareSet)
+	return nil
+}
+
+func initMockedAuthMiddleware() handlers.AuthMiddleware {
+	wire.Build(MockedAuthMiddlewareSet)
+	return nil
+}
+
+func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
+	wire.Build(RequireAdminMiddlewareSet)
+	return nil
+}
+
+func InitRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware {
+	if inTestingMode() {
+		return initMockedRequestCounterMiddleware()
+	} else {
+		return initDefaultRequestCounterMiddleware(db)
+	}
+}
+
+func initDefaultRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware {
+	wire.Build(RequestCounterMiddlewareSet)
+	return nil
+}
+
+func initMockedRequestCounterMiddleware() handlers.RequestCounterMiddleware {
+	wire.Build(MockedRequestCounterMiddlewareSet)
+	return nil
+}
 
 func InitCountersService(db *gorm.DB) services.CountersService {
 	if inTestingMode() {
@@ -55,7 +102,7 @@ func InitAuthService() services.AuthService {
 }
 
 func initDefaultAuthService() services.AuthService {
-	wire.Build(TokenHelperSet, ConfigurationServiceSet, AuthServiceSet)
+	wire.Build(AuthServiceSet)
 	return nil
 }
 
@@ -117,6 +164,8 @@ var MockedConfigurationServiceSet = wire.NewSet(
 	wire.Bind(new(services.ConfigurationService), new(*services.MockedConfigurationService)))
 
 var AuthServiceSet = wire.NewSet(
+	TokenHelperSet,
+	ConfigurationServiceSet,
 	services.NewDefaultAuthService,
 	wire.Bind(new(services.AuthService), new(*services.DefaultAuthService)))
 
@@ -147,3 +196,25 @@ var CountersServiceSet = wire.NewSet(
 var MockedCountersServiceSet = wire.NewSet(
 	services.NewMockedCountersService,
 	wire.Bind(new(services.CountersService), new(*services.MockedCountersService)))
+
+var RequestCounterMiddlewareSet = wire.NewSet(
+	CountersServiceSet,
+	handlers.NewDefaultRequestCounterMiddleware,
+	wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.DefaultRequestCounterMiddleware)))
+
+var MockedRequestCounterMiddlewareSet = wire.NewSet(
+	handlers.NewMockedRequestCounterMiddleware,
+	wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.MockedRequestCounterMiddleware)))
+
+var AuthMiddlewareSet = wire.NewSet(
+	AuthServiceSet,
+	handlers.NewDefaultAuthMiddleware,
+	wire.Bind(new(handlers.AuthMiddleware), new(*handlers.DefaultAuthMiddleware)))
+
+var MockedAuthMiddlewareSet = wire.NewSet(
+	handlers.NewMockedAuthMiddleware,
+	wire.Bind(new(handlers.AuthMiddleware), new(*handlers.MockedAuthMiddleware)))
+
+var RequireAdminMiddlewareSet = wire.NewSet(
+	handlers.NewDefaultRequireAdminMiddleware,
+	wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))

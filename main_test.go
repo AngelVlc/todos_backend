@@ -1,4 +1,4 @@
-package midlewares
+package main
 
 import (
 	"os"

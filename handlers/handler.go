@@ -9,16 +9,12 @@ import (
 	"github.com/AngelVlc/todos/consts"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/services"
-	"github.com/AngelVlc/todos/wire"
 	"github.com/gorilla/mux"
-
-	"github.com/jinzhu/gorm"
 )
 
 // Handler is the type used to handle the endpoints
 type Handler struct {
 	HandlerFunc
-	Db       *gorm.DB
 	usersSrv services.UsersService
 	authSrv  services.AuthService
 	listsSrv services.ListsService
@@ -28,13 +24,12 @@ type HandlerResult interface {
 	IsError() bool
 }
 
-func NewHandler(f HandlerFunc, db *gorm.DB) Handler {
+func NewHandler(f HandlerFunc, u services.UsersService, a services.AuthService, l services.ListsService) Handler {
 	return Handler{
 		HandlerFunc: f,
-		Db:          db,
-		usersSrv:    wire.InitUsersService(db),
-		authSrv:     wire.InitAuthService(),
-		listsSrv:    wire.InitListsService(db),
+		usersSrv:    u,
+		authSrv:     a,
+		listsSrv:    l,
 	}
 }
 
@@ -65,25 +60,25 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		errorRes, _ := res.(errorResult)
 		err := errorRes.err
 		if unexErr, ok := err.(*appErrors.UnexpectedError); ok {
-			WriteErrorResponse(r, w, http.StatusInternalServerError, unexErr.Error(), unexErr.InternalError)
+			writeErrorResponse(r, w, http.StatusInternalServerError, unexErr.Error(), unexErr.InternalError)
 		} else if unauthErr, ok := err.(*appErrors.UnauthorizedError); ok {
-			WriteErrorResponse(r, w, http.StatusUnauthorized, unauthErr.Error(), unauthErr.InternalError)
+			writeErrorResponse(r, w, http.StatusUnauthorized, unauthErr.Error(), unauthErr.InternalError)
 		} else if notFoundErr, ok := err.(*appErrors.NotFoundError); ok {
-			WriteErrorResponse(r, w, http.StatusNotFound, notFoundErr.Error(), nil)
+			writeErrorResponse(r, w, http.StatusNotFound, notFoundErr.Error(), nil)
 		} else if badRequestErr, ok := err.(*appErrors.BadRequestError); ok {
-			WriteErrorResponse(r, w, http.StatusBadRequest, badRequestErr.Error(), badRequestErr.InternalError)
+			writeErrorResponse(r, w, http.StatusBadRequest, badRequestErr.Error(), badRequestErr.InternalError)
 		} else {
-			WriteErrorResponse(r, w, http.StatusInternalServerError, "Internal error", err)
+			writeErrorResponse(r, w, http.StatusInternalServerError, "Internal error", err)
 		}
 	} else {
 		okRes, _ := res.(okResult)
-		WriteOkResponse(r, w, okRes.statusCode, okRes.content)
+		writeOkResponse(r, w, okRes.statusCode, okRes.content)
 	}
 }
 
-// WriteErrorResponse is used when and endpoind responds with an error
-func WriteErrorResponse(r *http.Request, w http.ResponseWriter, statusCode int, msg string, internalError error) {
-	requestID := GetRequestIDFromContext(r)
+// writeErrorResponse is used when and endpoind responds with an error
+func writeErrorResponse(r *http.Request, w http.ResponseWriter, statusCode int, msg string, internalError error) {
+	requestID := getRequestIDFromContext(r)
 	if internalError != nil {
 		log.Printf("[%v] %v %v (%v)", requestID, statusCode, msg, internalError)
 	} else {
@@ -92,9 +87,9 @@ func WriteErrorResponse(r *http.Request, w http.ResponseWriter, statusCode int, 
 	http.Error(w, msg, statusCode)
 }
 
-// WriteOkResponse is used when and endpoind does not respond with an error
-func WriteOkResponse(r *http.Request, w http.ResponseWriter, statusCode int, content interface{}) {
-	log.Printf("[%v] %v", GetRequestIDFromContext(r), statusCode)
+// writeOkResponse is used when and endpoind does not respond with an error
+func writeOkResponse(r *http.Request, w http.ResponseWriter, statusCode int, content interface{}) {
+	log.Printf("[%v] %v", getRequestIDFromContext(r), statusCode)
 
 	const jsonContentType = "application/json"
 
@@ -115,7 +110,7 @@ func getUserIDFromContext(r *http.Request) int32 {
 	return userID
 }
 
-func GetRequestIDFromContext(r *http.Request) string {
+func getRequestIDFromContext(r *http.Request) string {
 	requestIDRaw := r.Context().Value(consts.ReqContextRequestKey)
 
 	requestID, _ := requestIDRaw.(string)
@@ -124,6 +119,10 @@ func GetRequestIDFromContext(r *http.Request) string {
 }
 
 func parseBody(r *http.Request, dto interface{}) error {
+	if r.Body == nil {
+		return &appErrors.BadRequestError{Msg: "Invalid body", InternalError: nil}
+	}
+
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(dto)
 	if err != nil {

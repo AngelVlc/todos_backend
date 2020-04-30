@@ -1,4 +1,4 @@
-package midlewares
+package handlers
 
 import (
 	"context"
@@ -7,30 +7,54 @@ import (
 
 	"github.com/AngelVlc/todos/consts"
 	appErrors "github.com/AngelVlc/todos/errors"
-	"github.com/AngelVlc/todos/handlers"
 	"github.com/AngelVlc/todos/services"
-	"github.com/AngelVlc/todos/wire"
+	"github.com/stretchr/testify/mock"
 )
 
-type AuthMiddleware struct {
+type AuthMiddleware interface {
+	Middleware(next http.Handler) http.Handler
+}
+
+type MockedAuthMiddleware struct {
+	mock.Mock
+}
+
+func NewMockedAuthMiddleware() *MockedAuthMiddleware {
+	return &MockedAuthMiddleware{}
+}
+
+func (m *MockedAuthMiddleware) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHeader := r.Header.Get("Authorization")
+
+		if len(authHeader) == 0 {
+			writeErrorResponse(r, w, http.StatusUnauthorized, "No authorization header", nil)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+type DefaultAuthMiddleware struct {
 	auth services.AuthService
 }
 
-func NewAuthMiddleware() AuthMiddleware {
-	return AuthMiddleware{wire.InitAuthService()}
+func NewDefaultAuthMiddleware(auth services.AuthService) *DefaultAuthMiddleware {
+	return &DefaultAuthMiddleware{auth}
 }
 
-func (m *AuthMiddleware) Middleware(next http.Handler) http.Handler {
+func (m *DefaultAuthMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := m.getAuthToken(r)
 		if err != nil {
-			handlers.WriteErrorResponse(r, w, http.StatusUnauthorized, err.Error(), nil)
+			writeErrorResponse(r, w, http.StatusUnauthorized, err.Error(), nil)
 			return
 		}
 
 		jwtInfo, err := m.auth.ParseToken(token)
 		if err != nil {
-			handlers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
+			writeErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
 			return
 		}
 
@@ -42,7 +66,7 @@ func (m *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 	})
 }
 
-func (m *AuthMiddleware) getAuthToken(r *http.Request) (string, error) {
+func (m *DefaultAuthMiddleware) getAuthToken(r *http.Request) (string, error) {
 	authHeader := r.Header.Get("Authorization")
 
 	if len(authHeader) == 0 {

@@ -6,6 +6,7 @@
 package wire
 
 import (
+	"github.com/AngelVlc/todos/handlers"
 	"github.com/AngelVlc/todos/services"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
@@ -13,6 +14,41 @@ import (
 )
 
 // Injectors from wire.go:
+
+func InitLogMiddleware() handlers.LogMiddleware {
+	logMiddleware := handlers.NewLogMiddleware()
+	return logMiddleware
+}
+
+func initDefaultAuthMiddleware(db *gorm.DB) handlers.AuthMiddleware {
+	jwtTokenHelper := services.NewJwtTokenHelper()
+	osEnvGetter := services.NewOsEnvGetter()
+	defaultConfigurationService := services.NewDefaultConfigurationService(osEnvGetter)
+	defaultAuthService := services.NewDefaultAuthService(jwtTokenHelper, defaultConfigurationService)
+	defaultAuthMiddleware := handlers.NewDefaultAuthMiddleware(defaultAuthService)
+	return defaultAuthMiddleware
+}
+
+func initMockedAuthMiddleware() handlers.AuthMiddleware {
+	mockedAuthMiddleware := handlers.NewMockedAuthMiddleware()
+	return mockedAuthMiddleware
+}
+
+func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
+	defaultRequireAdminMiddleware := handlers.NewDefaultRequireAdminMiddleware()
+	return defaultRequireAdminMiddleware
+}
+
+func initDefaultRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware {
+	defaultCountersService := services.NewDefaultCountersService(db)
+	defaultRequestCounterMiddleware := handlers.NewDefaultRequestCounterMiddleware(defaultCountersService)
+	return defaultRequestCounterMiddleware
+}
+
+func initMockedRequestCounterMiddleware() handlers.RequestCounterMiddleware {
+	mockedRequestCounterMiddleware := handlers.NewMockedRequestCounterMiddleware()
+	return mockedRequestCounterMiddleware
+}
 
 func initDefaultCountersService(db *gorm.DB) services.CountersService {
 	defaultCountersService := services.NewDefaultCountersService(db)
@@ -66,6 +102,22 @@ func InitConfigurationService() services.ConfigurationService {
 
 // wire.go:
 
+func InitAuthMiddleware(db *gorm.DB) handlers.AuthMiddleware {
+	if inTestingMode() {
+		return initMockedAuthMiddleware()
+	} else {
+		return initDefaultAuthMiddleware(db)
+	}
+}
+
+func InitRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware {
+	if inTestingMode() {
+		return initMockedRequestCounterMiddleware()
+	} else {
+		return initDefaultRequestCounterMiddleware(db)
+	}
+}
+
 func InitCountersService(db *gorm.DB) services.CountersService {
 	if inTestingMode() {
 		return initMockedCountersService()
@@ -115,7 +167,9 @@ var ConfigurationServiceSet = wire.NewSet(
 
 var MockedConfigurationServiceSet = wire.NewSet(services.NewMockedConfigurationService, wire.Bind(new(services.ConfigurationService), new(*services.MockedConfigurationService)))
 
-var AuthServiceSet = wire.NewSet(services.NewDefaultAuthService, wire.Bind(new(services.AuthService), new(*services.DefaultAuthService)))
+var AuthServiceSet = wire.NewSet(
+	TokenHelperSet,
+	ConfigurationServiceSet, services.NewDefaultAuthService, wire.Bind(new(services.AuthService), new(*services.DefaultAuthService)))
 
 var MockedAuthServiceSet = wire.NewSet(services.NewMockedAuthService, wire.Bind(new(services.AuthService), new(*services.MockedAuthService)))
 
@@ -130,3 +184,15 @@ var MockedListsServiceSet = wire.NewSet(services.NewMockedListsService, wire.Bin
 var CountersServiceSet = wire.NewSet(services.NewDefaultCountersService, wire.Bind(new(services.CountersService), new(*services.DefaultCountersService)))
 
 var MockedCountersServiceSet = wire.NewSet(services.NewMockedCountersService, wire.Bind(new(services.CountersService), new(*services.MockedCountersService)))
+
+var RequestCounterMiddlewareSet = wire.NewSet(
+	CountersServiceSet, handlers.NewDefaultRequestCounterMiddleware, wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.DefaultRequestCounterMiddleware)))
+
+var MockedRequestCounterMiddlewareSet = wire.NewSet(handlers.NewMockedRequestCounterMiddleware, wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.MockedRequestCounterMiddleware)))
+
+var AuthMiddlewareSet = wire.NewSet(
+	AuthServiceSet, handlers.NewDefaultAuthMiddleware, wire.Bind(new(handlers.AuthMiddleware), new(*handlers.DefaultAuthMiddleware)))
+
+var MockedAuthMiddlewareSet = wire.NewSet(handlers.NewMockedAuthMiddleware, wire.Bind(new(handlers.AuthMiddleware), new(*handlers.MockedAuthMiddleware)))
+
+var RequireAdminMiddlewareSet = wire.NewSet(handlers.NewDefaultRequireAdminMiddleware, wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))

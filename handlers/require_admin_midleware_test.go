@@ -1,4 +1,4 @@
-package midlewares
+package handlers
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestRequireAdminMiddleware(t *testing.T) {
-	md := NewRequireAdminMiddleware()
+	md := NewDefaultRequireAdminMiddleware()
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 

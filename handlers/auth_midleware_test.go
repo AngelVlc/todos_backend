@@ -1,4 +1,4 @@
-package midlewares
+package handlers
 
 import (
 	"fmt"
@@ -8,16 +8,15 @@ import (
 
 	"github.com/AngelVlc/todos/consts"
 	"github.com/AngelVlc/todos/models"
-
 	"github.com/AngelVlc/todos/services"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestAuthMiddleware(t *testing.T) {
 
-	md := NewAuthMiddleware()
-
-	mockedAuthSvc, _ := (md.auth).(*services.MockedAuthService)
+	mockedAuthSvc := services.NewMockedAuthService()
+	md := NewDefaultAuthMiddleware(mockedAuthSvc)
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()

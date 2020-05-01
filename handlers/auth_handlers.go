@@ -66,27 +66,35 @@ func RefreshTokenHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{tokens, http.StatusOK}
 }
 
-func parseTokenBody(r *http.Request) (models.Login, error) {
+func parseTokenBody(r *http.Request) (*models.Login, error) {
+	if r.Body == nil {
+		return nil, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: nil}
+	}
+
 	decoder := json.NewDecoder(r.Body)
 
 	var l models.Login
 	err := decoder.Decode(&l)
 	if err != nil {
-		return models.Login{}, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+		return nil, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
 	}
 
 	if len(l.UserName) == 0 {
-		return models.Login{}, &appErrors.BadRequestError{Msg: "UserName is mandatory", InternalError: nil}
+		return nil, &appErrors.BadRequestError{Msg: "UserName is mandatory", InternalError: nil}
 	}
 
 	if len(l.Password) == 0 {
-		return models.Login{}, &appErrors.BadRequestError{Msg: "Password is mandatory", InternalError: nil}
+		return nil, &appErrors.BadRequestError{Msg: "Password is mandatory", InternalError: nil}
 	}
 
-	return l, nil
+	return &l, nil
 }
 
 func parseRefreshTokenBody(r *http.Request) (*models.RefreshToken, error) {
+	if r.Body == nil {
+		return nil, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: nil}
+	}
+
 	decoder := json.NewDecoder(r.Body)
 
 	var rt models.RefreshToken

@@ -12,6 +12,7 @@ type ConfigurationService interface {
 	GetAdminPassword() string
 	GetPort() string
 	GetJwtSecret() string
+	GetCorsAllowedOrigins() []string
 }
 
 type MockedConfigurationService struct {
@@ -40,6 +41,11 @@ func (m *MockedConfigurationService) GetPort() string {
 func (m *MockedConfigurationService) GetJwtSecret() string {
 	args := m.Called()
 	return args.String(0)
+}
+
+func (m *MockedConfigurationService) GetCorsAllowedOrigins() []string {
+	args := m.Called()
+	return args.Get(0).([]string)
 }
 
 type DefaultConfigurationService struct {
@@ -84,4 +90,8 @@ func (c *DefaultConfigurationService) GetPort() string {
 
 func (c *DefaultConfigurationService) GetJwtSecret() string {
 	return c.eg.Getenv("JWT_SECRET")
+}
+
+func (c *DefaultConfigurationService) GetCorsAllowedOrigins() []string {
+	return strings.Split(c.eg.Getenv("CORS_ALLOWED_ORIGINS"), ",")
 }

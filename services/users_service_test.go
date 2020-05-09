@@ -305,4 +305,35 @@ func TestUsersService(t *testing.T) {
 			t.Errorf("there were unfulfilled expectations: %s", err)
 		}
 	})
+
+	t.Run("GetUsers() should return an error if the query fails", func(t *testing.T) {
+		dto := []dtos.GetUsersResultDto{}
+
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+			WillReturnError(fmt.Errorf("some error"))
+
+		err := svc.GetUsers(&dto)
+
+		appErrors.CheckUnexpectedError(t, err, "Error getting users", "some error")
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("GetUsers() should return the users", func(t *testing.T) {
+		dto := []dtos.GetUsersResultDto{}
+
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
+
+		err := svc.GetUsers(&dto)
+
+		assert.Equal(t, len(dto), 2)
+		assert.Nil(t, err)
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
 }

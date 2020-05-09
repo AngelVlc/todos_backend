@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/AngelVlc/todos/dtos"
@@ -18,4 +19,14 @@ func AddUserHandler(r *http.Request, h Handler) HandlerResult {
 		return errorResult{err}
 	}
 	return okResult{id, http.StatusCreated}
+}
+
+func GetUsersHandler(r *http.Request, h Handler) HandlerResult {
+	res := []dtos.GetUsersResultDto{}
+	err := h.usersSrv.GetUsers(&res)
+	if err != nil {
+		return errorResult{err}
+	}
+	fmt.Println(res)
+	return okResult{res, http.StatusOK}
 }

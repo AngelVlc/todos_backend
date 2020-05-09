@@ -42,7 +42,7 @@ func TestGetUserListsHandler(t *testing.T) {
 		mockedListsService.AssertExpectations(t)
 	})
 
-	t.Run("Should return an ok result with use user lists if there is no errors", func(t *testing.T) {
+	t.Run("Should return an ok result with the user lists if there is no errors", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		ctx := request.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)

@@ -45,6 +45,7 @@ func newServer(db *gorm.DB) *server {
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
 	usersSubRouter.Handle("", s.getHandler(handlers.AddUserHandler)).Methods(http.MethodPost)
+	usersSubRouter.Handle("", s.getHandler(handlers.GetUsersHandler)).Methods(http.MethodGet)
 	usersSubRouter.Use(s.authMdw.Middleware)
 	usersSubRouter.Use(s.requireAdminMdw.Middleware)
 

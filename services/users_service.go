@@ -13,6 +13,7 @@ type UsersService interface {
 	CheckIfUserPasswordIsOk(user *models.User, password string) error
 	FindUserByID(id int32) (*models.User, error)
 	AddUser(dto *dtos.UserDto) (int32, error)
+	GetUsers(r *[]dtos.GetUsersResultDto) error
 }
 
 type MockedUsersService struct {
@@ -49,6 +50,11 @@ func (m *MockedUsersService) FindUserByID(id int32) (*models.User, error) {
 func (m *MockedUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	args := m.Called(dto)
 	return args.Get(0).(int32), args.Error(1)
+}
+
+func (m *MockedUsersService) GetUsers(r *[]dtos.GetUsersResultDto) error {
+	args := m.Called(r)
+	return args.Error(0)
 }
 
 type DefaultUsersService struct {
@@ -129,6 +135,13 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	}
 
 	return user.ID, nil
+}
+
+func (s *DefaultUsersService) GetUsers(r *[]dtos.GetUsersResultDto) error {
+	if err := s.db.Find(&r).Error; err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
+	}
+	return nil
 }
 
 func (s *DefaultUsersService) getPasswordHash(p string) (string, error) {

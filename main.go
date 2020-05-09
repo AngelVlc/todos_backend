@@ -56,7 +56,7 @@ func main() {
 	port := cfg.GetPort()
 	address := fmt.Sprintf(":%v", port)
 
-	validCorsHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type"})
+	validCorsHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	validCorsOrigins := handlers.AllowedOrigins(cfg.GetCorsAllowedOrigins())
 	validCorsMethods := handlers.AllowedMethods([]string{"GET", "DELETE", "POST", "PUT", "OPTIONS"})
 

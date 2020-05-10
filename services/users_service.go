@@ -14,6 +14,7 @@ type UsersService interface {
 	FindUserByID(id int32) (*models.User, error)
 	AddUser(dto *dtos.UserDto) (int32, error)
 	GetUsers(r *[]dtos.GetUsersResultDto) error
+	RemoveUser(id int32) error
 }
 
 type MockedUsersService struct {
@@ -54,6 +55,11 @@ func (m *MockedUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 
 func (m *MockedUsersService) GetUsers(r *[]dtos.GetUsersResultDto) error {
 	args := m.Called(r)
+	return args.Error(0)
+}
+
+func (m *MockedUsersService) RemoveUser(id int32) error {
+	args := m.Called(id)
 	return args.Error(0)
 }
 
@@ -140,6 +146,21 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 func (s *DefaultUsersService) GetUsers(r *[]dtos.GetUsersResultDto) error {
 	if err := s.db.Find(&r).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
+	}
+	return nil
+}
+
+func (s *DefaultUsersService) RemoveUser(id int32) error {
+	adminUser, err := s.FindUserByName("admin")
+	if err != nil {
+		return err
+	}
+	if adminUser.ID == id {
+		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
+	}
+
+	if err := s.db.Where(models.User{ID: id}).Delete(models.User{}).Error; err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error deleting user", InternalError: err}
 	}
 	return nil
 }

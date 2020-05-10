@@ -35,6 +35,7 @@ var privateRoutes = []route{
 var adminRoutes = []route{
 	route{"/users", http.MethodPost},
 	route{"/users", http.MethodGet},
+	route{"/users/12", http.MethodDelete},
 }
 
 func TestServer(t *testing.T) {
@@ -80,6 +81,9 @@ func TestServer(t *testing.T) {
 		err := appErrors.BadRequestError{Msg: "Some error"}
 		mockedUsersSrv, _ := s.usersSrv.(*services.MockedUsersService)
 		mockedUsersSrv.On("GetUsers", &[]dtos.GetUsersResultDto{}).Return(&err).Once()
+		mockedListsSrv, _ := s.listsSrv.(*services.MockedListsService)
+		mockedListsSrv.On("GetUserLists", int32(12), &[]dtos.GetListsResultDto{}).Return(&err).Once()
+
 		for _, r := range adminRoutes {
 			req, _ := http.NewRequest(r.method, r.url, nil)
 			req.Header.Set("Authorization", "bearer")
@@ -93,6 +97,7 @@ func TestServer(t *testing.T) {
 		}
 
 		mockedUsersSrv.AssertExpectations(t)
+		mockedListsSrv.AssertExpectations(t)
 	})
 
 	t.Run("handles private routes without auth", func(t *testing.T) {

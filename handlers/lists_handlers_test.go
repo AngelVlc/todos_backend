@@ -313,7 +313,7 @@ func TestDeleteUserListHandler(t *testing.T) {
 		mockedListsService.AssertExpectations(t)
 	})
 
-	t.Run("Should return an errorResult if the update fails", func(t *testing.T) {
+	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "40",

@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/AngelVlc/todos/dtos"
+	appErrors "github.com/AngelVlc/todos/errors"
 )
 
 func AddUserHandler(r *http.Request, h Handler) HandlerResult {
@@ -27,6 +27,28 @@ func GetUsersHandler(r *http.Request, h Handler) HandlerResult {
 	if err != nil {
 		return errorResult{err}
 	}
-	fmt.Println(res)
 	return okResult{res, http.StatusOK}
+}
+
+func DeleteUserHandler(r *http.Request, h Handler) HandlerResult {
+	userID, err := parseInt32UrlVar(r, "id")
+	if err != nil {
+		return errorResult{err}
+	}
+
+	foundUserLists := []dtos.GetListsResultDto{}
+	err = h.listsSrv.GetUserLists(userID, &foundUserLists)
+	if err != nil {
+		return errorResult{err}
+	}
+
+	if len(foundUserLists) > 0 {
+		return errorResult{&appErrors.BadRequestError{Msg: "The user has lists", InternalError: nil}}
+	}
+
+	err = h.usersSrv.RemoveUser(userID)
+	if err != nil {
+		return errorResult{err}
+	}
+	return okResult{nil, http.StatusNoContent}
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/services"
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -100,5 +101,109 @@ func TestGetUsersHandler(t *testing.T) {
 		assert.Equal(t, okResult{res, http.StatusOK}, result)
 
 		mockedUsersService.AssertExpectations(t)
+	})
+}
+
+func TestDeleteUserHandler(t *testing.T) {
+	mockedUsersService := services.NewMockedUsersService()
+	mockedListsService := services.NewMockedListsService()
+
+	handler := Handler{
+		usersSrv: mockedUsersService,
+		listsSrv: mockedListsService,
+	}
+
+	t.Run("Should return an errorResult if user id url param is not valid", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "badId",
+		})
+
+		result := DeleteUserHandler(request, handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid id in url")
+
+		mockedUsersService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+
+		result := DeleteUserHandler(request, handler)
+
+		CheckUnexpectedErrorResult(t, result, "Some error")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult if the user has some list", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		res := []dtos.GetListsResultDto{
+			dtos.GetListsResultDto{
+				ID:   int32(1),
+				Name: "list1",
+			},
+		}
+		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*[]dtos.GetListsResultDto)
+			*arg = res
+		})
+
+		result := DeleteUserHandler(request, handler)
+
+		CheckBadRequestErrorResult(t, result, "The user has lists")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		res := []dtos.GetListsResultDto{}
+		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*[]dtos.GetListsResultDto)
+			*arg = res
+		})
+		mockedUsersService.On("RemoveUser", int32(40)).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+
+		result := DeleteUserHandler(request, handler)
+
+		CheckUnexpectedErrorResult(t, result, "Some error")
+
+		mockedUsersService.AssertExpectations(t)
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should delete the user if there is no errors", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		res := []dtos.GetListsResultDto{}
+		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*[]dtos.GetListsResultDto)
+			*arg = res
+		})
+		mockedUsersService.On("RemoveUser", int32(40)).Return(nil).Once()
+
+		result := DeleteUserHandler(request, handler)
+
+		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
+
+		mockedUsersService.AssertExpectations(t)
+		mockedListsService.AssertExpectations(t)
 	})
 }

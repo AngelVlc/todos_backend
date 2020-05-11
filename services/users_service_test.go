@@ -309,7 +309,7 @@ func TestUsersService(t *testing.T) {
 	t.Run("GetUsers() should return an error if the query fails", func(t *testing.T) {
 		dto := []dtos.GetUsersResultDto{}
 
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,isAdmin FROM `users`")).
 			WillReturnError(fmt.Errorf("some error"))
 
 		err := svc.GetUsers(&dto)
@@ -324,7 +324,7 @@ func TestUsersService(t *testing.T) {
 	t.Run("GetUsers() should return the users", func(t *testing.T) {
 		dto := []dtos.GetUsersResultDto{}
 
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,isAdmin FROM `users`")).
 			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
 
 		err := svc.GetUsers(&dto)
@@ -338,13 +338,13 @@ func TestUsersService(t *testing.T) {
 	})
 
 	t.Run("RemoveUser() should return an error if finding the admin user fails", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`name` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
-			WithArgs("admin").
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
 			WillReturnError(fmt.Errorf("some error"))
 
 		err := svc.RemoveUser(11)
 
-		appErrors.CheckUnexpectedError(t, err, "Error getting user by user name", "some error")
+		appErrors.CheckUnexpectedError(t, err, "Error getting user by user id", "some error")
 
 		if err := mock.ExpectationsWereMet(); err != nil {
 			t.Errorf("there were unfulfilled expectations: %s", err)
@@ -352,8 +352,8 @@ func TestUsersService(t *testing.T) {
 	})
 
 	t.Run("RemoveUser() should return an error when deleting the admin user", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`name` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
-			WithArgs("admin").
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(5)).
 			WillReturnRows(sqlmock.NewRows(columns).AddRow(5, "admin", "", true))
 
 		err := svc.RemoveUser(5)
@@ -365,10 +365,24 @@ func TestUsersService(t *testing.T) {
 		}
 	})
 
+	t.Run("RemoveUser() should return an error when deleting a user that does not exist", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(5)).
+			WillReturnRows(sqlmock.NewRows(columns))
+
+		err := svc.RemoveUser(5)
+
+		appErrors.CheckBadRequestError(t, err, "The user does not exist", "")
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
 	t.Run("RemoveUser() should return an error if delete fails", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`name` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
-			WithArgs("admin").
-			WillReturnRows(sqlmock.NewRows(columns).AddRow(5, "admin", "", true))
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(5, "user", "", true))
 
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE (`users`.`id` = ?)")).
@@ -386,9 +400,9 @@ func TestUsersService(t *testing.T) {
 	})
 
 	t.Run("RemoveUser() should delete the user", func(t *testing.T) {
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`name` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
-			WithArgs("admin").
-			WillReturnRows(sqlmock.NewRows(columns).AddRow(5, "admin", "", true))
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(5, "user", "", true))
 
 		mock.ExpectBegin()
 		mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE (`users`.`id` = ?)")).

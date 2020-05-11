@@ -1,6 +1,8 @@
 package services
 
 import (
+	"strings"
+
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
@@ -144,18 +146,23 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 }
 
 func (s *DefaultUsersService) GetUsers(r *[]dtos.GetUsersResultDto) error {
-	if err := s.db.Find(&r).Error; err != nil {
+	if err := s.db.Select("id,name,isAdmin").Find(&r).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
 	}
 	return nil
 }
 
 func (s *DefaultUsersService) RemoveUser(id int32) error {
-	adminUser, err := s.FindUserByName("admin")
+	foundUser, err := s.FindUserByID(id)
 	if err != nil {
 		return err
 	}
-	if adminUser.ID == id {
+
+	if foundUser == nil {
+		return &appErrors.BadRequestError{Msg: "The user does not exist"}
+	}
+
+	if strings.ToLower(foundUser.Name) == "admin" {
 		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
 	}
 

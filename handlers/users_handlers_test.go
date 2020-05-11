@@ -9,6 +9,7 @@ import (
 
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
+	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/services"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
@@ -122,8 +123,6 @@ func TestDeleteUserHandler(t *testing.T) {
 		result := DeleteUserHandler(request, handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid id in url")
-
-		mockedUsersService.AssertExpectations(t)
 	})
 
 	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
@@ -205,5 +204,73 @@ func TestDeleteUserHandler(t *testing.T) {
 
 		mockedUsersService.AssertExpectations(t)
 		mockedListsService.AssertExpectations(t)
+	})
+}
+
+func TestUpdateUserHandler(t *testing.T) {
+	mockedUsersService := services.NewMockedUsersService()
+
+	handler := Handler{
+		usersSrv: mockedUsersService,
+	}
+
+	t.Run("Should return an errorResult if user id url param is not valid", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "badId",
+		})
+
+		result := UpdateUserHandler(request, handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid id in url")
+	})
+
+	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		result := UpdateUserHandler(request, handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid body")
+	})
+
+	t.Run("Should return an errorResult if adding the user fails", func(t *testing.T) {
+		dto := dtos.UserDto{}
+		body, _ := json.Marshal(dto)
+
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(nil, &appErrors.BadRequestError{Msg: "Some error"}).Once()
+
+		result := UpdateUserHandler(request, handler)
+
+		CheckBadRequestErrorResult(t, result, "Some error")
+
+		mockedUsersService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an okResult when it adds the user", func(t *testing.T) {
+		dto := dtos.UserDto{}
+		body, _ := json.Marshal(dto)
+
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		user := models.User{}
+
+		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(&user, nil).Once()
+
+		result := UpdateUserHandler(request, handler)
+
+		assert.Equal(t, okResult{&user, http.StatusCreated}, result)
+
+		mockedUsersService.AssertExpectations(t)
 	})
 }

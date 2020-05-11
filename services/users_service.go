@@ -17,6 +17,7 @@ type UsersService interface {
 	AddUser(dto *dtos.UserDto) (int32, error)
 	GetUsers(r *[]dtos.GetUsersResultDto) error
 	RemoveUser(id int32) error
+	UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error)
 }
 
 type MockedUsersService struct {
@@ -63,6 +64,15 @@ func (m *MockedUsersService) GetUsers(r *[]dtos.GetUsersResultDto) error {
 func (m *MockedUsersService) RemoveUser(id int32) error {
 	args := m.Called(id)
 	return args.Error(0)
+}
+
+func (m *MockedUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error) {
+	args := m.Called(id, dto)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
 }
 
 type DefaultUsersService struct {
@@ -146,7 +156,7 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 }
 
 func (s *DefaultUsersService) GetUsers(r *[]dtos.GetUsersResultDto) error {
-	if err := s.db.Select("id,name,isAdmin").Find(&r).Error; err != nil {
+	if err := s.db.Select("id,name,is_admin").Find(&r).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
 	}
 	return nil
@@ -170,6 +180,51 @@ func (s *DefaultUsersService) RemoveUser(id int32) error {
 		return &appErrors.UnexpectedError{Msg: "Error deleting user", InternalError: err}
 	}
 	return nil
+}
+
+func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error) {
+	foundUser, err := s.FindUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	if foundUser == nil {
+		return nil, &appErrors.BadRequestError{Msg: "The user does not exist"}
+	}
+
+	if strings.ToLower(foundUser.Name) == "admin" && dto.Name != "admin" {
+		return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
+	}
+
+	if strings.ToLower(foundUser.Name) == "admin" && !dto.IsAdmin {
+		return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin's is admin field"}
+	}
+
+	user := dto.ToUser()
+	user.ID = foundUser.ID
+
+	if len(dto.NewPassword) == 0 {
+		user.PasswordHash = foundUser.PasswordHash
+	} else {
+		if dto.NewPassword != dto.ConfirmNewPassword {
+			return nil, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
+		}
+
+		hasshedPass, err := s.getPasswordHash(dto.NewPassword)
+		if err != nil {
+			return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
+		}
+
+		user.PasswordHash = hasshedPass
+	}
+
+	if err := s.db.Save(&user).Error; err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error updating user", InternalError: err}
+	}
+
+	user.PasswordHash = ""
+
+	return &user, nil
 }
 
 func (s *DefaultUsersService) getPasswordHash(p string) (string, error) {

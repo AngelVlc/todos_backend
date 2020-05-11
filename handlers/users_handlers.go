@@ -52,3 +52,22 @@ func DeleteUserHandler(r *http.Request, h Handler) HandlerResult {
 	}
 	return okResult{nil, http.StatusNoContent}
 }
+
+func UpdateUserHandler(r *http.Request, h Handler) HandlerResult {
+	userID, err := parseInt32UrlVar(r, "id")
+	if err != nil {
+		return errorResult{err}
+	}
+
+	var dto dtos.UserDto
+	err = parseBody(r, &dto)
+	if err != nil {
+		return errorResult{err}
+	}
+
+	u, err := h.usersSrv.UpdateUser(userID, &dto)
+	if err != nil {
+		return errorResult{err}
+	}
+	return okResult{u, http.StatusCreated}
+}

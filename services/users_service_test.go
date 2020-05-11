@@ -167,7 +167,7 @@ func TestUsersService(t *testing.T) {
 		}
 	})
 
-	t.Run("FindUserByID() should return an error if passwords does not match", func(t *testing.T) {
+	t.Run("AddUser() should return an error if passwords does not match", func(t *testing.T) {
 		dto := dtos.UserDto{
 			NewPassword:        "a",
 			ConfirmNewPassword: "b",
@@ -178,7 +178,7 @@ func TestUsersService(t *testing.T) {
 		appErrors.CheckBadRequestError(t, err, "Passwords don't match", "")
 	})
 
-	t.Run("FindUserByID() should return an error if find user by name fails", func(t *testing.T) {
+	t.Run("AddUser() should return an error if find user by name fails", func(t *testing.T) {
 		dto := dtos.UserDto{
 			Name:               user,
 			NewPassword:        "a",
@@ -198,7 +198,7 @@ func TestUsersService(t *testing.T) {
 		}
 	})
 
-	t.Run("FindUserByID() should return an error if already exists a user with the same name", func(t *testing.T) {
+	t.Run("AddUser() should return an error if already exists a user with the same name", func(t *testing.T) {
 		dto := dtos.UserDto{
 			Name:               user,
 			NewPassword:        "a",
@@ -218,7 +218,7 @@ func TestUsersService(t *testing.T) {
 		}
 	})
 
-	t.Run("FindUserByID() should return an error if generating hassed password fails", func(t *testing.T) {
+	t.Run("AddUser() should return an error if generating hassed password fails", func(t *testing.T) {
 		dto := dtos.UserDto{
 			Name:               user,
 			NewPassword:        "a",
@@ -242,7 +242,7 @@ func TestUsersService(t *testing.T) {
 		}
 	})
 
-	t.Run("FindUserByID() should return an error if inserting the new user fails", func(t *testing.T) {
+	t.Run("AddUser() should return an error if inserting the new user fails", func(t *testing.T) {
 		dto := dtos.UserDto{
 			Name:               user,
 			NewPassword:        "a",
@@ -309,7 +309,7 @@ func TestUsersService(t *testing.T) {
 	t.Run("GetUsers() should return an error if the query fails", func(t *testing.T) {
 		dto := []dtos.GetUsersResultDto{}
 
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,isAdmin FROM `users`")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,is_admin FROM `users`")).
 			WillReturnError(fmt.Errorf("some error"))
 
 		err := svc.GetUsers(&dto)
@@ -324,7 +324,7 @@ func TestUsersService(t *testing.T) {
 	t.Run("GetUsers() should return the users", func(t *testing.T) {
 		dto := []dtos.GetUsersResultDto{}
 
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,isAdmin FROM `users`")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,is_admin FROM `users`")).
 			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
 
 		err := svc.GetUsers(&dto)
@@ -337,7 +337,7 @@ func TestUsersService(t *testing.T) {
 		}
 	})
 
-	t.Run("RemoveUser() should return an error if finding the admin user fails", func(t *testing.T) {
+	t.Run("RemoveUser() should return an error if finding the user fails", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
 			WithArgs(int32(11)).
 			WillReturnError(fmt.Errorf("some error"))
@@ -412,6 +412,146 @@ func TestUsersService(t *testing.T) {
 
 		err := svc.RemoveUser(11)
 
+		assert.Nil(t, err)
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("UpdateUser() should return an error if finding the user fails", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
+			WillReturnError(fmt.Errorf("some error"))
+
+		u, err := svc.UpdateUser(11, &dtos.UserDto{})
+
+		assert.Nil(t, u)
+		appErrors.CheckUnexpectedError(t, err, "Error getting user by user id", "some error")
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("UpdateUser() should return an error when trying to update the admin user name", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "admin", "", true))
+
+		dto := dtos.UserDto{
+			Name:               "anotherName",
+			NewPassword:        "a",
+			ConfirmNewPassword: "b",
+			IsAdmin:            true,
+		}
+
+		u, err := svc.UpdateUser(11, &dto)
+
+		assert.Nil(t, u)
+		appErrors.CheckBadRequestError(t, err, "It is not possible to change the admin user name", "")
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("UpdateUser() should return an error when trying to update the admin is admin field", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "admin", "", true))
+
+		dto := dtos.UserDto{
+			Name:               "admin",
+			NewPassword:        "a",
+			ConfirmNewPassword: "b",
+			IsAdmin:            false,
+		}
+
+		u, err := svc.UpdateUser(11, &dto)
+
+		assert.Nil(t, u)
+		appErrors.CheckBadRequestError(t, err, "It is not possible to change the admin's is admin field", "")
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("UpdateUser() should return an error when trying to update the user without changing its password", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user", "hash", true))
+
+		dto := dtos.UserDto{
+			Name:    "user",
+			IsAdmin: false,
+		}
+
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name` = ?, `password_hash` = ?, `is_admin` = ? WHERE `users`.`id` = ?")).
+			WithArgs("user", "hash", false, 11).
+			WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		u, err := svc.UpdateUser(11, &dto)
+
+		assert.Nil(t, u)
+		appErrors.CheckUnexpectedError(t, err, "Error updating user", "some error")
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("UpdateUser() should return an error when trying to update the user changing its password but the passwords don't match", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user", "hash", true))
+
+		dto := dtos.UserDto{
+			Name:               "user",
+			IsAdmin:            false,
+			NewPassword:        "a",
+			ConfirmNewPassword: "b",
+		}
+
+		u, err := svc.UpdateUser(11, &dto)
+
+		assert.Nil(t, u)
+		appErrors.CheckBadRequestError(t, err, "Passwords don't match", "")
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("UpdateUser() to update the user changing its password when the passwords match", func(t *testing.T) {
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(int32(11)).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user", "hash", true))
+
+		dto := dtos.UserDto{
+			Name:               "user",
+			IsAdmin:            false,
+			NewPassword:        "new",
+			ConfirmNewPassword: "new",
+		}
+
+		mockedCh.On("GenerateFromPassword", []byte(dto.NewPassword)).Return([]byte(hasshedPass), nil).Once()
+
+		mock.ExpectBegin()
+		mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name` = ?, `password_hash` = ?, `is_admin` = ? WHERE `users`.`id` = ?")).
+			WithArgs("user", hasshedPass, false, 11).
+			WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`  WHERE `users`.`id` = ? ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(11).
+			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user", "", false))
+
+		u, err := svc.UpdateUser(11, &dto)
+
+		assert.NotNil(t, u)
 		assert.Nil(t, err)
 
 		if err := mock.ExpectationsWereMet(); err != nil {

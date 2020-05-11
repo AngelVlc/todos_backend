@@ -47,6 +47,7 @@ func newServer(db *gorm.DB) *server {
 	usersSubRouter.Handle("", s.getHandler(handlers.AddUserHandler)).Methods(http.MethodPost)
 	usersSubRouter.Handle("", s.getHandler(handlers.GetUsersHandler)).Methods(http.MethodGet)
 	usersSubRouter.Handle("/{id}", s.getHandler(handlers.DeleteUserHandler)).Methods(http.MethodDelete)
+	usersSubRouter.Handle("/{id}", s.getHandler(handlers.UpdateUserHandler)).Methods(http.MethodPut)
 	usersSubRouter.Use(s.authMdw.Middleware)
 	usersSubRouter.Use(s.requireAdminMdw.Middleware)
 

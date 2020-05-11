@@ -36,6 +36,7 @@ var adminRoutes = []route{
 	route{"/users", http.MethodPost},
 	route{"/users", http.MethodGet},
 	route{"/users/12", http.MethodDelete},
+	route{"/users/12", http.MethodPut},
 }
 
 func TestServer(t *testing.T) {

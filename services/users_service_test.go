@@ -307,7 +307,7 @@ func TestUsersService(t *testing.T) {
 	})
 
 	t.Run("GetUsers() should return an error if the query fails", func(t *testing.T) {
-		dto := []dtos.GetUsersResultDto{}
+		dto := []dtos.GetUserResultDto{}
 
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,is_admin FROM `users`")).
 			WillReturnError(fmt.Errorf("some error"))
@@ -322,7 +322,7 @@ func TestUsersService(t *testing.T) {
 	})
 
 	t.Run("GetUsers() should return the users", func(t *testing.T) {
-		dto := []dtos.GetUsersResultDto{}
+		dto := []dtos.GetUserResultDto{}
 
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,is_admin FROM `users`")).
 			WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))

@@ -72,7 +72,7 @@ func TestGetUsersHandler(t *testing.T) {
 	t.Run("Should return an errorResult if getting the users fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 
-		res := []dtos.GetUsersResultDto{}
+		res := []dtos.GetUserResultDto{}
 		mockedUsersService.On("GetUsers", &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUsersHandler(request, handler)
@@ -85,15 +85,15 @@ func TestGetUsersHandler(t *testing.T) {
 	t.Run("Should return an ok result with the users if there is no errors", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 
-		res := []dtos.GetUsersResultDto{
-			dtos.GetUsersResultDto{
+		res := []dtos.GetUserResultDto{
+			dtos.GetUserResultDto{
 				ID:      int32(1),
 				Name:    "user1",
 				IsAdmin: true,
 			},
 		}
-		mockedUsersService.On("GetUsers", &[]dtos.GetUsersResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(0).(*[]dtos.GetUsersResultDto)
+		mockedUsersService.On("GetUsers", &[]dtos.GetUserResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(0).(*[]dtos.GetUserResultDto)
 			*arg = res
 		})
 
@@ -236,7 +236,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
 
-	t.Run("Should return an errorResult if adding the user fails", func(t *testing.T) {
+	t.Run("Should return an errorResult if updating the user fails", func(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
@@ -254,7 +254,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		mockedUsersService.AssertExpectations(t)
 	})
 
-	t.Run("Should return an okResult when it adds the user", func(t *testing.T) {
+	t.Run("Should return an okResult when it updates the user", func(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
@@ -270,6 +270,67 @@ func TestUpdateUserHandler(t *testing.T) {
 		result := UpdateUserHandler(request, handler)
 
 		assert.Equal(t, okResult{&user, http.StatusCreated}, result)
+
+		mockedUsersService.AssertExpectations(t)
+	})
+}
+
+func TestGetUserHandler(t *testing.T) {
+	mockedUsersService := services.NewMockedUsersService()
+
+	handler := Handler{
+		usersSrv: mockedUsersService,
+	}
+
+	t.Run("Should return an errorResult if user id url param is not valid", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "badId",
+		})
+
+		result := GetUserHandler(request, handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid id in url")
+	})
+
+	t.Run("Should return an errorResult if updating the user fails", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		mockedUsersService.On("FindUserByID", int32(40)).Return(nil, &appErrors.BadRequestError{Msg: "Some error"}).Once()
+
+		result := GetUserHandler(request, handler)
+
+		CheckBadRequestErrorResult(t, result, "Some error")
+
+		mockedUsersService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an okResult with the user info", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "40",
+		})
+
+		user := models.User{
+			Name:    "user",
+			IsAdmin: true,
+			ID:      40,
+		}
+
+		mockedUsersService.On("FindUserByID", int32(40)).Return(&user, nil).Once()
+
+		result := GetUserHandler(request, handler)
+
+		dto := dtos.GetUserResultDto{
+			Name:    "user",
+			IsAdmin: true,
+			ID:      40,
+		}
+
+		assert.Equal(t, okResult{dto, http.StatusCreated}, result)
 
 		mockedUsersService.AssertExpectations(t)
 	})

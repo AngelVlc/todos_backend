@@ -22,7 +22,7 @@ func AddUserHandler(r *http.Request, h Handler) HandlerResult {
 }
 
 func GetUsersHandler(r *http.Request, h Handler) HandlerResult {
-	res := []dtos.GetUsersResultDto{}
+	res := []dtos.GetUserResultDto{}
 	err := h.usersSrv.GetUsers(&res)
 	if err != nil {
 		return errorResult{err}
@@ -70,4 +70,24 @@ func UpdateUserHandler(r *http.Request, h Handler) HandlerResult {
 		return errorResult{err}
 	}
 	return okResult{u, http.StatusCreated}
+}
+
+func GetUserHandler(r *http.Request, h Handler) HandlerResult {
+	userID, err := parseInt32UrlVar(r, "id")
+	if err != nil {
+		return errorResult{err}
+	}
+
+	u, err := h.usersSrv.FindUserByID(userID)
+	if err != nil {
+		return errorResult{err}
+	}
+
+	result := dtos.GetUserResultDto{
+		Name:    u.Name,
+		IsAdmin: u.IsAdmin,
+		ID:      u.ID,
+	}
+
+	return okResult{result, http.StatusCreated}
 }

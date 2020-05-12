@@ -37,6 +37,7 @@ var adminRoutes = []route{
 	route{"/users", http.MethodGet},
 	route{"/users/12", http.MethodDelete},
 	route{"/users/12", http.MethodPut},
+	route{"/users/12", http.MethodGet},
 }
 
 func TestServer(t *testing.T) {
@@ -81,7 +82,8 @@ func TestServer(t *testing.T) {
 	t.Run("handles admin routes with auth and admin", func(t *testing.T) {
 		err := appErrors.BadRequestError{Msg: "Some error"}
 		mockedUsersSrv, _ := s.usersSrv.(*services.MockedUsersService)
-		mockedUsersSrv.On("GetUsers", &[]dtos.GetUsersResultDto{}).Return(&err).Once()
+		mockedUsersSrv.On("GetUsers", &[]dtos.GetUserResultDto{}).Return(&err).Once()
+		mockedUsersSrv.On("FindUserByID", int32(12)).Return(nil, &err).Once()
 		mockedListsSrv, _ := s.listsSrv.(*services.MockedListsService)
 		mockedListsSrv.On("GetUserLists", int32(12), &[]dtos.GetListsResultDto{}).Return(&err).Once()
 

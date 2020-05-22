@@ -75,7 +75,7 @@ func TestGetUserSingleListHandler(t *testing.T) {
 
 	userID := int32(21)
 
-	t.Run("Should return an errorResult if user id url param is not valid", func(t *testing.T) {
+	t.Run("Should return an errorResult if list id url param is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "badId",
@@ -90,7 +90,7 @@ func TestGetUserSingleListHandler(t *testing.T) {
 		mockedListsService.AssertExpectations(t)
 	})
 
-	t.Run("Should return an errorResult if the id is valid but the query fails", func(t *testing.T) {
+	t.Run("Should return an errorResult if the list id is valid but the query fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "11",
@@ -343,6 +343,91 @@ func TestDeleteUserListHandler(t *testing.T) {
 		result := DeleteUserListHandler(request.WithContext(ctx), handler)
 
 		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
+
+		mockedListsService.AssertExpectations(t)
+	})
+}
+
+func TestGetUserSingleListItemHandler(t *testing.T) {
+	mockedListsService := services.NewMockedListsService()
+
+	handler := Handler{
+		listsSrv: mockedListsService,
+	}
+
+	userID := int32(21)
+
+	t.Run("Should return an errorResult if list id url param is not valid", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "badId",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+
+		result := GetUserSingleListItemHandler(request.WithContext(ctx), handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid listId in url")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult if item id url param is not valid", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "5",
+			"itemId": "badId",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+
+		result := GetUserSingleListItemHandler(request.WithContext(ctx), handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid itemId in url")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult if the listId is valid but the query fails", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "5",
+			"itemId": "3",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+
+		res := dtos.GetItemResultDto{}
+		mockedListsService.On("GetSingleItem", int32(3), int32(5), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+
+		result := GetUserSingleListItemHandler(request.WithContext(ctx), handler)
+
+		CheckUnexpectedErrorResult(t, result, "Some error")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should return the item it there is no errors", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "5",
+			"itemId": "3",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+
+		res := dtos.GetItemResultDto{
+			Title:       "Title",
+			Description: "Description",
+		}
+		mockedListsService.On("GetSingleItem", int32(3), int32(5), userID, &dtos.GetItemResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(3).(*dtos.GetItemResultDto)
+			*arg = res
+		})
+
+		result := GetUserSingleListItemHandler(request.WithContext(ctx), handler)
+
+		assert.Equal(t, okResult{res, http.StatusOK}, result)
 
 		mockedListsService.AssertExpectations(t)
 	})

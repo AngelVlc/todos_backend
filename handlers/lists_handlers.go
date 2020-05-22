@@ -93,3 +93,24 @@ func parseListBody(r *http.Request) (*models.List, error) {
 	l := dto.ToList()
 	return &l, nil
 }
+
+func GetUserSingleListItemHandler(r *http.Request, h Handler) HandlerResult {
+	userID := getUserIDFromContext(r)
+
+	listID, err := parseInt32UrlVar(r, "listId")
+	if err != nil {
+		return errorResult{err}
+	}
+
+	itemID, err := parseInt32UrlVar(r, "itemId")
+	if err != nil {
+		return errorResult{err}
+	}
+
+	l := dtos.GetItemResultDto{}
+	err = h.listsSrv.GetSingleItem(itemID, listID, userID, &l)
+	if err != nil {
+		return errorResult{err}
+	}
+	return okResult{l, http.StatusOK}
+}

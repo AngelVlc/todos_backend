@@ -30,6 +30,7 @@ var privateRoutes = []route{
 	route{"/lists/12", http.MethodPut},
 	route{"/lists/12", http.MethodGet},
 	route{"/lists/12", http.MethodDelete},
+	route{"/lists/12/item/3", http.MethodGet},
 }
 
 var adminRoutes = []route{
@@ -120,6 +121,7 @@ func TestServer(t *testing.T) {
 		mockedListsSrv.On("GetUserLists", int32(0), &[]dtos.GetListsResultDto{}).Return(&err).Once()
 		mockedListsSrv.On("GetSingleUserList", int32(12), int32(0), &dtos.GetSingleListResultDto{}).Return(&err).Once()
 		mockedListsSrv.On("RemoveUserList", int32(12), int32(0)).Return(&err).Once()
+		mockedListsSrv.On("GetSingleItem", int32(3), int32(12), int32(0), &dtos.GetItemResultDto{}).Return(&err).Once()
 
 		for _, r := range privateRoutes {
 			req, _ := http.NewRequest(r.method, r.url, nil)

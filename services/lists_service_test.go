@@ -220,4 +220,40 @@ func TestListsService(t *testing.T) {
 			t.Errorf("there were unfulfilled expectations: %s", err)
 		}
 	})
+
+	t.Run("GetSingleItem() should return an error if the query fails", func(t *testing.T) {
+		u := int32(11)
+		dto := dtos.GetItemResultDto{}
+
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT `listItems`.* FROM `listItems` JOIN lists on listItems.listId=lists.id WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?) AND (`listItems`.`id` = ?)")).
+			WithArgs(15, u, 5).
+			WillReturnError(fmt.Errorf("some error"))
+
+		err := svc.GetSingleItem(5, 15, u, &dto)
+
+		appErrors.CheckUnexpectedError(t, err, "Error getting user list item", "some error")
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
+
+	t.Run("GetSingleItem() should get a single item", func(t *testing.T) {
+		u := int32(11)
+		dto := dtos.GetItemResultDto{}
+
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT `listItems`.* FROM `listItems` JOIN lists on listItems.listId=lists.id WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?) AND (`listItems`.`id` = ?)")).
+			WithArgs(15, u, 5).
+			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(22, 11, "title", "description"))
+
+		err := svc.GetSingleItem(5, 15, u, &dto)
+
+		assert.Equal(t, "title", dto.Title)
+		assert.Equal(t, "description", dto.Description)
+		assert.Nil(t, err)
+
+		if err := mock.ExpectationsWereMet(); err != nil {
+			t.Errorf("there were unfulfilled expectations: %s", err)
+		}
+	})
 }

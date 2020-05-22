@@ -1,0 +1,1 @@
+ALTER TABLE `listItems` MODIFY `description` varchar(500) NULL;

@@ -11,7 +11,7 @@ func (GetSingleListResultDto) TableName() string {
 	return "lists"
 }
 
-// Item is the model for a single list item
+// GetSingleListResultItemDto is the model for a single list item
 type GetSingleListResultItemDto struct {
 	ID          int32  `json:"id" gorm:"type:int(32);primary_key"`
 	ListID      int32  `json:"listId" gorm:"column:listId;type:int(32)"`

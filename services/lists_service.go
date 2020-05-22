@@ -16,6 +16,7 @@ type ListsService interface {
 	UpdateUserList(id int32, userID int32, l *models.List) error
 	GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error
 	GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error
+	GetSingleItem(id int32, listId int32, userID int32, i *dtos.GetItemResultDto) error
 }
 
 type MockedListsService struct {
@@ -48,6 +49,11 @@ func (m *MockedListsService) GetSingleUserList(id int32, userID int32, l *dtos.G
 
 func (m *MockedListsService) GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error {
 	args := m.Called(userID, r)
+	return args.Error(0)
+}
+
+func (m *MockedListsService) GetSingleItem(id int32, listId int32, userID int32, i *dtos.GetItemResultDto) error {
+	args := m.Called(id, listId, userID, i)
 	return args.Error(0)
 }
 
@@ -106,5 +112,14 @@ func (s *DefaultListsService) GetUserLists(userID int32, r *[]dtos.GetListsResul
 	if err := s.db.Where(models.List{UserID: userID}).Select("id,name").Find(&r).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error getting user lists", InternalError: err}
 	}
+	return nil
+}
+
+func (s *DefaultListsService) GetSingleItem(id int32, listId int32, userID int32, i *dtos.GetItemResultDto) error {
+	if err := s.db.Joins("JOIN lists on listItems.listId=lists.id").Where(models.List{ID: listId, UserID: userID}).Where(models.ListItem{ID: id}).Find(&i).Error; err != nil {
+		log.Println("···", err)
+		return &appErrors.UnexpectedError{Msg: "Error getting user list item", InternalError: err}
+	}
+
 	return nil
 }

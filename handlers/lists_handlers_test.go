@@ -398,7 +398,7 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
 
 		res := dtos.GetItemResultDto{}
-		mockedListsService.On("GetSingleItem", int32(3), int32(5), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("GetUserListItem", int32(3), int32(5), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUserSingleListItemHandler(request.WithContext(ctx), handler)
 
@@ -420,7 +420,7 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 			Title:       "Title",
 			Description: "Description",
 		}
-		mockedListsService.On("GetSingleItem", int32(3), int32(5), userID, &dtos.GetItemResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
+		mockedListsService.On("GetUserListItem", int32(3), int32(5), userID, &dtos.GetItemResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(3).(*dtos.GetItemResultDto)
 			*arg = res
 		})
@@ -428,6 +428,92 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 		result := GetUserSingleListItemHandler(request.WithContext(ctx), handler)
 
 		assert.Equal(t, okResult{res, http.StatusOK}, result)
+
+		mockedListsService.AssertExpectations(t)
+	})
+}
+
+func TestAddUserListItemHandler(t *testing.T) {
+	mockedListsService := services.NewMockedListsService()
+
+	handler := Handler{
+		listsSrv: mockedListsService,
+	}
+
+	userID := int32(21)
+
+	t.Run("Should return an errorResult if list id url param is not valid", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "badId",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+
+		result := AddUserListItemHandler(request.WithContext(ctx), handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid listId in url")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "11",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+
+		result := AddUserListItemHandler(request.WithContext(ctx), handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid body")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult if the body is valid but the insert fails", func(t *testing.T) {
+		dto := dtos.ListItemDto{
+			Title: "title",
+		}
+		body, _ := json.Marshal(dto)
+
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "11",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+
+		res := models.ListItem{Title: "title", ListID: int32(11)}
+		mockedListsService.On("AddUserListItem", userID, &res).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
+
+		result := AddUserListItemHandler(request.WithContext(ctx), handler)
+
+		CheckUnexpectedErrorResult(t, result, "Some error")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should add the list item if the body is valid and the insert does not fail", func(t *testing.T) {
+		dto := dtos.ListItemDto{
+			Title: "title",
+		}
+		body, _ := json.Marshal(dto)
+
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "11",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+
+		res := models.ListItem{Title: "title", ListID: int32(11)}
+		mockedListsService.On("AddUserListItem", userID, &res).Return(int32(40), nil).Once()
+
+		result := AddUserListItemHandler(request.WithContext(ctx), handler)
+
+		assert.Equal(t, okResult{int32(40), http.StatusCreated}, result)
 
 		mockedListsService.AssertExpectations(t)
 	})

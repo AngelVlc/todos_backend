@@ -23,6 +23,12 @@ func TestListsService(t *testing.T) {
 		Name: "list",
 	}
 
+	i := models.ListItem{
+		ListID:      11,
+		Title:       "title",
+		Description: "description",
+	}
+
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -193,28 +199,78 @@ func TestListsService(t *testing.T) {
 			WithArgs(15, userId, 5)
 	}
 
-	t.Run("GetSingleItem() should return an error if the query fails", func(t *testing.T) {
+	t.Run("GetUserListItem() should return an error if the query fails", func(t *testing.T) {
 
 		dto := dtos.GetItemResultDto{}
 
 		expectedGetItemQuery().WillReturnError(fmt.Errorf("some error"))
 
-		err := svc.GetSingleItem(5, 15, userId, &dto)
+		err := svc.GetUserListItem(5, 15, userId, &dto)
 
 		appErrors.CheckUnexpectedError(t, err, "Error getting user list item", "some error")
 
 		checkMockExpectations(t, mock)
 	})
 
-	t.Run("GetSingleItem() should get a single item", func(t *testing.T) {
+	t.Run("GetUserListItem() should get a single item", func(t *testing.T) {
 		dto := dtos.GetItemResultDto{}
 
 		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(22, 11, "title", "description"))
 
-		err := svc.GetSingleItem(5, 15, userId, &dto)
+		err := svc.GetUserListItem(5, 15, userId, &dto)
 
 		assert.Equal(t, "title", dto.Title)
 		assert.Equal(t, "description", dto.Description)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("AddUserListItem() should return an error if getting the list fails", func(t *testing.T) {
+		expectedGetListQuery().WillReturnError(fmt.Errorf("some error"))
+
+		_, err := svc.AddUserListItem(userId, &i)
+
+		appErrors.CheckUnexpectedError(t, err, "Error getting user list", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	expectedInsertPreviousQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems`  WHERE (`listId` IN (?))")).
+			WithArgs(11)
+	}
+	expectedInsertListItemExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`title`,`description`) VALUES (?,?,?)")).
+			WithArgs(i.ListID, i.Title, i.Description)
+	}
+
+	t.Run("AddUserListItem() should return an error if insert fails", func(t *testing.T) {
+		expectedGetListQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+
+		expectedInsertPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+		mock.ExpectBegin()
+		expectedInsertListItemExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		_, err := svc.AddUserListItem(userId, &i)
+
+		appErrors.CheckUnexpectedError(t, err, "Error inserting list item", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("AddUserListItem() should insert the new list item", func(t *testing.T) {
+		expectedGetListQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+
+		expectedInsertPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+		mock.ExpectBegin()
+		expectedInsertListItemExec().WillReturnResult(sqlmock.NewResult(12, 0))
+		mock.ExpectCommit()
+
+		id, err := svc.AddUserListItem(userId, &i)
+
+		assert.Equal(t, int32(12), id)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)

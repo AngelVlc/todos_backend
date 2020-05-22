@@ -84,16 +84,6 @@ func DeleteUserListHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{nil, http.StatusNoContent}
 }
 
-func parseListBody(r *http.Request) (*models.List, error) {
-	var dto dtos.ListDto
-	err := parseBody(r, &dto)
-	if err != nil {
-		return nil, err
-	}
-	l := dto.ToList()
-	return &l, nil
-}
-
 func GetUserSingleListItemHandler(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
@@ -108,9 +98,51 @@ func GetUserSingleListItemHandler(r *http.Request, h Handler) HandlerResult {
 	}
 
 	l := dtos.GetItemResultDto{}
-	err = h.listsSrv.GetSingleItem(itemID, listID, userID, &l)
+	err = h.listsSrv.GetUserListItem(itemID, listID, userID, &l)
 	if err != nil {
 		return errorResult{err}
 	}
 	return okResult{l, http.StatusOK}
+}
+
+func AddUserListItemHandler(r *http.Request, h Handler) HandlerResult {
+	userID := getUserIDFromContext(r)
+
+	listID, err := parseInt32UrlVar(r, "listId")
+	if err != nil {
+		return errorResult{err}
+	}
+
+	i, err := parseListItemBody(r)
+	if err != nil {
+		return errorResult{err}
+	}
+
+	i.ListID = listID
+
+	id, err := h.listsSrv.AddUserListItem(userID, i)
+	if err != nil {
+		return errorResult{err}
+	}
+	return okResult{id, http.StatusCreated}
+}
+
+func parseListBody(r *http.Request) (*models.List, error) {
+	var dto dtos.ListDto
+	err := parseBody(r, &dto)
+	if err != nil {
+		return nil, err
+	}
+	l := dto.ToList()
+	return &l, nil
+}
+
+func parseListItemBody(r *http.Request) (*models.ListItem, error) {
+	var dto dtos.ListItemDto
+	err := parseBody(r, &dto)
+	if err != nil {
+		return nil, err
+	}
+	l := dto.ToListItem()
+	return &l, nil
 }

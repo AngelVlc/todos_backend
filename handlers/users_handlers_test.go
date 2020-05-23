@@ -3,6 +3,7 @@ package handlers
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"strings"
 	"testing"
@@ -10,23 +11,19 @@ import (
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
-	"github.com/AngelVlc/todos/services"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func TestAddUserHandler(t *testing.T) {
-	mockedUsersService := services.NewMockedUsersService()
-
-	handler := Handler{
-		usersSrv: mockedUsersService,
+	request := func(body io.Reader) *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		return request
 	}
 
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
-
-		result := AddUserHandler(request, handler)
+		result := AddUserHandler(request(strings.NewReader("wadus")), handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -35,11 +32,9 @@ func TestAddUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
-
 		mockedUsersService.On("AddUser", &dto).Return(int32(-1), &appErrors.BadRequestError{Msg: "Some error"}).Once()
 
-		result := AddUserHandler(request, handler)
+		result := AddUserHandler(request(bytes.NewBuffer(body)), handler)
 
 		CheckBadRequestErrorResult(t, result, "Some error")
 
@@ -50,11 +45,9 @@ func TestAddUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
-
 		mockedUsersService.On("AddUser", &dto).Return(int32(11), nil).Once()
 
-		result := AddUserHandler(request, handler)
+		result := AddUserHandler(request(bytes.NewBuffer(body)), handler)
 
 		assert.Equal(t, okResult{int32(11), http.StatusCreated}, result)
 
@@ -63,19 +56,16 @@ func TestAddUserHandler(t *testing.T) {
 }
 
 func TestGetUsersHandler(t *testing.T) {
-	mockedUsersService := services.NewMockedUsersService()
-
-	handler := Handler{
-		usersSrv: mockedUsersService,
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		return request
 	}
 
 	t.Run("Should return an errorResult if getting the users fails", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-
 		res := []dtos.GetUserResultDto{}
 		mockedUsersService.On("GetUsers", &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := GetUsersHandler(request, handler)
+		result := GetUsersHandler(request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -83,8 +73,6 @@ func TestGetUsersHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an ok result with the users if there is no errors", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-
 		res := []dtos.GetUserResultDto{
 			dtos.GetUserResultDto{
 				ID:      int32(1),
@@ -97,7 +85,7 @@ func TestGetUsersHandler(t *testing.T) {
 			*arg = res
 		})
 
-		result := GetUsersHandler(request, handler)
+		result := GetUsersHandler(request(), handler)
 
 		assert.Equal(t, okResult{res, http.StatusOK}, result)
 
@@ -106,23 +94,18 @@ func TestGetUsersHandler(t *testing.T) {
 }
 
 func TestDeleteUserHandler(t *testing.T) {
-	mockedUsersService := services.NewMockedUsersService()
-	mockedListsService := services.NewMockedListsService()
-
-	handler := Handler{
-		usersSrv: mockedUsersService,
-		listsSrv: mockedListsService,
-	}
-
-	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
+	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "40",
 		})
+		return request
+	}
 
+	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
 		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := DeleteUserHandler(request, handler)
+		result := DeleteUserHandler(request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -130,11 +113,6 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the user has some list", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "40",
-		})
-
 		res := []dtos.GetListsResultDto{
 			dtos.GetListsResultDto{
 				ID:   int32(1),
@@ -146,7 +124,7 @@ func TestDeleteUserHandler(t *testing.T) {
 			*arg = res
 		})
 
-		result := DeleteUserHandler(request, handler)
+		result := DeleteUserHandler(request(), handler)
 
 		CheckBadRequestErrorResult(t, result, "The user has lists")
 
@@ -154,11 +132,6 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "40",
-		})
-
 		res := []dtos.GetListsResultDto{}
 		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(1).(*[]dtos.GetListsResultDto)
@@ -166,7 +139,7 @@ func TestDeleteUserHandler(t *testing.T) {
 		})
 		mockedUsersService.On("RemoveUser", int32(40)).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := DeleteUserHandler(request, handler)
+		result := DeleteUserHandler(request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -175,11 +148,6 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should delete the user if there is no errors", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "40",
-		})
-
 		res := []dtos.GetListsResultDto{}
 		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(1).(*[]dtos.GetListsResultDto)
@@ -187,7 +155,7 @@ func TestDeleteUserHandler(t *testing.T) {
 		})
 		mockedUsersService.On("RemoveUser", int32(40)).Return(nil).Once()
 
-		result := DeleteUserHandler(request, handler)
+		result := DeleteUserHandler(request(), handler)
 
 		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
 
@@ -197,19 +165,16 @@ func TestDeleteUserHandler(t *testing.T) {
 }
 
 func TestUpdateUserHandler(t *testing.T) {
-	mockedUsersService := services.NewMockedUsersService()
-
-	handler := Handler{
-		usersSrv: mockedUsersService,
-	}
-
-	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+	request := func(body io.Reader) *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "40",
 		})
+		return request
+	}
 
-		result := UpdateUserHandler(request, handler)
+	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
+		result := UpdateUserHandler(request(nil), handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -218,14 +183,9 @@ func TestUpdateUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "40",
-		})
-
 		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(nil, &appErrors.BadRequestError{Msg: "Some error"}).Once()
 
-		result := UpdateUserHandler(request, handler)
+		result := UpdateUserHandler(request(bytes.NewBuffer(body)), handler)
 
 		CheckBadRequestErrorResult(t, result, "Some error")
 
@@ -236,16 +196,11 @@ func TestUpdateUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "40",
-		})
-
 		user := models.User{}
 
 		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(&user, nil).Once()
 
-		result := UpdateUserHandler(request, handler)
+		result := UpdateUserHandler(request(bytes.NewBuffer(body)), handler)
 
 		assert.Equal(t, okResult{&user, http.StatusCreated}, result)
 
@@ -254,21 +209,19 @@ func TestUpdateUserHandler(t *testing.T) {
 }
 
 func TestGetUserHandler(t *testing.T) {
-	mockedUsersService := services.NewMockedUsersService()
-
-	handler := Handler{
-		usersSrv: mockedUsersService,
-	}
-
-	t.Run("Should return an errorResult if updating the user fails", func(t *testing.T) {
+	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "40",
 		})
 
+		return request
+	}
+
+	t.Run("Should return an errorResult if updating the user fails", func(t *testing.T) {
 		mockedUsersService.On("FindUserByID", int32(40)).Return(nil, &appErrors.BadRequestError{Msg: "Some error"}).Once()
 
-		result := GetUserHandler(request, handler)
+		result := GetUserHandler(request(), handler)
 
 		CheckBadRequestErrorResult(t, result, "Some error")
 
@@ -276,11 +229,6 @@ func TestGetUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an okResult with the user info", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "40",
-		})
-
 		user := models.User{
 			Name:    "user",
 			IsAdmin: true,
@@ -289,7 +237,7 @@ func TestGetUserHandler(t *testing.T) {
 
 		mockedUsersService.On("FindUserByID", int32(40)).Return(&user, nil).Once()
 
-		result := GetUserHandler(request, handler)
+		result := GetUserHandler(request(), handler)
 
 		dto := dtos.GetUserResultDto{
 			Name:    "user",

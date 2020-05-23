@@ -14,15 +14,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestTokenHandler(t *testing.T) {
-	mockedAuthService := services.NewMockedAuthService()
-	mockedUsersService := services.NewMockedUsersService()
+var (
+	mockedAuthService  = services.NewMockedAuthService()
+	mockedUsersService = services.NewMockedUsersService()
+	mockedListsService = services.NewMockedListsService()
 
-	handler := Handler{
+	handler = Handler{
 		usersSrv: mockedUsersService,
 		authSrv:  mockedAuthService,
+		listsSrv: mockedListsService,
 	}
+)
 
+func TestTokenHandler(t *testing.T) {
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
 
@@ -171,14 +175,6 @@ func TestTokenHandler(t *testing.T) {
 }
 
 func TestRefreshTokenHandler(t *testing.T) {
-	mockedAuthService := services.NewMockedAuthService()
-	mockedUsersService := services.NewMockedUsersService()
-
-	handler := Handler{
-		usersSrv: mockedUsersService,
-		authSrv:  mockedAuthService,
-	}
-
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
 

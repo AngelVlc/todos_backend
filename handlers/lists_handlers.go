@@ -103,6 +103,18 @@ func AddUserListItemHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{id, http.StatusCreated}
 }
 
+func DeleteUserListItemHandler(r *http.Request, h Handler) HandlerResult {
+	userID := getUserIDFromContext(r)
+	listID := parseInt32UrlVar(r, "listId")
+	itemID := parseInt32UrlVar(r, "itemId")
+
+	err := h.listsSrv.RemoveUserListItem(itemID, listID, userID)
+	if err != nil {
+		return errorResult{err}
+	}
+	return okResult{nil, http.StatusNoContent}
+}
+
 func parseListBody(r *http.Request) (*models.List, error) {
 	var dto dtos.ListDto
 	err := parseBody(r, &dto)

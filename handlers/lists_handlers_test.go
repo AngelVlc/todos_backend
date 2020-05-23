@@ -268,17 +268,20 @@ func TestDeleteUserListHandler(t *testing.T) {
 
 	userID := int32(21)
 
-	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
+	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "40",
 		})
 		ctx := request.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+		return request.WithContext(ctx)
+	}
 
+	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
 		mockedListsService.On("RemoveUserList", int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := DeleteUserListHandler(request.WithContext(ctx), handler)
+		result := DeleteUserListHandler(request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -286,16 +289,9 @@ func TestDeleteUserListHandler(t *testing.T) {
 	})
 
 	t.Run("Should delete the list if there is no errors", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "40",
-		})
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
-
 		mockedListsService.On("RemoveUserList", int32(40), userID).Return(nil).Once()
 
-		result := DeleteUserListHandler(request.WithContext(ctx), handler)
+		result := DeleteUserListHandler(request(), handler)
 
 		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
 
@@ -423,6 +419,47 @@ func TestAddUserListItemHandler(t *testing.T) {
 		result := AddUserListItemHandler(request.WithContext(ctx), handler)
 
 		assert.Equal(t, okResult{int32(40), http.StatusCreated}, result)
+
+		mockedListsService.AssertExpectations(t)
+	})
+}
+
+func TestDeleteUserListItemHandler(t *testing.T) {
+	mockedListsService := services.NewMockedListsService()
+
+	handler := Handler{
+		listsSrv: mockedListsService,
+	}
+
+	userID := int32(21)
+
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"itemId": "20",
+			"listId": "40",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+		return request.WithContext(ctx)
+	}
+
+	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
+		mockedListsService.On("RemoveUserListItem", int32(20), int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+
+		result := DeleteUserListItemHandler(request(), handler)
+
+		CheckUnexpectedErrorResult(t, result, "Some error")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should delete the list item if there is no errors", func(t *testing.T) {
+		mockedListsService.On("RemoveUserListItem", int32(20), int32(40), userID).Return(nil).Once()
+
+		result := DeleteUserListItemHandler(request(), handler)
+
+		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
 
 		mockedListsService.AssertExpectations(t)
 	})

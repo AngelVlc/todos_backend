@@ -32,6 +32,7 @@ var privateRoutes = []route{
 	route{"/lists/12", http.MethodDelete},
 	route{"/lists/12/items", http.MethodPost},
 	route{"/lists/12/items/3", http.MethodGet},
+	route{"/lists/12/items/3", http.MethodDelete},
 }
 
 var adminRoutes = []route{
@@ -51,7 +52,9 @@ var badParamsRoutes = []route{
 	route{"/lists/wadus", http.MethodDelete},
 	route{"/lists/wadus/items", http.MethodPost},
 	route{"/lists/wadus/items/3", http.MethodGet},
+	route{"/lists/wadus/items/3", http.MethodDelete},
 	route{"/lists/3/items/wadus", http.MethodGet},
+	route{"/lists/3/items/wadus", http.MethodDelete},
 }
 
 func TestServer(t *testing.T) {
@@ -135,6 +138,7 @@ func TestServer(t *testing.T) {
 		mockedListsSrv.On("GetSingleUserList", int32(12), int32(0), &dtos.GetSingleListResultDto{}).Return(&err).Once()
 		mockedListsSrv.On("RemoveUserList", int32(12), int32(0)).Return(&err).Once()
 		mockedListsSrv.On("GetUserListItem", int32(3), int32(12), int32(0), &dtos.GetItemResultDto{}).Return(&err).Once()
+		mockedListsSrv.On("RemoveUserListItem", int32(3), int32(12), int32(0)).Return(&err).Once()
 
 		for _, r := range privateRoutes {
 			req, _ := http.NewRequest(r.method, r.url, nil)

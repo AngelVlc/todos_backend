@@ -236,7 +236,7 @@ func TestListsService(t *testing.T) {
 		checkMockExpectations(t, mock)
 	})
 
-	expectedInsertPreviousQuery := func() *sqlmock.ExpectedQuery {
+	expectedListItemOpPreviousQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems`  WHERE (`listId` IN (?))")).
 			WithArgs(11)
 	}
@@ -248,7 +248,7 @@ func TestListsService(t *testing.T) {
 	t.Run("AddUserListItem() should return an error if insert fails", func(t *testing.T) {
 		expectedGetListQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
 
-		expectedInsertPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+		expectedListItemOpPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
 		mock.ExpectBegin()
 		expectedInsertListItemExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
@@ -263,7 +263,7 @@ func TestListsService(t *testing.T) {
 	t.Run("AddUserListItem() should insert the new list item", func(t *testing.T) {
 		expectedGetListQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
 
-		expectedInsertPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+		expectedListItemOpPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
 		mock.ExpectBegin()
 		expectedInsertListItemExec().WillReturnResult(sqlmock.NewResult(12, 0))
 		mock.ExpectCommit()
@@ -271,6 +271,51 @@ func TestListsService(t *testing.T) {
 		id, err := svc.AddUserListItem(userId, &i)
 
 		assert.Equal(t, int32(12), id)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("RemoveUserListItem() should return an error if getting the list fails", func(t *testing.T) {
+		expectedGetListQuery().WillReturnError(fmt.Errorf("some error"))
+
+		err := svc.RemoveUserListItem(i.ID, l.ID, userId)
+
+		appErrors.CheckUnexpectedError(t, err, "Error getting user list", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	expectedRemoveListItemExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE (`listItems`.`id` = ?) AND (`listItems`.`listId` = ?)")).
+			WithArgs(i.ID, i.ListID)
+	}
+
+	t.Run("RemoveUserListItem() should return an error if delete fails", func(t *testing.T) {
+		expectedGetListQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+
+		expectedListItemOpPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+		mock.ExpectBegin()
+		expectedRemoveListItemExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := svc.RemoveUserListItem(i.ID, l.ID, userId)
+
+		appErrors.CheckUnexpectedError(t, err, "Error deleting user list item", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("RemoveUserListItem() should delete the user list item", func(t *testing.T) {
+		expectedGetListQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+
+		expectedListItemOpPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+		mock.ExpectBegin()
+		expectedRemoveListItemExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+
+		err := svc.RemoveUserListItem(i.ID, l.ID, userId)
+
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)

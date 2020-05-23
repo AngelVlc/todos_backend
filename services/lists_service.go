@@ -14,8 +14,9 @@ type ListsService interface {
 	UpdateUserList(id int32, userID int32, l *models.List) error
 	GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error
 	GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error
-	GetUserListItem(id int32, listId int32, userID int32, i *dtos.GetItemResultDto) error
+	GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error
 	AddUserListItem(userId int32, i *models.ListItem) (int32, error)
+	RemoveUserListItem(id int32, listID int32, userID int32) error
 }
 
 type MockedListsService struct {
@@ -51,14 +52,19 @@ func (m *MockedListsService) GetUserLists(userID int32, r *[]dtos.GetListsResult
 	return args.Error(0)
 }
 
-func (m *MockedListsService) GetUserListItem(id int32, listId int32, userID int32, i *dtos.GetItemResultDto) error {
-	args := m.Called(id, listId, userID, i)
+func (m *MockedListsService) GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error {
+	args := m.Called(id, listID, userID, i)
 	return args.Error(0)
 }
 
 func (m *MockedListsService) AddUserListItem(userID int32, i *models.ListItem) (int32, error) {
 	args := m.Called(userID, i)
 	return args.Get(0).(int32), args.Error(1)
+}
+
+func (m *MockedListsService) RemoveUserListItem(id int32, listID int32, userID int32) error {
+	args := m.Called(id, listID, userID)
+	return args.Error(0)
 }
 
 // DefaultListsService is the service for the list entity
@@ -119,8 +125,8 @@ func (s *DefaultListsService) GetUserLists(userID int32, r *[]dtos.GetListsResul
 }
 
 // GetUserListItem returns a list item
-func (s *DefaultListsService) GetUserListItem(id int32, listId int32, userID int32, i *dtos.GetItemResultDto) error {
-	if err := s.db.Joins("JOIN lists on listItems.listId=lists.id").Where(models.List{ID: listId, UserID: userID}).Where(models.ListItem{ID: id}).Find(&i).Error; err != nil {
+func (s *DefaultListsService) GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error {
+	if err := s.db.Joins("JOIN lists on listItems.listId=lists.id").Where(models.List{ID: listID, UserID: userID}).Where(models.ListItem{ID: id}).Find(&i).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error getting user list item", InternalError: err}
 	}
 
@@ -128,10 +134,10 @@ func (s *DefaultListsService) GetUserListItem(id int32, listId int32, userID int
 }
 
 // AddUserListItem adds a list item
-func (s *DefaultListsService) AddUserListItem(userId int32, i *models.ListItem) (int32, error) {
+func (s *DefaultListsService) AddUserListItem(userID int32, i *models.ListItem) (int32, error) {
 	foundList := &dtos.GetSingleListResultDto{}
 
-	if err := s.GetSingleUserList(i.ListID, userId, foundList); err != nil {
+	if err := s.GetSingleUserList(i.ListID, userID, foundList); err != nil {
 		return 0, err
 	}
 
@@ -140,4 +146,18 @@ func (s *DefaultListsService) AddUserListItem(userId int32, i *models.ListItem) 
 	}
 
 	return i.ID, nil
+}
+
+// RemoveUserListItem removes a list item
+func (s *DefaultListsService) RemoveUserListItem(id int32, listID int32, userID int32) error {
+	foundList := &dtos.GetSingleListResultDto{}
+
+	if err := s.GetSingleUserList(listID, userID, foundList); err != nil {
+		return err
+	}
+
+	if err := s.db.Where(models.ListItem{ID: id, ListID: listID}).Delete(models.ListItem{}).Error; err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error deleting user list item", InternalError: err}
+	}
+	return nil
 }

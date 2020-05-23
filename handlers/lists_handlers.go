@@ -20,14 +20,10 @@ func GetUserListsHandler(r *http.Request, h Handler) HandlerResult {
 
 func GetUserSingleListHandler(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
-
-	listID, err := parseInt32UrlVar(r, "id")
-	if err != nil {
-		return errorResult{err}
-	}
+	listID := parseInt32UrlVar(r, "id")
 
 	l := dtos.GetSingleListResultDto{}
-	err = h.listsSrv.GetSingleUserList(listID, userID, &l)
+	err := h.listsSrv.GetSingleUserList(listID, userID, &l)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -51,11 +47,7 @@ func AddUserListHandler(r *http.Request, h Handler) HandlerResult {
 
 func UpdateUserListHandler(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
-
-	listID, err := parseInt32UrlVar(r, "id")
-	if err != nil {
-		return errorResult{err}
-	}
+	listID := parseInt32UrlVar(r, "id")
 
 	l, err := parseListBody(r)
 	if err != nil {
@@ -71,13 +63,9 @@ func UpdateUserListHandler(r *http.Request, h Handler) HandlerResult {
 
 func DeleteUserListHandler(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
+	listID := parseInt32UrlVar(r, "id")
 
-	listID, err := parseInt32UrlVar(r, "id")
-	if err != nil {
-		return errorResult{err}
-	}
-
-	err = h.listsSrv.RemoveUserList(listID, userID)
+	err := h.listsSrv.RemoveUserList(listID, userID)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -86,19 +74,11 @@ func DeleteUserListHandler(r *http.Request, h Handler) HandlerResult {
 
 func GetUserSingleListItemHandler(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
-
-	listID, err := parseInt32UrlVar(r, "listId")
-	if err != nil {
-		return errorResult{err}
-	}
-
-	itemID, err := parseInt32UrlVar(r, "itemId")
-	if err != nil {
-		return errorResult{err}
-	}
+	listID := parseInt32UrlVar(r, "listId")
+	itemID := parseInt32UrlVar(r, "itemId")
 
 	l := dtos.GetItemResultDto{}
-	err = h.listsSrv.GetUserListItem(itemID, listID, userID, &l)
+	err := h.listsSrv.GetUserListItem(itemID, listID, userID, &l)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -107,11 +87,7 @@ func GetUserSingleListItemHandler(r *http.Request, h Handler) HandlerResult {
 
 func AddUserListItemHandler(r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
-
-	listID, err := parseInt32UrlVar(r, "listId")
-	if err != nil {
-		return errorResult{err}
-	}
+	listID := parseInt32UrlVar(r, "listId")
 
 	i, err := parseListItemBody(r)
 	if err != nil {

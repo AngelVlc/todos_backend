@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -133,12 +132,9 @@ func parseBody(r *http.Request, dto interface{}) error {
 	return nil
 }
 
-func parseInt32UrlVar(r *http.Request, varName string) (int32, error) {
+func parseInt32UrlVar(r *http.Request, varName string) int32 {
 	vars := mux.Vars(r)
 	value := vars[varName]
-	res, err := strconv.ParseInt(value, 10, 32)
-	if err != nil {
-		return -1, &appErrors.BadRequestError{Msg: fmt.Sprintf("Invalid %v in url", varName), InternalError: err}
-	}
-	return int32(res), nil
+	res, _ := strconv.ParseInt(value, 10, 32)
+	return int32(res)
 }

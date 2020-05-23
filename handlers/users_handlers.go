@@ -31,13 +31,10 @@ func GetUsersHandler(r *http.Request, h Handler) HandlerResult {
 }
 
 func DeleteUserHandler(r *http.Request, h Handler) HandlerResult {
-	userID, err := parseInt32UrlVar(r, "id")
-	if err != nil {
-		return errorResult{err}
-	}
+	userID := parseInt32UrlVar(r, "id")
 
 	foundUserLists := []dtos.GetListsResultDto{}
-	err = h.listsSrv.GetUserLists(userID, &foundUserLists)
+	err := h.listsSrv.GetUserLists(userID, &foundUserLists)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -54,13 +51,10 @@ func DeleteUserHandler(r *http.Request, h Handler) HandlerResult {
 }
 
 func UpdateUserHandler(r *http.Request, h Handler) HandlerResult {
-	userID, err := parseInt32UrlVar(r, "id")
-	if err != nil {
-		return errorResult{err}
-	}
+	userID := parseInt32UrlVar(r, "id")
 
 	var dto dtos.UserDto
-	err = parseBody(r, &dto)
+	err := parseBody(r, &dto)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -73,10 +67,7 @@ func UpdateUserHandler(r *http.Request, h Handler) HandlerResult {
 }
 
 func GetUserHandler(r *http.Request, h Handler) HandlerResult {
-	userID, err := parseInt32UrlVar(r, "id")
-	if err != nil {
-		return errorResult{err}
-	}
+	userID := parseInt32UrlVar(r, "id")
 
 	u, err := h.usersSrv.FindUserByID(userID)
 	if err != nil {

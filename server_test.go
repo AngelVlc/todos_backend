@@ -42,6 +42,18 @@ var adminRoutes = []route{
 	route{"/users/12", http.MethodGet},
 }
 
+var badParamsRoutes = []route{
+	route{"/users/wadus", http.MethodDelete},
+	route{"/users/wadus", http.MethodPut},
+	route{"/users/wadus", http.MethodGet},
+	route{"/lists/wadus", http.MethodPut},
+	route{"/lists/wadus", http.MethodGet},
+	route{"/lists/wadus", http.MethodDelete},
+	route{"/lists/wadus/items", http.MethodPost},
+	route{"/lists/wadus/items/3", http.MethodGet},
+	route{"/lists/3/items/wadus", http.MethodGet},
+}
+
 func TestServer(t *testing.T) {
 	s := newServer(nil)
 
@@ -135,5 +147,17 @@ func TestServer(t *testing.T) {
 		}
 
 		mockedListsSrv.AssertExpectations(t)
+	})
+
+	t.Run("handles routes with bad url params", func(t *testing.T) {
+		for _, r := range badParamsRoutes {
+			req, _ := http.NewRequest(r.method, r.url, nil)
+			req.Header.Set("Authorization", "bearer")
+			res := httptest.NewRecorder()
+
+			s.ServeHTTP(res, req)
+
+			assert.Equal(t, http.StatusNotFound, res.Result().StatusCode, fmt.Sprintf("Route %v '%v' should return a 404 status", r.method, r.url))
+		}
 	})
 }

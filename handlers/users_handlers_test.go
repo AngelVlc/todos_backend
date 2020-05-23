@@ -114,17 +114,6 @@ func TestDeleteUserHandler(t *testing.T) {
 		listsSrv: mockedListsService,
 	}
 
-	t.Run("Should return an errorResult if user id url param is not valid", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "badId",
-		})
-
-		result := DeleteUserHandler(request, handler)
-
-		CheckBadRequestErrorResult(t, result, "Invalid id in url")
-	})
-
 	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
@@ -214,17 +203,6 @@ func TestUpdateUserHandler(t *testing.T) {
 		usersSrv: mockedUsersService,
 	}
 
-	t.Run("Should return an errorResult if user id url param is not valid", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "badId",
-		})
-
-		result := UpdateUserHandler(request, handler)
-
-		CheckBadRequestErrorResult(t, result, "Invalid id in url")
-	})
-
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
@@ -281,17 +259,6 @@ func TestGetUserHandler(t *testing.T) {
 	handler := Handler{
 		usersSrv: mockedUsersService,
 	}
-
-	t.Run("Should return an errorResult if user id url param is not valid", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "badId",
-		})
-
-		result := GetUserHandler(request, handler)
-
-		CheckBadRequestErrorResult(t, result, "Invalid id in url")
-	})
 
 	t.Run("Should return an errorResult if updating the user fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)

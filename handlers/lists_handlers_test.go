@@ -367,3 +367,54 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 		mockedListsService.AssertExpectations(t)
 	})
 }
+
+func TestUpdateUserListItemHandler(t *testing.T) {
+	request := func(useValidBody bool) *http.Request {
+		var body io.Reader
+		if useValidBody {
+			dto := dtos.ListItemDto{
+				Title: "title",
+			}
+			json, _ := json.Marshal(dto)
+			body = bytes.NewBuffer(json)
+		} else {
+			body = strings.NewReader("wadus")
+		}
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request = mux.SetURLVars(request, map[string]string{
+			"itemId": "20",
+			"listId": "40",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
+		return request.WithContext(ctx)
+	}
+
+	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
+		result := UpdateUserListItemHandler(request(false), handler)
+
+		CheckBadRequestErrorResult(t, result, "Invalid body")
+	})
+
+	t.Run("Should return an errorResult if the body is valid but the update fails", func(t *testing.T) {
+		res := models.ListItem{Title: "title", ListID: 40}
+		mockedListsService.On("UpdateUserListItem", int32(20), int32(40), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+
+		result := UpdateUserListItemHandler(request(true), handler)
+
+		CheckUnexpectedErrorResult(t, result, "Some error")
+
+		mockedListsService.AssertExpectations(t)
+	})
+
+	t.Run("Should update the list item if the body is valid and the update does not fail", func(t *testing.T) {
+		res := models.ListItem{Title: "title", ListID: 40}
+		mockedListsService.On("UpdateUserListItem", int32(20), int32(40), userID, &res).Return(nil).Once()
+
+		result := UpdateUserListItemHandler(request(true), handler)
+
+		assert.Equal(t, okResult{&res, http.StatusOK}, result)
+
+		mockedListsService.AssertExpectations(t)
+	})
+}

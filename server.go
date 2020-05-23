@@ -44,6 +44,7 @@ func newServer(db *gorm.DB) *server {
 	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(handlers.AddUserListItemHandler)).Methods(http.MethodPost)
 	listsSubRouter.Handle("/{listId:[0-9]+}/items/{itemId:[0-9]+}", s.getHandler(handlers.GetUserSingleListItemHandler)).Methods(http.MethodGet)
 	listsSubRouter.Handle("/{listId:[0-9]+}/items/{itemId:[0-9]+}", s.getHandler(handlers.DeleteUserListItemHandler)).Methods(http.MethodDelete)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items/{itemId:[0-9]+}", s.getHandler(handlers.UpdateUserListItemHandler)).Methods(http.MethodPut)
 	listsSubRouter.Use(s.authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()

@@ -33,6 +33,7 @@ var privateRoutes = []route{
 	route{"/lists/12/items", http.MethodPost},
 	route{"/lists/12/items/3", http.MethodGet},
 	route{"/lists/12/items/3", http.MethodDelete},
+	route{"/lists/12/items/3", http.MethodPut},
 }
 
 var adminRoutes = []route{
@@ -53,8 +54,10 @@ var badParamsRoutes = []route{
 	route{"/lists/wadus/items", http.MethodPost},
 	route{"/lists/wadus/items/3", http.MethodGet},
 	route{"/lists/wadus/items/3", http.MethodDelete},
+	route{"/lists/wadus/items/3", http.MethodPut},
 	route{"/lists/3/items/wadus", http.MethodGet},
 	route{"/lists/3/items/wadus", http.MethodDelete},
+	route{"/lists/3/items/wadus", http.MethodPut},
 }
 
 func TestServer(t *testing.T) {

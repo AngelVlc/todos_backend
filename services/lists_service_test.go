@@ -320,4 +320,53 @@ func TestListsService(t *testing.T) {
 
 		checkMockExpectations(t, mock)
 	})
+
+	t.Run("UpdateUserListItem() should return an error if getting the list fails", func(t *testing.T) {
+		expectedGetListQuery().WillReturnError(fmt.Errorf("some error"))
+
+		err := svc.UpdateUserListItem(i.ID, l.ID, userId, &i)
+
+		appErrors.CheckUnexpectedError(t, err, "Error getting user list", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	expectedUpdateListItemExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId` = ?, `title` = ?, `description` = ? WHERE `listItems`.`id` = ?")).
+			WithArgs(i.ListID, i.Title, i.Description, i.ID)
+	}
+
+	t.Run("UpdateUserListItem() should return an error if delete fails", func(t *testing.T) {
+		expectedGetListQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+
+		expectedListItemOpPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+		mock.ExpectBegin()
+		expectedUpdateListItemExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := svc.UpdateUserListItem(i.ID, l.ID, userId, &i)
+
+		appErrors.CheckUnexpectedError(t, err, "Error updating list item", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("UpdateUserListItem() should update the list", func(t *testing.T) {
+		expectedGetListQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+
+		expectedListItemOpPreviousQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(11, "list", userId))
+
+		mock.ExpectBegin()
+		expectedUpdateListItemExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? ORDER BY `listItems`.`id` ASC LIMIT 1")).
+			WithArgs(12).
+			WillReturnRows(sqlmock.NewRows(listColumns).AddRow(12, l.Name, userId))
+
+		err := svc.UpdateUserListItem(i.ID, l.ID, userId, &i)
+
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
 }

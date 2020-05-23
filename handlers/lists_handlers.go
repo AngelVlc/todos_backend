@@ -115,6 +115,25 @@ func DeleteUserListItemHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{nil, http.StatusNoContent}
 }
 
+func UpdateUserListItemHandler(r *http.Request, h Handler) HandlerResult {
+	userID := getUserIDFromContext(r)
+	listID := parseInt32UrlVar(r, "listId")
+	itemID := parseInt32UrlVar(r, "itemId")
+
+	i, err := parseListItemBody(r)
+	if err != nil {
+		return errorResult{err}
+	}
+
+	i.ListID = listID
+
+	err = h.listsSrv.UpdateUserListItem(itemID, listID, userID, i)
+	if err != nil {
+		return errorResult{err}
+	}
+	return okResult{i, http.StatusOK}
+}
+
 func parseListBody(r *http.Request) (*models.List, error) {
 	var dto dtos.ListDto
 	err := parseBody(r, &dto)

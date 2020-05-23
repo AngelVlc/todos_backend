@@ -17,6 +17,7 @@ type ListsService interface {
 	GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error
 	AddUserListItem(userId int32, i *models.ListItem) (int32, error)
 	RemoveUserListItem(id int32, listID int32, userID int32) error
+	UpdateUserListItem(id int32, listID int32, userID int32, i *models.ListItem) error
 }
 
 type MockedListsService struct {
@@ -64,6 +65,11 @@ func (m *MockedListsService) AddUserListItem(userID int32, i *models.ListItem) (
 
 func (m *MockedListsService) RemoveUserListItem(id int32, listID int32, userID int32) error {
 	args := m.Called(id, listID, userID)
+	return args.Error(0)
+}
+
+func (m *MockedListsService) UpdateUserListItem(id int32, listID int32, userID int32, i *models.ListItem) error {
+	args := m.Called(id, listID, userID, i)
 	return args.Error(0)
 }
 
@@ -159,5 +165,23 @@ func (s *DefaultListsService) RemoveUserListItem(id int32, listID int32, userID 
 	if err := s.db.Where(models.ListItem{ID: id, ListID: listID}).Delete(models.ListItem{}).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting user list item", InternalError: err}
 	}
+	return nil
+}
+
+// UpdateUserListItem updates a list item
+func (s *DefaultListsService) UpdateUserListItem(id int32, listID int32, userID int32, i *models.ListItem) error {
+	foundList := &dtos.GetSingleListResultDto{}
+
+	if err := s.GetSingleUserList(listID, userID, foundList); err != nil {
+		return err
+	}
+
+	i.ID = id
+	i.ListID = listID
+
+	if err := s.db.Save(&i).Error; err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error updating list item", InternalError: err}
+	}
+
 	return nil
 }

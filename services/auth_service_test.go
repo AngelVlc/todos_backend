@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -17,6 +18,8 @@ func TestAuthServiceGetTokens(t *testing.T) {
 
 	mockedCfgSvc := MockedConfigurationService{}
 	mockedCfgSvc.On("GetJwtSecret").Return(jwtSecret)
+	mockedCfgSvc.On("TokenExpirationInSeconds").Return(time.Second * 30)
+	mockedCfgSvc.On("RefreshTokenExpirationInSeconds").Return(time.Hour)
 
 	service := NewDefaultAuthService(MockedTokenHelper, &mockedCfgSvc)
 
@@ -202,6 +205,8 @@ func TestAuthServiceJwtProviderIntegration(t *testing.T) {
 
 	mockedEg := MockedEnvGetter{}
 	mockedEg.On("Getenv", "JWT_SECRET").Return("jwtSecret")
+	mockedEg.On("Getenv", "TOKEN_EXPIRATION_IN_SECONDS").Return("5m")
+	mockedEg.On("Getenv", "REFRESH_TOKEN_EXPIRATION_IN_SECONDS").Return("1h")
 	cfgSvc := NewDefaultConfigurationService(&mockedEg)
 
 	service := NewDefaultAuthService(jwtPrv, cfgSvc)

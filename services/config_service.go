@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/stretchr/testify/mock"
 )
@@ -13,6 +14,8 @@ type ConfigurationService interface {
 	GetPort() string
 	GetJwtSecret() string
 	GetCorsAllowedOrigins() []string
+	TokenExpirationInSeconds() time.Duration
+	RefreshTokenExpirationInSeconds() time.Duration
 }
 
 type MockedConfigurationService struct {
@@ -46,6 +49,16 @@ func (m *MockedConfigurationService) GetJwtSecret() string {
 func (m *MockedConfigurationService) GetCorsAllowedOrigins() []string {
 	args := m.Called()
 	return args.Get(0).([]string)
+}
+
+func (m *MockedConfigurationService) TokenExpirationInSeconds() time.Duration {
+	args := m.Called()
+	return args.Get(0).(time.Duration)
+}
+
+func (m *MockedConfigurationService) RefreshTokenExpirationInSeconds() time.Duration {
+	args := m.Called()
+	return args.Get(0).(time.Duration)
 }
 
 type DefaultConfigurationService struct {
@@ -94,4 +107,14 @@ func (c *DefaultConfigurationService) GetJwtSecret() string {
 
 func (c *DefaultConfigurationService) GetCorsAllowedOrigins() []string {
 	return strings.Split(c.eg.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+}
+
+func (c *DefaultConfigurationService) TokenExpirationInSeconds() time.Duration {
+	d, _ := time.ParseDuration(c.eg.Getenv("TOKEN_EXPIRATION_IN_SECONDS"))
+	return d
+}
+
+func (c *DefaultConfigurationService) RefreshTokenExpirationInSeconds() time.Duration {
+	d, _ := time.ParseDuration(c.eg.Getenv("REFRESH_TOKEN_EXPIRATION_IN_SECONDS"))
+	return d
 }

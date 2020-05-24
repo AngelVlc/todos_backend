@@ -120,7 +120,7 @@ func (s *DefaultAuthService) getNewToken(u *models.User) interface{} {
 	tc["userName"] = u.Name
 	tc["isAdmin"] = u.IsAdmin
 	tc["userId"] = u.ID
-	tc["exp"] = time.Now().Add(time.Minute * 15).Unix()
+	tc["exp"] = time.Now().Add(s.cfgSvc.TokenExpirationInSeconds()).Unix()
 
 	return t
 }
@@ -129,7 +129,7 @@ func (s *DefaultAuthService) getNewRefreshToken(u *models.User) interface{} {
 	rt := s.jwtPrv.NewToken()
 	rtc := s.jwtPrv.GetTokenClaims(rt)
 	rtc["userId"] = u.ID
-	rtc["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	rtc["exp"] = time.Now().Add(s.cfgSvc.RefreshTokenExpirationInSeconds()).Unix()
 
 	return rt
 }

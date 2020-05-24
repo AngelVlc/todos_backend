@@ -9,7 +9,7 @@ import (
 )
 
 // TokenHandler is the handler for the auth/token endpoint
-func TokenHandler(r *http.Request, h Handler) HandlerResult {
+func TokenHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	l, err := parseTokenBody(r)
 	if err != nil {
 		return errorResult{err}
@@ -34,11 +34,13 @@ func TokenHandler(r *http.Request, h Handler) HandlerResult {
 		return errorResult{err}
 	}
 
+	addRefreshTokenCookie(w, tokens["RefreshToken"])
+
 	return okResult{tokens, http.StatusOK}
 }
 
 // RefreshTokenHandler is the handler for the auth/refreshtoken endpoint
-func RefreshTokenHandler(r *http.Request, h Handler) HandlerResult {
+func RefreshTokenHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	rt, err := parseRefreshTokenBody(r)
 	if err != nil {
 		return errorResult{err}
@@ -108,4 +110,14 @@ func parseRefreshTokenBody(r *http.Request) (*models.RefreshToken, error) {
 	}
 
 	return &rt, nil
+}
+
+func addRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {
+	rfCookie := http.Cookie{
+		Name:     "refreshToken",
+		Value:    refreshToken,
+		HttpOnly: true,
+		Path:     "/",
+	}
+	http.SetCookie(w, &rfCookie)
 }

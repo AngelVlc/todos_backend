@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -23,7 +24,7 @@ func TestAddUserHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
-		result := AddUserHandler(request(strings.NewReader("wadus")), handler)
+		result := AddUserHandler(httptest.NewRecorder(), request(strings.NewReader("wadus")), handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -34,7 +35,7 @@ func TestAddUserHandler(t *testing.T) {
 
 		mockedUsersService.On("AddUser", &dto).Return(int32(-1), &appErrors.BadRequestError{Msg: "Some error"}).Once()
 
-		result := AddUserHandler(request(bytes.NewBuffer(body)), handler)
+		result := AddUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
 		CheckBadRequestErrorResult(t, result, "Some error")
 
@@ -47,7 +48,7 @@ func TestAddUserHandler(t *testing.T) {
 
 		mockedUsersService.On("AddUser", &dto).Return(int32(11), nil).Once()
 
-		result := AddUserHandler(request(bytes.NewBuffer(body)), handler)
+		result := AddUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
 		assert.Equal(t, okResult{int32(11), http.StatusCreated}, result)
 
@@ -65,7 +66,7 @@ func TestGetUsersHandler(t *testing.T) {
 		res := []dtos.GetUserResultDto{}
 		mockedUsersService.On("GetUsers", &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := GetUsersHandler(request(), handler)
+		result := GetUsersHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -85,7 +86,7 @@ func TestGetUsersHandler(t *testing.T) {
 			*arg = res
 		})
 
-		result := GetUsersHandler(request(), handler)
+		result := GetUsersHandler(httptest.NewRecorder(), request(), handler)
 
 		assert.Equal(t, okResult{res, http.StatusOK}, result)
 
@@ -105,7 +106,7 @@ func TestDeleteUserHandler(t *testing.T) {
 	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
 		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := DeleteUserHandler(request(), handler)
+		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -124,7 +125,7 @@ func TestDeleteUserHandler(t *testing.T) {
 			*arg = res
 		})
 
-		result := DeleteUserHandler(request(), handler)
+		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckBadRequestErrorResult(t, result, "The user has lists")
 
@@ -139,7 +140,7 @@ func TestDeleteUserHandler(t *testing.T) {
 		})
 		mockedUsersService.On("RemoveUser", int32(40)).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := DeleteUserHandler(request(), handler)
+		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -155,7 +156,7 @@ func TestDeleteUserHandler(t *testing.T) {
 		})
 		mockedUsersService.On("RemoveUser", int32(40)).Return(nil).Once()
 
-		result := DeleteUserHandler(request(), handler)
+		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
 		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
 
@@ -174,7 +175,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
-		result := UpdateUserHandler(request(nil), handler)
+		result := UpdateUserHandler(httptest.NewRecorder(), request(nil), handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -185,7 +186,7 @@ func TestUpdateUserHandler(t *testing.T) {
 
 		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(nil, &appErrors.BadRequestError{Msg: "Some error"}).Once()
 
-		result := UpdateUserHandler(request(bytes.NewBuffer(body)), handler)
+		result := UpdateUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
 		CheckBadRequestErrorResult(t, result, "Some error")
 
@@ -200,7 +201,7 @@ func TestUpdateUserHandler(t *testing.T) {
 
 		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(&user, nil).Once()
 
-		result := UpdateUserHandler(request(bytes.NewBuffer(body)), handler)
+		result := UpdateUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
 		assert.Equal(t, okResult{&user, http.StatusCreated}, result)
 
@@ -221,7 +222,7 @@ func TestGetUserHandler(t *testing.T) {
 	t.Run("Should return an errorResult if updating the user fails", func(t *testing.T) {
 		mockedUsersService.On("FindUserByID", int32(40)).Return(nil, &appErrors.BadRequestError{Msg: "Some error"}).Once()
 
-		result := GetUserHandler(request(), handler)
+		result := GetUserHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckBadRequestErrorResult(t, result, "Some error")
 
@@ -237,7 +238,7 @@ func TestGetUserHandler(t *testing.T) {
 
 		mockedUsersService.On("FindUserByID", int32(40)).Return(&user, nil).Once()
 
-		result := GetUserHandler(request(), handler)
+		result := GetUserHandler(httptest.NewRecorder(), request(), handler)
 
 		dto := dtos.GetUserResultDto{
 			Name:    "user",

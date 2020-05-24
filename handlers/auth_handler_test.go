@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -30,7 +31,7 @@ func TestTokenHandler(t *testing.T) {
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
 
-		result := TokenHandler(request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -45,7 +46,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckBadRequestErrorResult(t, result, "UserName is mandatory")
 	})
@@ -60,7 +61,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckBadRequestErrorResult(t, result, "Password is mandatory")
 	})
@@ -76,7 +77,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -94,7 +95,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckBadRequestErrorResult(t, result, "The user does not exist")
 
@@ -115,7 +116,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid password")
 
@@ -137,7 +138,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -165,7 +166,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, handler)
 
 		assert.Equal(t, okResult{tokens, http.StatusOK}, result)
 
@@ -178,7 +179,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
 
-		result := RefreshTokenHandler(request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -189,7 +190,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/wadus", bytes.NewBuffer(body))
 
-		result := RefreshTokenHandler(request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckBadRequestErrorResult(t, result, "RefreshToken is mandatory")
 	})
@@ -204,7 +205,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 		mockedAuthService.On("ParseRefreshToken", refreshToken.RefreshToken).Return(nil, &appErrors.UnauthorizedError{Msg: "Some error"}).Once()
 
-		result := RefreshTokenHandler(request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckUnauthorizedErrorErrorResult(t, result, "Some error")
 
@@ -226,7 +227,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedAuthService.On("ParseRefreshToken", refreshToken.RefreshToken).Return(&rtInfo, nil)
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := RefreshTokenHandler(request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -249,7 +250,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedAuthService.On("ParseRefreshToken", refreshToken.RefreshToken).Return(&rtInfo, nil)
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(nil, nil).Once()
 
-		result := RefreshTokenHandler(request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckBadRequestErrorResult(t, result, "The user is no longer valid")
 
@@ -275,7 +276,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(&user, nil).Once()
 		mockedAuthService.On("GetTokens", &user).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := RefreshTokenHandler(request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -306,7 +307,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(&user, nil).Once()
 		mockedAuthService.On("GetTokens", &user).Return(tokens, nil).Once()
 
-		result := RefreshTokenHandler(request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
 
 		assert.Equal(t, okResult{tokens, http.StatusOK}, result)
 

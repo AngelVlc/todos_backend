@@ -7,7 +7,7 @@ import (
 	"github.com/AngelVlc/todos/models"
 )
 
-func GetUserListsHandler(r *http.Request, h Handler) HandlerResult {
+func GetUserListsHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	res := []dtos.GetListsResultDto{}
@@ -18,7 +18,7 @@ func GetUserListsHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{res, http.StatusOK}
 }
 
-func GetUserSingleListHandler(r *http.Request, h Handler) HandlerResult {
+func GetUserSingleListHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "id")
 
@@ -30,7 +30,7 @@ func GetUserSingleListHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{l, http.StatusOK}
 }
 
-func AddUserListHandler(r *http.Request, h Handler) HandlerResult {
+func AddUserListHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
 	l, err := parseListBody(r)
@@ -45,7 +45,7 @@ func AddUserListHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{id, http.StatusCreated}
 }
 
-func UpdateUserListHandler(r *http.Request, h Handler) HandlerResult {
+func UpdateUserListHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "id")
 
@@ -61,7 +61,7 @@ func UpdateUserListHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{l, http.StatusOK}
 }
 
-func DeleteUserListHandler(r *http.Request, h Handler) HandlerResult {
+func DeleteUserListHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "id")
 
@@ -72,7 +72,7 @@ func DeleteUserListHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{nil, http.StatusNoContent}
 }
 
-func GetUserSingleListItemHandler(r *http.Request, h Handler) HandlerResult {
+func GetUserSingleListItemHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "listId")
 	itemID := parseInt32UrlVar(r, "itemId")
@@ -85,7 +85,7 @@ func GetUserSingleListItemHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{l, http.StatusOK}
 }
 
-func AddUserListItemHandler(r *http.Request, h Handler) HandlerResult {
+func AddUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "listId")
 
@@ -103,7 +103,7 @@ func AddUserListItemHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{id, http.StatusCreated}
 }
 
-func DeleteUserListItemHandler(r *http.Request, h Handler) HandlerResult {
+func DeleteUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "listId")
 	itemID := parseInt32UrlVar(r, "itemId")
@@ -115,7 +115,7 @@ func DeleteUserListItemHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{nil, http.StatusNoContent}
 }
 
-func UpdateUserListItemHandler(r *http.Request, h Handler) HandlerResult {
+func UpdateUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "listId")
 	itemID := parseInt32UrlVar(r, "itemId")

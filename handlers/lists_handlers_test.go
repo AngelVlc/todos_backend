@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -34,7 +35,7 @@ func TestGetUserListsHandler(t *testing.T) {
 		res := []dtos.GetListsResultDto{}
 		mockedListsService.On("GetUserLists", userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := GetUserListsHandler(request(), handler)
+		result := GetUserListsHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -53,7 +54,7 @@ func TestGetUserListsHandler(t *testing.T) {
 			*arg = res
 		})
 
-		result := GetUserListsHandler(request(), handler)
+		result := GetUserListsHandler(httptest.NewRecorder(), request(), handler)
 
 		assert.Equal(t, okResult{res, http.StatusOK}, result)
 
@@ -76,7 +77,7 @@ func TestGetUserSingleListHandler(t *testing.T) {
 		res := dtos.GetSingleListResultDto{}
 		mockedListsService.On("GetSingleUserList", int32(11), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := GetUserSingleListHandler(request(), handler)
+		result := GetUserSingleListHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -101,7 +102,7 @@ func TestGetUserSingleListHandler(t *testing.T) {
 			*arg = res
 		})
 
-		result := GetUserSingleListHandler(request(), handler)
+		result := GetUserSingleListHandler(httptest.NewRecorder(), request(), handler)
 
 		assert.Equal(t, okResult{res, http.StatusOK}, result)
 
@@ -128,7 +129,7 @@ func TestAddUserListHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
-		result := AddUserListHandler(request(false), handler)
+		result := AddUserListHandler(httptest.NewRecorder(), request(false), handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 
@@ -139,7 +140,7 @@ func TestAddUserListHandler(t *testing.T) {
 		res := models.List{Name: "list"}
 		mockedListsService.On("AddUserList", userID, &res).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := AddUserListHandler(request(true), handler)
+		result := AddUserListHandler(httptest.NewRecorder(), request(true), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -150,7 +151,7 @@ func TestAddUserListHandler(t *testing.T) {
 		res := models.List{Name: "list"}
 		mockedListsService.On("AddUserList", userID, &res).Return(int32(40), nil).Once()
 
-		result := AddUserListHandler(request(true), handler)
+		result := AddUserListHandler(httptest.NewRecorder(), request(true), handler)
 
 		assert.Equal(t, okResult{int32(40), http.StatusCreated}, result)
 
@@ -180,7 +181,7 @@ func TestUpdateUserListHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
-		result := UpdateUserListHandler(request(false), handler)
+		result := UpdateUserListHandler(httptest.NewRecorder(), request(false), handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 
@@ -191,7 +192,7 @@ func TestUpdateUserListHandler(t *testing.T) {
 		res := models.List{Name: "list"}
 		mockedListsService.On("UpdateUserList", int32(40), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := UpdateUserListHandler(request(true), handler)
+		result := UpdateUserListHandler(httptest.NewRecorder(), request(true), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -202,7 +203,7 @@ func TestUpdateUserListHandler(t *testing.T) {
 		res := models.List{Name: "list"}
 		mockedListsService.On("UpdateUserList", int32(40), userID, &res).Return(nil).Once()
 
-		result := UpdateUserListHandler(request(true), handler)
+		result := UpdateUserListHandler(httptest.NewRecorder(), request(true), handler)
 
 		assert.Equal(t, okResult{&res, http.StatusOK}, result)
 
@@ -224,7 +225,7 @@ func TestDeleteUserListHandler(t *testing.T) {
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
 		mockedListsService.On("RemoveUserList", int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := DeleteUserListHandler(request(), handler)
+		result := DeleteUserListHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -234,7 +235,7 @@ func TestDeleteUserListHandler(t *testing.T) {
 	t.Run("Should delete the list if there is no errors", func(t *testing.T) {
 		mockedListsService.On("RemoveUserList", int32(40), userID).Return(nil).Once()
 
-		result := DeleteUserListHandler(request(), handler)
+		result := DeleteUserListHandler(httptest.NewRecorder(), request(), handler)
 
 		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
 
@@ -258,7 +259,7 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 		res := dtos.GetItemResultDto{}
 		mockedListsService.On("GetUserListItem", int32(3), int32(5), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := GetUserSingleListItemHandler(request(), handler)
+		result := GetUserSingleListItemHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -275,7 +276,7 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 			*arg = res
 		})
 
-		result := GetUserSingleListItemHandler(request(), handler)
+		result := GetUserSingleListItemHandler(httptest.NewRecorder(), request(), handler)
 
 		assert.Equal(t, okResult{res, http.StatusOK}, result)
 
@@ -305,7 +306,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
-		result := AddUserListItemHandler(request(false), handler)
+		result := AddUserListItemHandler(httptest.NewRecorder(), request(false), handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 
@@ -316,7 +317,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 		res := models.ListItem{Title: "title", ListID: int32(11)}
 		mockedListsService.On("AddUserListItem", userID, &res).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := AddUserListItemHandler(request(true), handler)
+		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -327,7 +328,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 		res := models.ListItem{Title: "title", ListID: int32(11)}
 		mockedListsService.On("AddUserListItem", userID, &res).Return(int32(40), nil).Once()
 
-		result := AddUserListItemHandler(request(true), handler)
+		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
 		assert.Equal(t, okResult{int32(40), http.StatusCreated}, result)
 
@@ -350,7 +351,7 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
 		mockedListsService.On("RemoveUserListItem", int32(20), int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := DeleteUserListItemHandler(request(), handler)
+		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -360,7 +361,7 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 	t.Run("Should delete the list item if there is no errors", func(t *testing.T) {
 		mockedListsService.On("RemoveUserListItem", int32(20), int32(40), userID).Return(nil).Once()
 
-		result := DeleteUserListItemHandler(request(), handler)
+		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), handler)
 
 		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
 
@@ -391,7 +392,7 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
-		result := UpdateUserListItemHandler(request(false), handler)
+		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(false), handler)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -400,7 +401,7 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 		res := models.ListItem{Title: "title", ListID: 40}
 		mockedListsService.On("UpdateUserListItem", int32(20), int32(40), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := UpdateUserListItemHandler(request(true), handler)
+		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -411,7 +412,7 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 		res := models.ListItem{Title: "title", ListID: 40}
 		mockedListsService.On("UpdateUserListItem", int32(20), int32(40), userID, &res).Return(nil).Once()
 
-		result := UpdateUserListItemHandler(request(true), handler)
+		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
 		assert.Equal(t, okResult{&res, http.StatusOK}, result)
 

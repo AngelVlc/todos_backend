@@ -51,10 +51,10 @@ func (r okResult) IsError() bool {
 }
 
 // HandlerFunc is the type for the handler functions
-type HandlerFunc func(*http.Request, Handler) HandlerResult
+type HandlerFunc func(http.ResponseWriter, *http.Request, Handler) HandlerResult
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	res := h.HandlerFunc(r, h)
+	res := h.HandlerFunc(w, r, h)
 
 	if res.IsError() {
 		errorRes, _ := res.(errorResult)

@@ -7,7 +7,7 @@ import (
 	appErrors "github.com/AngelVlc/todos/errors"
 )
 
-func AddUserHandler(r *http.Request, h Handler) HandlerResult {
+func AddUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	var dto dtos.UserDto
 	err := parseBody(r, &dto)
 	if err != nil {
@@ -21,7 +21,7 @@ func AddUserHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{id, http.StatusCreated}
 }
 
-func GetUsersHandler(r *http.Request, h Handler) HandlerResult {
+func GetUsersHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	res := []dtos.GetUserResultDto{}
 	err := h.usersSrv.GetUsers(&res)
 	if err != nil {
@@ -30,7 +30,7 @@ func GetUsersHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{res, http.StatusOK}
 }
 
-func DeleteUserHandler(r *http.Request, h Handler) HandlerResult {
+func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := parseInt32UrlVar(r, "id")
 
 	foundUserLists := []dtos.GetListsResultDto{}
@@ -50,7 +50,7 @@ func DeleteUserHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{nil, http.StatusNoContent}
 }
 
-func UpdateUserHandler(r *http.Request, h Handler) HandlerResult {
+func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := parseInt32UrlVar(r, "id")
 
 	var dto dtos.UserDto
@@ -66,7 +66,7 @@ func UpdateUserHandler(r *http.Request, h Handler) HandlerResult {
 	return okResult{u, http.StatusCreated}
 }
 
-func GetUserHandler(r *http.Request, h Handler) HandlerResult {
+func GetUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := parseInt32UrlVar(r, "id")
 
 	u, err := h.usersSrv.FindUserByID(userID)

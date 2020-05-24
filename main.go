@@ -59,9 +59,10 @@ func main() {
 	validCorsHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	validCorsOrigins := handlers.AllowedOrigins(cfg.GetCorsAllowedOrigins())
 	validCorsMethods := handlers.AllowedMethods([]string{"GET", "DELETE", "POST", "PUT", "OPTIONS"})
+	allowCredentials := handlers.AllowCredentials()
 
 	log.Printf("Listening on port %v ...\n", port)
-	if err = http.ListenAndServe(address, handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods)(s)); err != nil {
+	if err = http.ListenAndServe(address, handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods, allowCredentials)(s)); err != nil {
 		log.Fatalf("could not listen on port %v %v", port, err)
 	}
 }

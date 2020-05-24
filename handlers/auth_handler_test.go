@@ -156,8 +156,8 @@ func TestTokenHandler(t *testing.T) {
 		user := models.User{}
 
 		tokens := map[string]string{
-			"token":        "token",
-			"refreshToken": "refreshToken",
+			"token":        "theToken",
+			"refreshToken": "theRefreshToken",
 		}
 
 		mockedUsersService.On("FindUserByName", login.UserName).Return(&user, nil).Once()
@@ -165,10 +165,12 @@ func TestTokenHandler(t *testing.T) {
 		mockedAuthService.On("GetTokens", &user).Return(tokens, nil).Once()
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
+		recorder := httptest.NewRecorder()
 
-		result := TokenHandler(httptest.NewRecorder(), request, handler)
+		result := TokenHandler(recorder, request, handler)
 
 		assert.Equal(t, okResult{tokens, http.StatusOK}, result)
+		assertSuccessResponse(t, recorder)
 
 		mockedUsersService.AssertExpectations(t)
 		mockedAuthService.AssertExpectations(t)
@@ -297,21 +299,30 @@ func TestRefreshTokenHandler(t *testing.T) {
 		user := models.User{}
 
 		tokens := map[string]string{
-			"token":        "token",
-			"refreshToken": "refreshToken",
+			"token":        "theToken",
+			"refreshToken": "theRefreshToken",
 		}
 
 		request, _ := http.NewRequest(http.MethodPost, "/wadus", bytes.NewBuffer(body))
+		recorder := httptest.NewRecorder()
 
 		mockedAuthService.On("ParseRefreshToken", refreshToken.RefreshToken).Return(&rtInfo, nil)
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(&user, nil).Once()
 		mockedAuthService.On("GetTokens", &user).Return(tokens, nil).Once()
 
-		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
+		result := RefreshTokenHandler(recorder, request, handler)
 
 		assert.Equal(t, okResult{tokens, http.StatusOK}, result)
+		assertSuccessResponse(t, recorder)
 
 		mockedAuthService.AssertExpectations(t)
 		mockedUsersService.AssertExpectations(t)
 	})
+}
+
+func assertSuccessResponse(t *testing.T, recorder *httptest.ResponseRecorder) {
+	assert.Equal(t, 1, len(recorder.Result().Cookies()))
+	assert.Equal(t, "refreshToken", recorder.Result().Cookies()[0].Name)
+	assert.Equal(t, "theRefreshToken", recorder.Result().Cookies()[0].Value)
+	assert.True(t, recorder.Result().Cookies()[0].HttpOnly)
 }

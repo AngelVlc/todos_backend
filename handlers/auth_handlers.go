@@ -34,7 +34,9 @@ func TokenHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResu
 		return errorResult{err}
 	}
 
-	addRefreshTokenCookie(w, tokens["RefreshToken"])
+	addRefreshTokenCookie(w, tokens["refreshToken"])
+
+	delete(tokens, "refreshToken")
 
 	return okResult{tokens, http.StatusOK}
 }
@@ -64,6 +66,10 @@ func RefreshTokenHandler(w http.ResponseWriter, r *http.Request, h Handler) Hand
 	if err != nil {
 		return errorResult{err}
 	}
+
+	addRefreshTokenCookie(w, tokens["refreshToken"])
+
+	delete(tokens, "refreshToken")
 
 	return okResult{tokens, http.StatusOK}
 }
@@ -117,6 +123,7 @@ func addRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {
 		Name:     "refreshToken",
 		Value:    refreshToken,
 		HttpOnly: true,
+		Secure:   true,
 		Path:     "/",
 	}
 	http.SetCookie(w, &rfCookie)

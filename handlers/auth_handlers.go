@@ -107,8 +107,7 @@ func addRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {
 		Name:     refreshTokenCookieName,
 		Value:    refreshToken,
 		HttpOnly: true,
-		Secure:   true,
-		Path:     "/",
+		Path:     "/auth",
 	}
 	http.SetCookie(w, &rfCookie)
 }

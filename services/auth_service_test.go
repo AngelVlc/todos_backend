@@ -7,6 +7,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 )
@@ -68,9 +69,9 @@ func TestAuthServiceGetTokens(t *testing.T) {
 
 		tokens, err := service.GetTokens(&u)
 
-		want := map[string]string{
-			"token":        theToken,
-			"refreshToken": theRefreshToken,
+		want := &dtos.TokenResultDto{
+			Token:        theToken,
+			RefreshToken: theRefreshToken,
 		}
 
 		assert.Equal(t, want, tokens)
@@ -221,7 +222,7 @@ func TestAuthServiceJwtProviderIntegration(t *testing.T) {
 	assert.NotNil(t, tokens)
 	assert.Nil(t, err)
 
-	jwtInfo, err := service.ParseToken(tokens["token"])
+	jwtInfo, err := service.ParseToken(tokens.Token)
 	assert.NotNil(t, jwtInfo)
 	assert.Nil(t, err)
 
@@ -229,7 +230,7 @@ func TestAuthServiceJwtProviderIntegration(t *testing.T) {
 	assert.Equal(t, u.IsAdmin, jwtInfo.IsAdmin)
 	assert.Equal(t, u.ID, jwtInfo.UserID)
 
-	rtClaims, err := service.ParseRefreshToken(tokens["refreshToken"])
+	rtClaims, err := service.ParseRefreshToken(tokens.RefreshToken)
 	assert.NotNil(t, rtClaims)
 	assert.Nil(t, err)
 

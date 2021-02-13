@@ -9,10 +9,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/services"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -28,7 +30,7 @@ var (
 )
 
 func TestTokenHandler(t *testing.T) {
-	validLogin := models.Login{UserName: "wadus", Password: "pass"}
+	validLogin := dtos.TokenDto{UserName: "wadus", Password: "pass"}
 
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
@@ -137,10 +139,7 @@ func TestTokenHandler(t *testing.T) {
 
 		user := models.User{}
 
-		tokens := map[string]string{
-			"token":        "theToken",
-			"refreshToken": "theRefreshToken",
-		}
+		tokens := newTokenResultDto()
 
 		mockedUsersService.On("FindUserByName", validLogin.UserName).Return(&user, nil).Once()
 		mockedUsersService.On("CheckIfUserPasswordIsOk", &user, validLogin.Password).Return(nil).Once()
@@ -151,8 +150,8 @@ func TestTokenHandler(t *testing.T) {
 
 		result := TokenHandler(recorder, request, handler)
 
-		assert.Equal(t, okResult{tokens, http.StatusOK}, result)
-		assertSuccessResponse(t, recorder)
+		checkTokensResponse(t, result, tokens)
+		checkResponseCookie(t, recorder)
 
 		mockedUsersService.AssertExpectations(t)
 		mockedAuthService.AssertExpectations(t)
@@ -240,10 +239,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 	t.Run("Should return an ok result with the tokens if refresh token is valid and the users exists", func(t *testing.T) {
 		user := models.User{}
 
-		tokens := map[string]string{
-			"token":        "theToken",
-			"refreshToken": "theRefreshToken",
-		}
+		tokens := newTokenResultDto()
 
 		request, _ := http.NewRequest(http.MethodPost, "/wadus", nil)
 		request.AddCookie(getRefreshTokenCookie())
@@ -255,15 +251,27 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 		result := RefreshTokenHandler(recorder, request, handler)
 
-		assert.Equal(t, okResult{tokens, http.StatusOK}, result)
-		assertSuccessResponse(t, recorder)
+		checkTokensResponse(t, result, tokens)
+		checkResponseCookie(t, recorder)
 
 		mockedAuthService.AssertExpectations(t)
 		mockedUsersService.AssertExpectations(t)
 	})
 }
 
-func assertSuccessResponse(t *testing.T, recorder *httptest.ResponseRecorder) {
+func newTokenResultDto() *dtos.TokenResultDto {
+	return &dtos.TokenResultDto{Token: "theToken", RefreshToken: "theRefreshToken"}
+}
+
+func checkTokensResponse(t *testing.T, result HandlerResult, expectedTokens *dtos.TokenResultDto) {
+	okRes := CheckOkResult(t, result, http.StatusOK)
+	tokenDto, isTokenResultDto := okRes.content.(*dtos.TokenResultDto)
+	require.Equal(t, true, isTokenResultDto, "should be a token result dto")
+	assert.Equal(t, expectedTokens.Token, tokenDto.Token)
+	assert.Equal(t, expectedTokens.RefreshToken, tokenDto.RefreshToken)
+}
+
+func checkResponseCookie(t *testing.T, recorder *httptest.ResponseRecorder) {
 	assert.Equal(t, 1, len(recorder.Result().Cookies()))
 	assert.Equal(t, "refreshToken", recorder.Result().Cookies()[0].Name)
 	assert.Equal(t, "theRefreshToken", recorder.Result().Cookies()[0].Value)

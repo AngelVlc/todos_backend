@@ -3,13 +3,14 @@ package services
 import (
 	"time"
 
+	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/stretchr/testify/mock"
 )
 
 type AuthService interface {
-	GetTokens(u *models.User) (map[string]string, error)
+	GetTokens(u *models.User) (*dtos.TokenResultDto, error)
 	ParseToken(tokenString string) (*models.JwtClaimsInfo, error)
 	ParseRefreshToken(refreshTokenString string) (*models.RefreshTokenClaimsInfo, error)
 }
@@ -22,13 +23,13 @@ func NewMockedAuthService() *MockedAuthService {
 	return &MockedAuthService{}
 }
 
-func (m *MockedAuthService) GetTokens(u *models.User) (map[string]string, error) {
+func (m *MockedAuthService) GetTokens(u *models.User) (*dtos.TokenResultDto, error) {
 	args := m.Called(u)
 	got := args.Get(0)
 	if got == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(map[string]string), args.Error(1)
+	return args.Get(0).(*dtos.TokenResultDto), args.Error(1)
 }
 
 func (m *MockedAuthService) ParseToken(t string) (*models.JwtClaimsInfo, error) {
@@ -62,7 +63,7 @@ func NewDefaultAuthService(jwtp TokenHelper, cfgSvc ConfigurationService) *Defau
 }
 
 // GetTokens returns a new jwt token and a refresh token for the given user
-func (s *DefaultAuthService) GetTokens(u *models.User) (map[string]string, error) {
+func (s *DefaultAuthService) GetTokens(u *models.User) (*dtos.TokenResultDto, error) {
 	t := s.getNewToken(u)
 	st, err := s.jwtPrv.SignToken(t, s.cfgSvc.GetJwtSecret())
 	if err != nil {
@@ -75,12 +76,9 @@ func (s *DefaultAuthService) GetTokens(u *models.User) (map[string]string, error
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
 	}
 
-	result := map[string]string{
-		"token":        st,
-		"refreshToken": srt,
-	}
+	result := dtos.TokenResultDto{Token: st, RefreshToken: srt}
 
-	return result, nil
+	return &result, nil
 }
 
 // ParseToken takes a token string, parses it and if it is valid returns a JwtClaimsInfo

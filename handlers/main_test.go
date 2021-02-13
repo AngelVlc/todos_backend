@@ -6,6 +6,7 @@ import (
 
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestMain(m *testing.M) {
@@ -13,38 +14,40 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
+func CheckOkResult(t *testing.T, result interface{}, expectedStatus int) *okResult {
+	assert.NotNil(t, result)
+	okRes, isOkResult := result.(okResult)
+	require.Equal(t, true, isOkResult, "should be an ok result")
+	assert.Equal(t, expectedStatus, okRes.statusCode)
+	return &okRes
+}
+
 func CheckBadRequestErrorResult(t *testing.T, result interface{}, errorMsg string) {
 	assert.NotNil(t, result)
 	errorRes, isErrorResult := result.(errorResult)
-	assert.Equal(t, true, isErrorResult, "should be an error result")
+	require.Equal(t, true, isErrorResult, "should be an error result")
 
 	badReqErr, isBadReqErr := errorRes.err.(*appErrors.BadRequestError)
-	assert.Equal(t, true, isBadReqErr, "should be a bad request error")
-	if isBadReqErr {
-		assert.Equal(t, errorMsg, badReqErr.Error())
-	}
+	require.Equal(t, true, isBadReqErr, "should be a bad request error")
+	assert.Equal(t, errorMsg, badReqErr.Error())
 }
 
 func CheckUnexpectedErrorResult(t *testing.T, result interface{}, errorMsg string) {
 	assert.NotNil(t, result)
 	errorRes, isErrorResult := result.(errorResult)
-	assert.Equal(t, true, isErrorResult, "should be an error result")
+	require.Equal(t, true, isErrorResult, "should be an error result")
 
 	unexpErr, isUnexError := errorRes.err.(*appErrors.UnexpectedError)
-	assert.Equal(t, true, isUnexError, "should be an unexpected error")
-	if isUnexError {
-		assert.Equal(t, errorMsg, unexpErr.Error())
-	}
+	require.Equal(t, true, isUnexError, "should be an unexpected error")
+	assert.Equal(t, errorMsg, unexpErr.Error())
 }
 
 func CheckUnauthorizedErrorErrorResult(t *testing.T, result interface{}, errorMsg string) {
 	assert.NotNil(t, result)
 	errorRes, isErrorResult := result.(errorResult)
-	assert.Equal(t, true, isErrorResult, "should be an error result")
+	require.Equal(t, true, isErrorResult, "should be an error result")
 
 	unauthpErr, isUnauthError := errorRes.err.(*appErrors.UnauthorizedError)
-	assert.Equal(t, true, isUnauthError, "should be an unauthorized error")
-	if isUnauthError {
-		assert.Equal(t, errorMsg, unauthpErr.Error())
-	}
+	require.Equal(t, true, isUnauthError, "should be an unauthorized error")
+	assert.Equal(t, errorMsg, unauthpErr.Error())
 }

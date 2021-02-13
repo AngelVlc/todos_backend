@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
-	"github.com/AngelVlc/todos/models"
 )
 
 const (
@@ -38,9 +38,7 @@ func TokenHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResu
 		return errorResult{err}
 	}
 
-	addRefreshTokenCookie(w, tokens["refreshToken"])
-
-	delete(tokens, "refreshToken")
+	addRefreshTokenCookie(w, tokens.RefreshToken)
 
 	return okResult{tokens, http.StatusOK}
 }
@@ -71,35 +69,33 @@ func RefreshTokenHandler(w http.ResponseWriter, r *http.Request, h Handler) Hand
 		return errorResult{err}
 	}
 
-	addRefreshTokenCookie(w, tokens["refreshToken"])
-
-	delete(tokens, "refreshToken")
+	addRefreshTokenCookie(w, tokens.RefreshToken)
 
 	return okResult{tokens, http.StatusOK}
 }
 
-func parseTokenBody(r *http.Request) (*models.Login, error) {
+func parseTokenBody(r *http.Request) (*dtos.TokenDto, error) {
 	if r.Body == nil {
 		return nil, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: nil}
 	}
 
 	decoder := json.NewDecoder(r.Body)
 
-	var l models.Login
-	err := decoder.Decode(&l)
+	var dto dtos.TokenDto
+	err := decoder.Decode(&dto)
 	if err != nil {
 		return nil, &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
 	}
 
-	if len(l.UserName) == 0 {
+	if len(dto.UserName) == 0 {
 		return nil, &appErrors.BadRequestError{Msg: "UserName is mandatory", InternalError: nil}
 	}
 
-	if len(l.Password) == 0 {
+	if len(dto.Password) == 0 {
 		return nil, &appErrors.BadRequestError{Msg: "Password is mandatory", InternalError: nil}
 	}
 
-	return &l, nil
+	return &dto, nil
 }
 
 func addRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {

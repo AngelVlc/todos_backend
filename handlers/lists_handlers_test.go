@@ -17,6 +17,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 var (
@@ -44,7 +45,7 @@ func TestGetUserListsHandler(t *testing.T) {
 
 	t.Run("Should return an ok result with the user lists if there is no errors", func(t *testing.T) {
 		res := []dtos.GetListsResultDto{
-			dtos.GetListsResultDto{
+			{
 				ID:   int32(1),
 				Name: "list1",
 			},
@@ -56,7 +57,12 @@ func TestGetUserListsHandler(t *testing.T) {
 
 		result := GetUserListsHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{res, http.StatusOK}, result)
+		okRes := CheckOkResult(t, result, http.StatusOK)
+		resDto, isOk := okRes.content.([]dtos.GetListsResultDto)
+		require.Equal(t, true, isOk, "should be a list result dto")
+		require.Equal(t, 1, len(resDto))
+		assert.Equal(t, res[0].ID, resDto[0].ID)
+		assert.Equal(t, res[0].Name, resDto[0].Name)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -89,7 +95,7 @@ func TestGetUserSingleListHandler(t *testing.T) {
 			ID:   int32(11),
 			Name: "list1",
 			ListItems: []dtos.GetSingleListResultItemDto{
-				dtos.GetSingleListResultItemDto{
+				{
 					ID:          int32(1),
 					ListID:      int32(11),
 					Title:       "the title",
@@ -104,7 +110,16 @@ func TestGetUserSingleListHandler(t *testing.T) {
 
 		result := GetUserSingleListHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{res, http.StatusOK}, result)
+		okRes := CheckOkResult(t, result, http.StatusOK)
+		resDto, isOk := okRes.content.(dtos.GetSingleListResultDto)
+		require.Equal(t, true, isOk, "should be a single list result dto")
+		assert.Equal(t, res.ID, resDto.ID)
+		assert.Equal(t, res.Name, resDto.Name)
+		require.Equal(t, 1, len(resDto.ListItems))
+		assert.Equal(t, res.ListItems[0].ID, resDto.ListItems[0].ID)
+		assert.Equal(t, res.ListItems[0].ListID, resDto.ListItems[0].ListID)
+		assert.Equal(t, res.ListItems[0].Title, resDto.ListItems[0].Title)
+		assert.Equal(t, res.ListItems[0].Description, resDto.ListItems[0].Description)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -153,7 +168,8 @@ func TestAddUserListHandler(t *testing.T) {
 
 		result := AddUserListHandler(httptest.NewRecorder(), request(true), handler)
 
-		assert.Equal(t, okResult{int32(40), http.StatusCreated}, result)
+		okRes := CheckOkResult(t, result, http.StatusCreated)
+		assert.Equal(t, int32(40), okRes.content)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -205,7 +221,10 @@ func TestUpdateUserListHandler(t *testing.T) {
 
 		result := UpdateUserListHandler(httptest.NewRecorder(), request(true), handler)
 
-		assert.Equal(t, okResult{&res, http.StatusOK}, result)
+		okRes := CheckOkResult(t, result, http.StatusOK)
+		resDto, isOk := okRes.content.(*models.List)
+		require.Equal(t, true, isOk, "should be a list")
+		assert.Equal(t, resDto.Name, res.Name)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -237,7 +256,8 @@ func TestDeleteUserListHandler(t *testing.T) {
 
 		result := DeleteUserListHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
+		okRes := CheckOkResult(t, result, http.StatusNoContent)
+		assert.Nil(t, okRes.content)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -278,7 +298,11 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 
 		result := GetUserSingleListItemHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{res, http.StatusOK}, result)
+		okRes := CheckOkResult(t, result, http.StatusOK)
+		resDto, isOk := okRes.content.(dtos.GetItemResultDto)
+		require.Equal(t, true, isOk, "should be an item result dto")
+		assert.Equal(t, res.Title, resDto.Title)
+		assert.Equal(t, res.Description, resDto.Description)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -330,7 +354,8 @@ func TestAddUserListItemHandler(t *testing.T) {
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
-		assert.Equal(t, okResult{int32(40), http.StatusCreated}, result)
+		okRes := CheckOkResult(t, result, http.StatusCreated)
+		assert.Equal(t, int32(40), okRes.content)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -363,7 +388,8 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 
 		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
+		okRes := CheckOkResult(t, result, http.StatusNoContent)
+		assert.Nil(t, okRes.content)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -414,7 +440,11 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 
 		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
-		assert.Equal(t, okResult{&res, http.StatusOK}, result)
+		okRes := CheckOkResult(t, result, http.StatusOK)
+		resDto, isOk := okRes.content.(*models.ListItem)
+		require.Equal(t, true, isOk, "should be a list item result dto")
+		assert.Equal(t, res.Title, resDto.Title)
+		assert.Equal(t, res.ListID, resDto.ListID)
 
 		mockedListsService.AssertExpectations(t)
 	})

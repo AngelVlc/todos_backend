@@ -15,6 +15,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddUserHandler(t *testing.T) {
@@ -50,7 +51,8 @@ func TestAddUserHandler(t *testing.T) {
 
 		result := AddUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
-		assert.Equal(t, okResult{int32(11), http.StatusCreated}, result)
+		okRes := CheckOkResult(t, result, http.StatusCreated)
+		assert.Equal(t, int32(11), okRes.content)
 
 		mockedUsersService.AssertExpectations(t)
 	})
@@ -85,10 +87,15 @@ func TestGetUsersHandler(t *testing.T) {
 			arg := args.Get(0).(*[]dtos.GetUserResultDto)
 			*arg = res
 		})
-
 		result := GetUsersHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{res, http.StatusOK}, result)
+		okRes := CheckOkResult(t, result, http.StatusOK)
+		resDto, isOk := okRes.content.([]dtos.GetUserResultDto)
+		require.Equal(t, true, isOk, "should be a user result dto")
+		require.Equal(t, len(res), len(resDto))
+		assert.Equal(t, res[0].ID, resDto[0].ID)
+		assert.Equal(t, res[0].Name, resDto[0].Name)
+		assert.Equal(t, res[0].IsAdmin, resDto[0].IsAdmin)
 
 		mockedUsersService.AssertExpectations(t)
 	})
@@ -158,7 +165,8 @@ func TestDeleteUserHandler(t *testing.T) {
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
+		okRes := CheckOkResult(t, result, http.StatusNoContent)
+		assert.Nil(t, okRes.content)
 
 		mockedUsersService.AssertExpectations(t)
 		mockedListsService.AssertExpectations(t)
@@ -197,13 +205,16 @@ func TestUpdateUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		user := models.User{}
+		user := models.User{Name: "updated"}
 
 		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(&user, nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
-		assert.Equal(t, okResult{&user, http.StatusCreated}, result)
+		okRes := CheckOkResult(t, result, http.StatusCreated)
+		resDto, isOk := okRes.content.(*models.User)
+		require.Equal(t, true, isOk, "should be a list result dto")
+		assert.Equal(t, user.Name, resDto.Name)
 
 		mockedUsersService.AssertExpectations(t)
 	})
@@ -240,13 +251,12 @@ func TestGetUserHandler(t *testing.T) {
 
 		result := GetUserHandler(httptest.NewRecorder(), request(), handler)
 
-		dto := dtos.GetUserResultDto{
-			Name:    "user",
-			IsAdmin: true,
-			ID:      40,
-		}
-
-		assert.Equal(t, okResult{dto, http.StatusCreated}, result)
+		okRes := CheckOkResult(t, result, http.StatusCreated)
+		resDto, isOk := okRes.content.(dtos.GetUserResultDto)
+		require.Equal(t, true, isOk, "should be a user result dto")
+		assert.Equal(t, user.ID, resDto.ID)
+		assert.Equal(t, user.Name, resDto.Name)
+		assert.Equal(t, user.IsAdmin, resDto.IsAdmin)
 
 		mockedUsersService.AssertExpectations(t)
 	})

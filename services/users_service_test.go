@@ -12,6 +12,7 @@ import (
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 type MockedCryptoHelper struct {
@@ -124,9 +125,9 @@ func TestUsersService(t *testing.T) {
 	t.Run("FindUserByID() should not return a user if it does not exist", func(t *testing.T) {
 		expectedFindByIdQuery().WillReturnRows(sqlmock.NewRows(columns))
 
-		u, err := svc.FindUserByID(11)
+		dto, err := svc.FindUserByID(11)
 
-		assert.Nil(t, u)
+		assert.Nil(t, dto)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)
@@ -135,9 +136,9 @@ func TestUsersService(t *testing.T) {
 	t.Run("FindUserByID() should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIdQuery().WillReturnError(fmt.Errorf("some error"))
 
-		u, err := svc.FindUserByID(11)
+		dto, err := svc.FindUserByID(11)
 
-		assert.Nil(t, u)
+		assert.Nil(t, dto)
 		appErrors.CheckUnexpectedError(t, err, "Error getting user by user id", "some error")
 
 		checkMockExpectations(t, mock)
@@ -146,10 +147,12 @@ func TestUsersService(t *testing.T) {
 	t.Run("FindUserByID() should return the user if it exists", func(t *testing.T) {
 		expectedFindByIdQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(5, user, "", true))
 
-		u, err := svc.FindUserByID(11)
+		dto, err := svc.FindUserByID(11)
 
-		assert.NotNil(t, u)
-		assert.Equal(t, u.Name, user)
+		require.NotNil(t, dto)
+		assert.Equal(t, user, dto.Name)
+		assert.Equal(t, true, dto.IsAdmin)
+		assert.Equal(t, int32(5), dto.ID)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)

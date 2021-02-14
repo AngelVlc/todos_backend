@@ -1,5 +1,7 @@
 package models
 
+import "github.com/AngelVlc/todos/dtos"
+
 // ListItem is the model for a single list item
 type ListItem struct {
 	ID          int32  `gorm:"type:int(32);primary_key"`
@@ -10,4 +12,9 @@ type ListItem struct {
 
 func (ListItem) TableName() string {
 	return "listItems"
+}
+
+func (l *ListItem) FromDto(dto *dtos.ListItemDto) {
+	l.Title = dto.Title
+	l.Description = dto.Description
 }

@@ -18,7 +18,7 @@ func main() {
 	cfg := wire.InitConfigurationService()
 
 	db, err := initDb(cfg)
-	// db.LogMode(true)
+	db.LogMode(true)
 	if err != nil {
 		log.Fatal(err)
 	}

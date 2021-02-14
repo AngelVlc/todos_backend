@@ -13,7 +13,6 @@ import (
 	"github.com/AngelVlc/todos/consts"
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
-	"github.com/AngelVlc/todos/models"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -126,12 +125,12 @@ func TestGetUserSingleListHandler(t *testing.T) {
 }
 
 func TestAddUserListHandler(t *testing.T) {
+	dto := dtos.ListDto{
+		Name: "list",
+	}
 	request := func(useValidBody bool) *http.Request {
 		var body io.Reader
 		if useValidBody {
-			dto := dtos.ListDto{
-				Name: "list",
-			}
 			json, _ := json.Marshal(dto)
 			body = bytes.NewBuffer(json)
 		} else {
@@ -152,8 +151,7 @@ func TestAddUserListHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the body is valid but the insert fails", func(t *testing.T) {
-		res := models.List{Name: "list"}
-		mockedListsService.On("AddUserList", userID, &res).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("AddUserList", userID, &dto).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := AddUserListHandler(httptest.NewRecorder(), request(true), handler)
 
@@ -163,8 +161,7 @@ func TestAddUserListHandler(t *testing.T) {
 	})
 
 	t.Run("Should add the list if the body is valid and the insert does not fail", func(t *testing.T) {
-		res := models.List{Name: "list"}
-		mockedListsService.On("AddUserList", userID, &res).Return(int32(40), nil).Once()
+		mockedListsService.On("AddUserList", userID, &dto).Return(int32(40), nil).Once()
 
 		result := AddUserListHandler(httptest.NewRecorder(), request(true), handler)
 
@@ -176,12 +173,12 @@ func TestAddUserListHandler(t *testing.T) {
 }
 
 func TestUpdateUserListHandler(t *testing.T) {
+	dto := dtos.ListDto{
+		Name: "list",
+	}
 	request := func(useValidBody bool) *http.Request {
 		var body io.Reader
 		if useValidBody {
-			dto := dtos.ListDto{
-				Name: "list",
-			}
 			json, _ := json.Marshal(dto)
 			body = bytes.NewBuffer(json)
 		} else {
@@ -205,8 +202,7 @@ func TestUpdateUserListHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the body is valid but the update fails", func(t *testing.T) {
-		res := models.List{Name: "list"}
-		mockedListsService.On("UpdateUserList", int32(40), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("UpdateUserList", int32(40), userID, &dto).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := UpdateUserListHandler(httptest.NewRecorder(), request(true), handler)
 
@@ -216,15 +212,14 @@ func TestUpdateUserListHandler(t *testing.T) {
 	})
 
 	t.Run("Should update the list if the body is valid and the update does not fail", func(t *testing.T) {
-		res := models.List{Name: "list"}
-		mockedListsService.On("UpdateUserList", int32(40), userID, &res).Return(nil).Once()
+		mockedListsService.On("UpdateUserList", int32(40), userID, &dto).Return(nil).Once()
 
 		result := UpdateUserListHandler(httptest.NewRecorder(), request(true), handler)
 
 		okRes := CheckOkResult(t, result, http.StatusOK)
-		resDto, isOk := okRes.content.(*models.List)
+		resDto, isOk := okRes.content.(*dtos.ListDto)
 		require.Equal(t, true, isOk, "should be a list")
-		assert.Equal(t, resDto.Name, res.Name)
+		assert.Equal(t, resDto.Name, dto.Name)
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -309,12 +304,13 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 }
 
 func TestAddUserListItemHandler(t *testing.T) {
+	listID := int32(11)
+	dto := dtos.ListItemDto{
+		Title: "title",
+	}
 	request := func(useValidBody bool) *http.Request {
 		var body io.Reader
 		if useValidBody {
-			dto := dtos.ListItemDto{
-				Title: "title",
-			}
 			json, _ := json.Marshal(dto)
 			body = bytes.NewBuffer(json)
 		} else {
@@ -338,8 +334,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the body is valid but the insert fails", func(t *testing.T) {
-		res := models.ListItem{Title: "title", ListID: int32(11)}
-		mockedListsService.On("AddUserListItem", userID, &res).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("AddUserListItem", listID, userID, &dto).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
@@ -349,8 +344,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 	})
 
 	t.Run("Should add the list item if the body is valid and the insert does not fail", func(t *testing.T) {
-		res := models.ListItem{Title: "title", ListID: int32(11)}
-		mockedListsService.On("AddUserListItem", userID, &res).Return(int32(40), nil).Once()
+		mockedListsService.On("AddUserListItem", listID, userID, &dto).Return(int32(40), nil).Once()
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
@@ -396,12 +390,13 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 }
 
 func TestUpdateUserListItemHandler(t *testing.T) {
+	listID := int32(20)
+	dto := dtos.ListItemDto{
+		Title: "title",
+	}
 	request := func(useValidBody bool) *http.Request {
 		var body io.Reader
 		if useValidBody {
-			dto := dtos.ListItemDto{
-				Title: "title",
-			}
 			json, _ := json.Marshal(dto)
 			body = bytes.NewBuffer(json)
 		} else {
@@ -424,8 +419,7 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the body is valid but the update fails", func(t *testing.T) {
-		res := models.ListItem{Title: "title", ListID: 40}
-		mockedListsService.On("UpdateUserListItem", int32(20), int32(40), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("UpdateUserListItem", listID, int32(40), userID, &dto).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
@@ -435,16 +429,14 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 	})
 
 	t.Run("Should update the list item if the body is valid and the update does not fail", func(t *testing.T) {
-		res := models.ListItem{Title: "title", ListID: 40}
-		mockedListsService.On("UpdateUserListItem", int32(20), int32(40), userID, &res).Return(nil).Once()
+		mockedListsService.On("UpdateUserListItem", listID, int32(40), userID, &dto).Return(nil).Once()
 
 		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
 		okRes := CheckOkResult(t, result, http.StatusOK)
-		resDto, isOk := okRes.content.(*models.ListItem)
+		resDto, isOk := okRes.content.(*dtos.ListItemDto)
 		require.Equal(t, true, isOk, "should be a list item result dto")
-		assert.Equal(t, res.Title, resDto.Title)
-		assert.Equal(t, res.ListID, resDto.ListID)
+		assert.Equal(t, dto.Title, resDto.Title)
 
 		mockedListsService.AssertExpectations(t)
 	})

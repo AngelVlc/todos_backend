@@ -9,15 +9,15 @@ import (
 )
 
 type ListsService interface {
-	AddUserList(userID int32, l *models.List) (int32, error)
+	AddUserList(userID int32, dto *dtos.ListDto) (int32, error)
 	RemoveUserList(id int32, userID int32) error
-	UpdateUserList(id int32, userID int32, l *models.List) error
+	UpdateUserList(id int32, userID int32, dto *dtos.ListDto) error
 	GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error
 	GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error
 	GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error
-	AddUserListItem(userId int32, i *models.ListItem) (int32, error)
+	AddUserListItem(listID int32, userId int32, dto *dtos.ListItemDto) (int32, error)
 	RemoveUserListItem(id int32, listID int32, userID int32) error
-	UpdateUserListItem(id int32, listID int32, userID int32, i *models.ListItem) error
+	UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error
 }
 
 type MockedListsService struct {
@@ -28,8 +28,8 @@ func NewMockedListsService() *MockedListsService {
 	return &MockedListsService{}
 }
 
-func (m *MockedListsService) AddUserList(userID int32, l *models.List) (int32, error) {
-	args := m.Called(userID, l)
+func (m *MockedListsService) AddUserList(userID int32, dto *dtos.ListDto) (int32, error) {
+	args := m.Called(userID, dto)
 	return args.Get(0).(int32), args.Error(1)
 }
 
@@ -38,8 +38,8 @@ func (m *MockedListsService) RemoveUserList(id int32, userID int32) error {
 	return args.Error(0)
 }
 
-func (m *MockedListsService) UpdateUserList(id int32, userID int32, l *models.List) error {
-	args := m.Called(id, userID, l)
+func (m *MockedListsService) UpdateUserList(id int32, userID int32, dto *dtos.ListDto) error {
+	args := m.Called(id, userID, dto)
 	return args.Error(0)
 }
 
@@ -58,8 +58,8 @@ func (m *MockedListsService) GetUserListItem(id int32, listID int32, userID int3
 	return args.Error(0)
 }
 
-func (m *MockedListsService) AddUserListItem(userID int32, i *models.ListItem) (int32, error) {
-	args := m.Called(userID, i)
+func (m *MockedListsService) AddUserListItem(listID int32, userID int32, dto *dtos.ListItemDto) (int32, error) {
+	args := m.Called(listID, userID, dto)
 	return args.Get(0).(int32), args.Error(1)
 }
 
@@ -68,8 +68,8 @@ func (m *MockedListsService) RemoveUserListItem(id int32, listID int32, userID i
 	return args.Error(0)
 }
 
-func (m *MockedListsService) UpdateUserListItem(id int32, listID int32, userID int32, i *models.ListItem) error {
-	args := m.Called(id, listID, userID, i)
+func (m *MockedListsService) UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error {
+	args := m.Called(id, listID, userID, dto)
 	return args.Error(0)
 }
 
@@ -84,7 +84,9 @@ func NewDefaultListsService(db *gorm.DB) *DefaultListsService {
 }
 
 // AddUserList  adds a list
-func (s *DefaultListsService) AddUserList(userID int32, l *models.List) (int32, error) {
+func (s *DefaultListsService) AddUserList(userID int32, dto *dtos.ListDto) (int32, error) {
+	l := models.List{}
+	l.FromDto(dto)
 	l.UserID = userID
 	if err := s.db.Create(&l).Error; err != nil {
 		return 0, &appErrors.UnexpectedError{Msg: "Error inserting list", InternalError: err}
@@ -102,7 +104,9 @@ func (s *DefaultListsService) RemoveUserList(id int32, userID int32) error {
 }
 
 // UpdateUserList updates an existing list
-func (s *DefaultListsService) UpdateUserList(id int32, userID int32, l *models.List) error {
+func (s *DefaultListsService) UpdateUserList(id int32, userID int32, dto *dtos.ListDto) error {
+	l := models.List{}
+	l.FromDto(dto)
 	l.ID = id
 	l.UserID = userID
 
@@ -139,14 +143,28 @@ func (s *DefaultListsService) GetUserListItem(id int32, listID int32, userID int
 	return nil
 }
 
+// TEMP
+func (s *DefaultListsService) getListItem(id int32, listID int32, userID int32) (*models.ListItem, error) {
+	foundItem := models.ListItem{}
+
+	if err := s.db.Joins("JOIN lists on listItems.listId=lists.id").Where(models.List{ID: listID, UserID: userID}).Where(models.ListItem{ID: id}).Find(&foundItem).Error; err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting list item", InternalError: err}
+	}
+
+	return &foundItem, nil
+}
+
 // AddUserListItem adds a list item
-func (s *DefaultListsService) AddUserListItem(userID int32, i *models.ListItem) (int32, error) {
+func (s *DefaultListsService) AddUserListItem(listID int32, userID int32, dto *dtos.ListItemDto) (int32, error) {
 	foundList := &dtos.GetSingleListResultDto{}
 
-	if err := s.GetSingleUserList(i.ListID, userID, foundList); err != nil {
+	if err := s.GetSingleUserList(listID, userID, foundList); err != nil {
 		return 0, err
 	}
 
+	i := models.ListItem{}
+	i.ListID = listID
+	i.FromDto(dto)
 	if err := s.db.Create(&i).Error; err != nil {
 		return 0, &appErrors.UnexpectedError{Msg: "Error inserting list item", InternalError: err}
 	}
@@ -169,17 +187,15 @@ func (s *DefaultListsService) RemoveUserListItem(id int32, listID int32, userID 
 }
 
 // UpdateUserListItem updates a list item
-func (s *DefaultListsService) UpdateUserListItem(id int32, listID int32, userID int32, i *models.ListItem) error {
-	foundList := &dtos.GetSingleListResultDto{}
-
-	if err := s.GetSingleUserList(listID, userID, foundList); err != nil {
+func (s *DefaultListsService) UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error {
+	foundItem, err := s.getListItem(id, listID, userID)
+	if err != nil {
 		return err
 	}
 
-	i.ID = id
-	i.ListID = listID
+	foundItem.FromDto(dto)
 
-	if err := s.db.Save(&i).Error; err != nil {
+	if err := s.db.Save(&foundItem).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error updating list item", InternalError: err}
 	}
 

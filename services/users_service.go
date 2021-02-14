@@ -135,7 +135,8 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 		return -1, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
 	}
 
-	user := dto.ToUser()
+	user := models.User{}
+	user.FromDto(dto)
 
 	hasshedPass, err := s.getPasswordHash(dto.NewPassword)
 	if err != nil {
@@ -200,7 +201,8 @@ func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.U
 		return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin's is admin field"}
 	}
 
-	user := dto.ToUser()
+	user := models.User{}
+	user.FromDto(dto)
 	user.ID = foundUser.ID
 
 	if len(dto.NewPassword) == 0 {

@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/AngelVlc/todos/handlers"
+	"github.com/AngelVlc/todos/repositories"
 	"github.com/AngelVlc/todos/services"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
@@ -120,12 +121,30 @@ func InitUsersService(db *gorm.DB) services.UsersService {
 }
 
 func initDefaultUsersService(db *gorm.DB) services.UsersService {
-	wire.Build(CryptoHelperSet, UsersServiceSet)
+	wire.Build(CryptoHelperSet, UsersRepositorySet, UsersServiceSet)
 	return nil
 }
 
 func initMockedUsersService() services.UsersService {
 	wire.Build(MockedUsersServiceSet)
+	return nil
+}
+
+func InitUsersRepository(db *gorm.DB) repositories.UsersRepository {
+	if inTestingMode() {
+		return initMockedUsersRepository()
+	} else {
+		return initDefaultUsersRepository(db)
+	}
+}
+
+func initDefaultUsersRepository(db *gorm.DB) repositories.UsersRepository {
+	wire.Build(UsersRepositorySet)
+	return nil
+}
+
+func initMockedUsersRepository() repositories.UsersRepository {
+	wire.Build(MockedUsersRepositorySet)
 	return nil
 }
 
@@ -218,3 +237,11 @@ var MockedAuthMiddlewareSet = wire.NewSet(
 var RequireAdminMiddlewareSet = wire.NewSet(
 	handlers.NewDefaultRequireAdminMiddleware,
 	wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
+
+var UsersRepositorySet = wire.NewSet(
+	repositories.NewDefaultUsersRepository,
+	wire.Bind(new(repositories.UsersRepository), new(*repositories.DefaultUsersRepository)))
+
+var MockedUsersRepositorySet = wire.NewSet(
+	repositories.NewMockedUsersRepository,
+	wire.Bind(new(repositories.UsersRepository), new(*repositories.MockedUsersRepository)))

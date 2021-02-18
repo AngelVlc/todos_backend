@@ -6,6 +6,7 @@ import (
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
+	"github.com/AngelVlc/todos/repositories"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/mock"
 )
@@ -76,12 +77,13 @@ func (m *MockedUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.Us
 }
 
 type DefaultUsersService struct {
-	crypto CryptoHelper
-	db     *gorm.DB
+	crypto    CryptoHelper
+	usersRepo repositories.UsersRepository
+	db        *gorm.DB
 }
 
-func NewDefaultUsersService(crypto CryptoHelper, db *gorm.DB) *DefaultUsersService {
-	return &DefaultUsersService{crypto, db}
+func NewDefaultUsersService(crypto CryptoHelper, usersRepo repositories.UsersRepository, db *gorm.DB) *DefaultUsersService {
+	return &DefaultUsersService{crypto, usersRepo, db}
 }
 
 func (s *DefaultUsersService) FindUserByName(name string) (*models.User, error) {
@@ -106,18 +108,9 @@ func (s *DefaultUsersService) CheckIfUserPasswordIsOk(user *models.User, passwor
 
 // FindUserByID returns a single user from its id
 func (s *DefaultUsersService) FindUserByID(id int32) (*models.User, error) {
-	foundUser := models.User{}
-	err := s.db.Where(models.User{ID: id}).Table("users").First(&foundUser).Error
+	foundUser, err := s.usersRepo.FindByID(id)
 
-	if gorm.IsRecordNotFoundError(err) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user id", InternalError: err}
-	}
-
-	return &foundUser, nil
+	return foundUser, err
 }
 
 // AddUser  adds a user
@@ -164,7 +157,7 @@ func (s *DefaultUsersService) GetUsers(r *[]dtos.GetUserResultDto) error {
 }
 
 func (s *DefaultUsersService) RemoveUser(id int32) error {
-	foundUser, err := s.FindUserByID(id)
+	foundUser, err := s.usersRepo.FindByID(id)
 	if err != nil {
 		return err
 	}
@@ -184,7 +177,7 @@ func (s *DefaultUsersService) RemoveUser(id int32) error {
 }
 
 func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error) {
-	foundUser, err := s.FindUserByID(id)
+	foundUser, err := s.usersRepo.FindByID(id)
 	if err != nil {
 		return nil, err
 	}

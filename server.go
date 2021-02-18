@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/handlers"
+	"github.com/AngelVlc/todos/repositories"
 	"github.com/AngelVlc/todos/services"
 	"github.com/AngelVlc/todos/wire"
 	"github.com/gorilla/mux"
@@ -12,6 +13,7 @@ import (
 
 type server struct {
 	http.Handler
+	usersRepo       repositories.UsersRepository
 	authSrv         services.AuthService
 	listsSrv        services.ListsService
 	usersSrv        services.UsersService
@@ -23,6 +25,7 @@ type server struct {
 
 func newServer(db *gorm.DB) *server {
 	s := server{
+		usersRepo:       wire.InitUsersRepository(db),
 		authSrv:         wire.InitAuthService(),
 		listsSrv:        wire.InitListsService(db),
 		usersSrv:        wire.InitUsersService(db),

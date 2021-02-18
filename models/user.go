@@ -13,3 +13,7 @@ func (u *User) FromDto(dto *dtos.UserDto) {
 	u.Name = dto.Name
 	u.IsAdmin = dto.IsAdmin
 }
+
+func (u *User) ToResponseDto() *dtos.UserResponseDto {
+	return &dtos.UserResponseDto{u.ID, u.Name, u.IsAdmin}
+}

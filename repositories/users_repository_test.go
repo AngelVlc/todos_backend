@@ -26,7 +26,7 @@ func TestUsersServiceFindByID(t *testing.T) {
 	db, err := gorm.Open("mysql", mockDb)
 	defer db.Close()
 
-	svc := NewDefaultUsersRepository(db)
+	repo := NewDefaultUsersRepository(db)
 
 	expectedFindByIdQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`id` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
@@ -36,7 +36,7 @@ func TestUsersServiceFindByID(t *testing.T) {
 	t.Run("should not return a user if it does not exist", func(t *testing.T) {
 		expectedFindByIdQuery().WillReturnRows(sqlmock.NewRows(columns))
 
-		dto, err := svc.FindByID(11)
+		dto, err := repo.FindByID(11)
 
 		assert.Nil(t, dto)
 		assert.Nil(t, err)
@@ -47,7 +47,7 @@ func TestUsersServiceFindByID(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIdQuery().WillReturnError(fmt.Errorf("some error"))
 
-		dto, err := svc.FindByID(11)
+		dto, err := repo.FindByID(11)
 
 		assert.Nil(t, dto)
 		appErrors.CheckUnexpectedError(t, err, "Error getting user by user id", "some error")
@@ -58,12 +58,62 @@ func TestUsersServiceFindByID(t *testing.T) {
 	t.Run("should return the user if it exists", func(t *testing.T) {
 		expectedFindByIdQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(5, user, "", true))
 
-		dto, err := svc.FindByID(11)
+		dto, err := repo.FindByID(11)
 
 		require.NotNil(t, dto)
 		assert.Equal(t, user, dto.Name)
 		assert.Equal(t, true, dto.IsAdmin)
 		assert.Equal(t, int32(5), dto.ID)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
+func TestUsersServiceFindByName(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewDefaultUsersRepository(db)
+
+	expectedFindByNameQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`name` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(user)
+	}
+
+	t.Run("should not return a user if it does not exist", func(t *testing.T) {
+		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(columns))
+
+		u, err := repo.FindByName(user)
+
+		assert.Nil(t, u)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		expectedFindByNameQuery().WillReturnError(fmt.Errorf("some error"))
+
+		u, err := repo.FindByName(user)
+
+		assert.Nil(t, u)
+		appErrors.CheckUnexpectedError(t, err, "Error getting user by user name", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return the user if it exists", func(t *testing.T) {
+		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(5, user, "", true))
+
+		u, err := repo.FindByName(user)
+
+		assert.NotNil(t, u)
+		assert.Equal(t, u.ID, int32(5))
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)

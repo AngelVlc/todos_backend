@@ -72,6 +72,42 @@ func TestUsersServiceFindByID(t *testing.T) {
 	})
 }
 
+func TestUsersServiceFindByName(t *testing.T) {
+	mockedUsersRepo := repositories.MockedUsersRepository{}
+
+	svc := NewDefaultUsersService(nil, &mockedUsersRepo, nil)
+
+	userID := int32(11)
+	foundUser := models.User{
+		ID:      userID,
+		Name:    "userName",
+		IsAdmin: true,
+	}
+
+	t.Run("should return an error if repository FindByName fails", func(t *testing.T) {
+		mockedUsersRepo.On("FindByName", "userName").Return(nil, fmt.Errorf("some error")).Once()
+
+		dto, err := svc.FindUserByName("userName")
+
+		assert.Nil(t, dto)
+		assert.Error(t, err)
+
+		mockedUsersRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return the found user if repository FindByName doesn't fail", func(t *testing.T) {
+		mockedUsersRepo.On("FindByName", "userName").Return(&foundUser, nil).Once()
+
+		dto, err := svc.FindUserByName("userName")
+
+		require.NotNil(t, dto)
+		require.IsType(t, &models.User{}, dto)
+		assert.Nil(t, err)
+
+		mockedUsersRepo.AssertExpectations(t)
+	})
+}
+
 func TestUsersService(t *testing.T) {
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {
@@ -83,45 +119,6 @@ func TestUsersService(t *testing.T) {
 	mockedCh := MockedCryptoHelper{}
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo, db)
-
-	expectedFindByNameQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`name` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
-			WithArgs(user)
-	}
-
-	t.Run("FindUserByName() should not return a user if it does not exist", func(t *testing.T) {
-		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(columns))
-
-		u, err := svc.FindUserByName(user)
-
-		assert.Nil(t, u)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("FindUserByName() should return an error if the query fails", func(t *testing.T) {
-		expectedFindByNameQuery().WillReturnError(fmt.Errorf("some error"))
-
-		u, err := svc.FindUserByName(user)
-
-		assert.Nil(t, u)
-		appErrors.CheckUnexpectedError(t, err, "Error getting user by user name", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("FindUserByName() should return the user if it exists", func(t *testing.T) {
-		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(5, user, "", true))
-
-		u, err := svc.FindUserByName(user)
-
-		assert.NotNil(t, u)
-		assert.Equal(t, u.ID, int32(5))
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
 
 	t.Run("CheckIfUserPasswordIsOk() should return nil if the password is ok", func(t *testing.T) {
 		user := models.User{
@@ -177,12 +174,12 @@ func TestUsersService(t *testing.T) {
 			ConfirmNewPassword: "a",
 		}
 
-		expectedFindByNameQuery().WillReturnError(fmt.Errorf("some error"))
+		mockedUsersRepo.On("FindByName", user).Return(nil, fmt.Errorf("some error")).Once()
 
 		_, err := svc.AddUser(&dto)
 
 		assert.NotNil(t, err)
-
+		mockedUsersRepo.AssertExpectations(t)
 		checkMockExpectations(t, mock)
 	})
 
@@ -193,12 +190,12 @@ func TestUsersService(t *testing.T) {
 			ConfirmNewPassword: "a",
 		}
 
-		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(5, user, "", true))
+		mockedUsersRepo.On("FindByName", user).Return(&models.User{ID: 11, Name: user}, nil).Once()
 
 		_, err := svc.AddUser(&dto)
 
 		appErrors.CheckBadRequestError(t, err, "A user with the same user name already exists", "")
-
+		mockedUsersRepo.AssertExpectations(t)
 		checkMockExpectations(t, mock)
 	})
 
@@ -209,7 +206,7 @@ func TestUsersService(t *testing.T) {
 			ConfirmNewPassword: "a",
 		}
 
-		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(columns))
+		mockedUsersRepo.On("FindByName", user).Return(nil, nil).Once()
 
 		mockedCh.On("GenerateFromPassword", []byte(dto.NewPassword)).Return([]byte(""), fmt.Errorf("some error")).Once()
 
@@ -218,7 +215,7 @@ func TestUsersService(t *testing.T) {
 		appErrors.CheckUnexpectedError(t, err, "Error encrypting password", "some error")
 
 		mockedCh.AssertExpectations(t)
-
+		mockedUsersRepo.AssertExpectations(t)
 		checkMockExpectations(t, mock)
 	})
 
@@ -229,7 +226,7 @@ func TestUsersService(t *testing.T) {
 			ConfirmNewPassword: "a",
 		}
 
-		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(columns))
+		mockedUsersRepo.On("FindByName", user).Return(nil, nil).Once()
 
 		mockedCh.On("GenerateFromPassword", []byte(dto.NewPassword)).Return([]byte(hasshedPass), nil).Once()
 
@@ -242,7 +239,7 @@ func TestUsersService(t *testing.T) {
 		appErrors.CheckUnexpectedError(t, err, "Error inserting in the database", "some error")
 
 		mockedCh.AssertExpectations(t)
-
+		mockedUsersRepo.AssertExpectations(t)
 		checkMockExpectations(t, mock)
 	})
 
@@ -253,7 +250,7 @@ func TestUsersService(t *testing.T) {
 			ConfirmNewPassword: "a",
 		}
 
-		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(columns))
+		mockedUsersRepo.On("FindByName", user).Return(nil, nil).Once()
 
 		mockedCh.On("GenerateFromPassword", []byte(dto.NewPassword)).Return([]byte(hasshedPass), nil).Once()
 
@@ -270,7 +267,7 @@ func TestUsersService(t *testing.T) {
 		assert.Nil(t, err)
 
 		mockedCh.AssertExpectations(t)
-
+		mockedUsersRepo.AssertExpectations(t)
 		checkMockExpectations(t, mock)
 	})
 

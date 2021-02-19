@@ -9,6 +9,7 @@ import (
 
 type UsersRepository interface {
 	FindByID(id int32) (*models.User, error)
+	FindByName(name string) (*models.User, error)
 }
 
 type MockedUsersRepository struct {
@@ -21,6 +22,15 @@ func NewMockedUsersRepository() *MockedUsersRepository {
 
 func (m *MockedUsersRepository) FindByID(id int32) (*models.User, error) {
 	args := m.Called(id)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*models.User), args.Error(1)
+}
+
+func (m *MockedUsersRepository) FindByName(name string) (*models.User, error) {
+	args := m.Called(name)
 	got := args.Get(0)
 	if got == nil {
 		return nil, args.Error(1)
@@ -47,6 +57,21 @@ func (s *DefaultUsersRepository) FindByID(id int32) (*models.User, error) {
 
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user id", InternalError: err}
+	}
+
+	return &foundUser, nil
+}
+
+func (s *DefaultUsersRepository) FindByName(name string) (*models.User, error) {
+	foundUser := models.User{}
+	err := s.db.Where(models.User{Name: name}).Table("users").First(&foundUser).Error
+
+	if gorm.IsRecordNotFoundError(err) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
 	}
 
 	return &foundUser, nil

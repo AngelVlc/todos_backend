@@ -87,18 +87,7 @@ func NewDefaultUsersService(crypto CryptoHelper, usersRepo repositories.UsersRep
 }
 
 func (s *DefaultUsersService) FindUserByName(name string) (*models.User, error) {
-	foundUser := models.User{}
-	err := s.db.Where(models.User{Name: name}).Table("users").First(&foundUser).Error
-
-	if gorm.IsRecordNotFoundError(err) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
-	}
-
-	return &foundUser, nil
+	return s.usersRepo.FindByName(name)
 }
 
 // CheckIfUserPasswordIsOk returns nil if the password is correct or an error if it isn't
@@ -108,9 +97,7 @@ func (s *DefaultUsersService) CheckIfUserPasswordIsOk(user *models.User, passwor
 
 // FindUserByID returns a single user from its id
 func (s *DefaultUsersService) FindUserByID(id int32) (*models.User, error) {
-	foundUser, err := s.usersRepo.FindByID(id)
-
-	return foundUser, err
+	return s.usersRepo.FindByID(id)
 }
 
 // AddUser  adds a user
@@ -119,7 +106,7 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 		return -1, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
 	}
 
-	foundUser, err := s.FindUserByName(dto.Name)
+	foundUser, err := s.usersRepo.FindByName(dto.Name)
 	if err != nil {
 		return -1, err
 	}

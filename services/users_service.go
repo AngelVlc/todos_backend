@@ -125,15 +125,12 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 
 	user.PasswordHash = hasshedPass
 
-	err = s.db.Create(&user).Error
+	id, err := s.usersRepo.Insert(&user)
 	if err != nil {
-		return -1, &appErrors.UnexpectedError{
-			Msg:           "Error inserting in the database",
-			InternalError: err,
-		}
+		return -1, err
 	}
 
-	return user.ID, nil
+	return id, nil
 }
 
 func (s *DefaultUsersService) GetUsers(r *[]dtos.GetUserResultDto) error {
@@ -157,10 +154,7 @@ func (s *DefaultUsersService) RemoveUser(id int32) error {
 		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
 	}
 
-	if err := s.db.Where(models.User{ID: id}).Delete(models.User{}).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error deleting user", InternalError: err}
-	}
-	return nil
+	return s.usersRepo.Remove(id)
 }
 
 func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error) {
@@ -200,8 +194,8 @@ func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.U
 		user.PasswordHash = hasshedPass
 	}
 
-	if err := s.db.Save(&user).Error; err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error updating user", InternalError: err}
+	if err := s.usersRepo.Update(&user); err != nil {
+		return nil, err
 	}
 
 	user.PasswordHash = ""

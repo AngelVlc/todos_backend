@@ -22,8 +22,7 @@ func AddUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerRe
 }
 
 func GetUsersHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-	res := []dtos.GetUserResultDto{}
-	err := h.usersSrv.GetUsers(&res)
+	res, err := h.usersSrv.GetUsers()
 	if err != nil {
 		return errorResult{err}
 	}
@@ -74,7 +73,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerRe
 		return errorResult{err}
 	}
 
-	result := dtos.GetUserResultDto{
+	result := dtos.UserResponseDto{
 		Name:    u.Name,
 		IsAdmin: u.IsAdmin,
 		ID:      u.ID,

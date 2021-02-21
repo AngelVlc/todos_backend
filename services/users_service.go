@@ -16,7 +16,7 @@ type UsersService interface {
 	CheckIfUserPasswordIsOk(user *models.User, password string) error
 	FindUserByID(id int32) (*models.User, error)
 	AddUser(dto *dtos.UserDto) (int32, error)
-	GetUsers(r *[]dtos.GetUserResultDto) error
+	GetUsers() ([]*dtos.UserResponseDto, error)
 	RemoveUser(id int32) error
 	UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error)
 }
@@ -57,9 +57,13 @@ func (m *MockedUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	return args.Get(0).(int32), args.Error(1)
 }
 
-func (m *MockedUsersService) GetUsers(r *[]dtos.GetUserResultDto) error {
-	args := m.Called(r)
-	return args.Error(0)
+func (m *MockedUsersService) GetUsers() ([]*dtos.UserResponseDto, error) {
+	args := m.Called()
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*dtos.UserResponseDto), args.Error(1)
 }
 
 func (m *MockedUsersService) RemoveUser(id int32) error {
@@ -133,11 +137,19 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	return id, nil
 }
 
-func (s *DefaultUsersService) GetUsers(r *[]dtos.GetUserResultDto) error {
-	if err := s.db.Select("id,name,is_admin").Find(&r).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
+func (s *DefaultUsersService) GetUsers() ([]*dtos.UserResponseDto, error) {
+	found, err := s.usersRepo.GetAll()
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	res := make([]*dtos.UserResponseDto, len(found))
+
+	for i, v := range found {
+		res[i] = v.ToResponseDto()
+	}
+
+	return res, nil
 }
 
 func (s *DefaultUsersService) RemoveUser(id int32) error {

@@ -102,7 +102,7 @@ func TestServer(t *testing.T) {
 	t.Run("handles admin routes with auth and admin", func(t *testing.T) {
 		err := appErrors.BadRequestError{Msg: "Some error"}
 		mockedUsersSrv, _ := s.usersSrv.(*services.MockedUsersService)
-		mockedUsersSrv.On("GetUsers", &[]dtos.GetUserResultDto{}).Return(&err).Once()
+		mockedUsersSrv.On("GetUsers").Return(nil, &err).Once()
 		mockedUsersSrv.On("FindUserByID", int32(12)).Return(nil, &err).Once()
 		mockedListsSrv, _ := s.listsSrv.(*services.MockedListsService)
 		mockedListsSrv.On("GetUserLists", int32(12), &[]dtos.GetListsResultDto{}).Return(&err).Once()

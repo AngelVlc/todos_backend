@@ -78,6 +78,14 @@ func NewDefaultUsersRepository(db *gorm.DB) *DefaultUsersRepository {
 	return &DefaultUsersRepository{db}
 }
 
+func (r *DefaultUsersRepository) GetAll() ([]*models.User, error) {
+	res := []*models.User{}
+	if err := r.db.Select("id,name,is_admin").Find(&res).Error; err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
+	}
+	return res, nil
+}
+
 // FindByID returns a single user from its id
 func (r *DefaultUsersRepository) FindByID(id int32) (*models.User, error) {
 	foundUser := models.User{}

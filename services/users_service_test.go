@@ -2,7 +2,6 @@ package services
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/AngelVlc/todos/dtos"
@@ -10,7 +9,6 @@ import (
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/repositories"
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -36,7 +34,46 @@ var (
 	user        = "user"
 )
 
-func TestUsersServiceFindByID(t *testing.T) {
+func TestGetUsers(t *testing.T) {
+	mockedUsersRepo := repositories.MockedUsersRepository{}
+
+	svc := NewDefaultUsersService(nil, &mockedUsersRepo, nil)
+
+	t.Run("should return an error if repository GetAll fails", func(t *testing.T) {
+		mockedUsersRepo.On("GetAll").Return(nil, fmt.Errorf("some error")).Once()
+
+		dto, err := svc.GetUsers()
+
+		assert.Nil(t, dto)
+		assert.Error(t, err)
+
+		mockedUsersRepo.AssertExpectations(t)
+	})
+
+	t.Run("GetUsers() should return the users", func(t *testing.T) {
+		found := []*models.User{
+			&models.User{ID: 2, Name: "user1", IsAdmin: true},
+			&models.User{ID: 5, Name: "user2", IsAdmin: false},
+		}
+
+		mockedUsersRepo.On("GetAll").Return(found, nil)
+
+		res, err := svc.GetUsers()
+
+		assert.Nil(t, err)
+		require.Equal(t, len(res), 2)
+		assert.Equal(t, int32(2), res[0].ID)
+		assert.Equal(t, "user1", res[0].Name)
+		assert.True(t, res[0].IsAdmin)
+		assert.Equal(t, int32(5), res[1].ID)
+		assert.Equal(t, "user2", res[1].Name)
+		assert.False(t, res[1].IsAdmin)
+
+		mockedUsersRepo.AssertExpectations(t)
+	})
+}
+
+func TestFindByID(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 
 	svc := NewDefaultUsersService(nil, &mockedUsersRepo, nil)
@@ -72,7 +109,7 @@ func TestUsersServiceFindByID(t *testing.T) {
 	})
 }
 
-func TestUsersServiceFindByName(t *testing.T) {
+func TestFindByName(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 
 	svc := NewDefaultUsersService(nil, &mockedUsersRepo, nil)
@@ -108,7 +145,7 @@ func TestUsersServiceFindByName(t *testing.T) {
 	})
 }
 
-func TestUsersServiceAddUser(t *testing.T) {
+func TestAddUser(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 	mockedCh := MockedCryptoHelper{}
 
@@ -225,7 +262,7 @@ func TestUsersServiceAddUser(t *testing.T) {
 	})
 }
 
-func TestUsersServiceRemoveUser(t *testing.T) {
+func TestRemoveUser(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 	mockedCh := MockedCryptoHelper{}
 
@@ -279,7 +316,7 @@ func TestUsersServiceRemoveUser(t *testing.T) {
 	})
 }
 
-func TestUsersServiceUpdateUser(t *testing.T) {
+func TestUpdateUser(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 	mockedCh := MockedCryptoHelper{}
 
@@ -362,7 +399,7 @@ func TestUsersServiceUpdateUser(t *testing.T) {
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
-	t.Run("to update the user changing its password when the passwords match", func(t *testing.T) {
+	t.Run("should to update the user changing its password when the passwords match", func(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(&models.User{ID: 11, Name: "user", PasswordHash: "hash"}, nil).Once()
 
 		dto := dtos.UserDto{
@@ -384,19 +421,12 @@ func TestUsersServiceUpdateUser(t *testing.T) {
 	})
 }
 
-func TestUsersService(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
-
+func TestCheckIfUserPasswordIsOk(t *testing.T) {
 	mockedCh := MockedCryptoHelper{}
 	mockedUsersRepo := repositories.MockedUsersRepository{}
-	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo, db)
+	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo, nil)
 
-	t.Run("CheckIfUserPasswordIsOk() should return nil if the password is ok", func(t *testing.T) {
+	t.Run("should return nil if the password is ok", func(t *testing.T) {
 		user := models.User{
 			Name:         "wadus",
 			PasswordHash: "hash",
@@ -407,11 +437,10 @@ func TestUsersService(t *testing.T) {
 		err := svc.CheckIfUserPasswordIsOk(&user, "pass")
 
 		assert.Nil(t, err)
-
 		mockedCh.AssertExpectations(t)
 	})
 
-	t.Run("CheckIfUserPasswordIsOk() should return an error if the password is not ok", func(t *testing.T) {
+	t.Run("should return an error if the password is not ok", func(t *testing.T) {
 		user := models.User{
 			Name:         "wadus",
 			PasswordHash: "hash",
@@ -423,37 +452,7 @@ func TestUsersService(t *testing.T) {
 
 		assert.NotNil(t, err)
 		appErrors.CheckErrorMsg(t, err, "some error")
-
 		mockedCh.AssertExpectations(t)
-	})
-
-	expectedGetUsersQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,is_admin FROM `users`"))
-	}
-
-	t.Run("GetUsers() should return an error if the query fails", func(t *testing.T) {
-		dto := []dtos.GetUserResultDto{}
-
-		expectedGetUsersQuery().WillReturnError(fmt.Errorf("some error"))
-
-		err := svc.GetUsers(&dto)
-
-		appErrors.CheckUnexpectedError(t, err, "Error getting users", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("GetUsers() should return the users", func(t *testing.T) {
-		dto := []dtos.GetUserResultDto{}
-
-		expectedGetUsersQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
-
-		err := svc.GetUsers(&dto)
-
-		assert.Equal(t, len(dto), 2)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
 	})
 }
 

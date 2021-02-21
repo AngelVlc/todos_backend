@@ -17,7 +17,7 @@ type UsersService interface {
 	AddUser(dto *dtos.UserDto) (int32, error)
 	GetUsers() ([]*dtos.UserResponseDto, error)
 	RemoveUser(id int32) error
-	UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error)
+	UpdateUser(id int32, dto *dtos.UserDto) error
 }
 
 type MockedUsersService struct {
@@ -70,13 +70,9 @@ func (m *MockedUsersService) RemoveUser(id int32) error {
 	return args.Error(0)
 }
 
-func (m *MockedUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error) {
+func (m *MockedUsersService) UpdateUser(id int32, dto *dtos.UserDto) error {
 	args := m.Called(id, dto)
-	got := args.Get(0)
-	if got == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.User), args.Error(1)
+	return args.Error(0)
 }
 
 type DefaultUsersService struct {
@@ -167,50 +163,42 @@ func (s *DefaultUsersService) RemoveUser(id int32) error {
 	return s.usersRepo.Remove(id)
 }
 
-func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error) {
+func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) error {
 	foundUser, err := s.usersRepo.FindByID(id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if foundUser == nil {
-		return nil, &appErrors.BadRequestError{Msg: "The user does not exist"}
+		return &appErrors.BadRequestError{Msg: "The user does not exist"}
 	}
 
-	if strings.ToLower(foundUser.Name) == "admin" && dto.Name != "admin" {
-		return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
+	if strings.ToLower(foundUser.Name) == "admin" {
+		if dto.Name != "admin" {
+			return &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
+		}
+
+		if !dto.IsAdmin {
+			return &appErrors.BadRequestError{Msg: "It is not possible to change the admin's is admin field"}
+		}
 	}
 
-	if strings.ToLower(foundUser.Name) == "admin" && !dto.IsAdmin {
-		return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin's is admin field"}
-	}
+	foundUser.FromDto(dto)
 
-	user := models.User{}
-	user.FromDto(dto)
-	user.ID = foundUser.ID
-
-	if len(dto.NewPassword) == 0 {
-		user.PasswordHash = foundUser.PasswordHash
-	} else {
+	if len(dto.NewPassword) > 0 {
 		if dto.NewPassword != dto.ConfirmNewPassword {
-			return nil, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
+			return &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
 		}
 
 		hasshedPass, err := s.getPasswordHash(dto.NewPassword)
 		if err != nil {
-			return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
+			return &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 		}
 
-		user.PasswordHash = hasshedPass
+		foundUser.PasswordHash = hasshedPass
 	}
 
-	if err := s.usersRepo.Update(&user); err != nil {
-		return nil, err
-	}
-
-	user.PasswordHash = ""
-
-	return &user, nil
+	return s.usersRepo.Update(foundUser)
 }
 
 func (s *DefaultUsersService) getPasswordHash(p string) (string, error) {

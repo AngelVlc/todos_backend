@@ -325,9 +325,8 @@ func TestUpdateUser(t *testing.T) {
 	t.Run("should return an error if finding the user fails", func(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(nil, fmt.Errorf("some error")).Once()
 
-		u, err := svc.UpdateUser(11, &dtos.UserDto{})
+		err := svc.UpdateUser(11, &dtos.UserDto{})
 
-		assert.Nil(t, u)
 		require.Error(t, err)
 		mockedUsersRepo.AssertExpectations(t)
 	})
@@ -342,9 +341,8 @@ func TestUpdateUser(t *testing.T) {
 			IsAdmin:            true,
 		}
 
-		u, err := svc.UpdateUser(11, &dto)
+		err := svc.UpdateUser(11, &dto)
 
-		assert.Nil(t, u)
 		appErrors.CheckBadRequestError(t, err, "It is not possible to change the admin user name", "")
 		mockedUsersRepo.AssertExpectations(t)
 	})
@@ -359,9 +357,8 @@ func TestUpdateUser(t *testing.T) {
 			IsAdmin:            false,
 		}
 
-		u, err := svc.UpdateUser(11, &dto)
+		err := svc.UpdateUser(11, &dto)
 
-		assert.Nil(t, u)
 		appErrors.CheckBadRequestError(t, err, "It is not possible to change the admin's is admin field", "")
 		mockedUsersRepo.AssertExpectations(t)
 	})
@@ -375,9 +372,8 @@ func TestUpdateUser(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(&models.User{ID: 11, Name: "user", PasswordHash: hasshedPass}, nil).Once()
 		mockedUsersRepo.On("Update", &models.User{ID: 11, Name: "user", PasswordHash: hasshedPass}).Return(fmt.Errorf("some error")).Once()
 
-		u, err := svc.UpdateUser(11, &dto)
+		err := svc.UpdateUser(11, &dto)
 
-		assert.Nil(t, u)
 		require.Error(t, err)
 		mockedUsersRepo.AssertExpectations(t)
 	})
@@ -392,9 +388,8 @@ func TestUpdateUser(t *testing.T) {
 			ConfirmNewPassword: "b",
 		}
 
-		u, err := svc.UpdateUser(11, &dto)
+		err := svc.UpdateUser(11, &dto)
 
-		assert.Nil(t, u)
 		appErrors.CheckBadRequestError(t, err, "Passwords don't match", "")
 		mockedUsersRepo.AssertExpectations(t)
 	})
@@ -413,9 +408,8 @@ func TestUpdateUser(t *testing.T) {
 
 		mockedUsersRepo.On("Update", &models.User{ID: 11, Name: "user", PasswordHash: hasshedPass}).Return(nil).Once()
 
-		u, err := svc.UpdateUser(11, &dto)
+		err := svc.UpdateUser(11, &dto)
 
-		assert.NotNil(t, u)
 		assert.Nil(t, err)
 		mockedUsersRepo.AssertExpectations(t)
 	})

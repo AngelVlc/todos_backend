@@ -162,8 +162,8 @@ func TestDeleteUserHandler(t *testing.T) {
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
-		okRes := CheckOkResult(t, result, http.StatusNoContent)
-		assert.Nil(t, okRes.content)
+		noContentRes := CheckOkResult(t, result, http.StatusNoContent)
+		assert.Nil(t, noContentRes.content)
 
 		mockedUsersService.AssertExpectations(t)
 		mockedListsService.AssertExpectations(t)
@@ -189,7 +189,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(nil, &appErrors.BadRequestError{Msg: "Some error"}).Once()
+		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(&appErrors.BadRequestError{Msg: "Some error"}).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
@@ -202,16 +202,12 @@ func TestUpdateUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		user := models.User{Name: "updated"}
-
-		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(&user, nil).Once()
+		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
-		okRes := CheckOkResult(t, result, http.StatusCreated)
-		resDto, isOk := okRes.content.(*models.User)
-		require.Equal(t, true, isOk, "should be a list result dto")
-		assert.Equal(t, user.Name, resDto.Name)
+		noContentRes := CheckOkResult(t, result, http.StatusNoContent)
+		assert.Nil(t, noContentRes.content)
 
 		mockedUsersService.AssertExpectations(t)
 	})

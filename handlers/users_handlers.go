@@ -58,11 +58,11 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h Handler) Handle
 		return errorResult{err}
 	}
 
-	u, err := h.usersSrv.UpdateUser(userID, &dto)
+	err = h.usersSrv.UpdateUser(userID, &dto)
 	if err != nil {
 		return errorResult{err}
 	}
-	return okResult{u, http.StatusCreated}
+	return okResult{nil, http.StatusNoContent}
 }
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {

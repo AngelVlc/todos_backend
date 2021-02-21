@@ -106,6 +106,16 @@ func initMockedUsersRepository() repositories.UsersRepository {
 	return mockedUsersRepository
 }
 
+func initDefaultListsRepositories(db *gorm.DB) repositories.ListsRepository {
+	defaultListsRepository := repositories.NewDefaultListsRepository(db)
+	return defaultListsRepository
+}
+
+func initMockedListsRepository() repositories.ListsRepository {
+	mockedListsRepository := repositories.NewMockedListsRepository()
+	return mockedListsRepository
+}
+
 func InitConfigurationService() services.ConfigurationService {
 	osEnvGetter := services.NewOsEnvGetter()
 	defaultConfigurationService := services.NewDefaultConfigurationService(osEnvGetter)
@@ -170,6 +180,14 @@ func InitUsersRepository(db *gorm.DB) repositories.UsersRepository {
 	}
 }
 
+func InitListsRepository(db *gorm.DB) repositories.ListsRepository {
+	if inTestingMode() {
+		return initMockedListsRepository()
+	} else {
+		return initDefaultListsRepositories(db)
+	}
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -220,3 +238,7 @@ var RequireAdminMiddlewareSet = wire.NewSet(handlers.NewDefaultRequireAdminMiddl
 var UsersRepositorySet = wire.NewSet(repositories.NewDefaultUsersRepository, wire.Bind(new(repositories.UsersRepository), new(*repositories.DefaultUsersRepository)))
 
 var MockedUsersRepositorySet = wire.NewSet(repositories.NewMockedUsersRepository, wire.Bind(new(repositories.UsersRepository), new(*repositories.MockedUsersRepository)))
+
+var ListsRepositorySet = wire.NewSet(repositories.NewDefaultListsRepository, wire.Bind(new(repositories.ListsRepository), new(*repositories.DefaultListsRepository)))
+
+var MockedListsRepositorySet = wire.NewSet(repositories.NewMockedListsRepository, wire.Bind(new(repositories.ListsRepository), new(*repositories.MockedListsRepository)))

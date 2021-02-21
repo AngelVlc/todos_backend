@@ -14,9 +14,8 @@ import (
 )
 
 var (
-	columns     = []string{"id", "name", "password_hash", "is_admin"}
-	hasshedPass = "hassedPassword"
-	user        = "user"
+	columns = []string{"id", "name", "password_hash", "is_admin"}
+	user    = "user"
 )
 
 func TestUsersRepositoryGetAll(t *testing.T) {

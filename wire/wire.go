@@ -148,6 +148,24 @@ func initMockedUsersRepository() repositories.UsersRepository {
 	return nil
 }
 
+func InitListsRepository(db *gorm.DB) repositories.ListsRepository {
+	if inTestingMode() {
+		return initMockedListsRepository()
+	} else {
+		return initDefaultListsRepositories(db)
+	}
+}
+
+func initDefaultListsRepositories(db *gorm.DB) repositories.ListsRepository {
+	wire.Build(ListsRepositorySet)
+	return nil
+}
+
+func initMockedListsRepository() repositories.ListsRepository {
+	wire.Build(MockedListsRepositorySet)
+	return nil
+}
+
 func InitConfigurationService() services.ConfigurationService {
 	wire.Build(ConfigurationServiceSet)
 	return nil
@@ -245,3 +263,11 @@ var UsersRepositorySet = wire.NewSet(
 var MockedUsersRepositorySet = wire.NewSet(
 	repositories.NewMockedUsersRepository,
 	wire.Bind(new(repositories.UsersRepository), new(*repositories.MockedUsersRepository)))
+
+var ListsRepositorySet = wire.NewSet(
+	repositories.NewDefaultListsRepository,
+	wire.Bind(new(repositories.ListsRepository), new(*repositories.DefaultListsRepository)))
+
+var MockedListsRepositorySet = wire.NewSet(
+	repositories.NewMockedListsRepository,
+	wire.Bind(new(repositories.ListsRepository), new(*repositories.MockedListsRepository)))

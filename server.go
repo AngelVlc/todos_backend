@@ -14,6 +14,7 @@ import (
 type server struct {
 	http.Handler
 	usersRepo       repositories.UsersRepository
+	listsRepo       repositories.ListsRepository
 	authSrv         services.AuthService
 	listsSrv        services.ListsService
 	usersSrv        services.UsersService
@@ -26,6 +27,7 @@ type server struct {
 func newServer(db *gorm.DB) *server {
 	s := server{
 		usersRepo:       wire.InitUsersRepository(db),
+		listsRepo:       wire.InitListsRepository(db),
 		authSrv:         wire.InitAuthService(),
 		listsSrv:        wire.InitListsService(db),
 		usersSrv:        wire.InitUsersService(db),

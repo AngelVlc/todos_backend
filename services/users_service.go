@@ -7,7 +7,6 @@ import (
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/repositories"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -83,11 +82,10 @@ func (m *MockedUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.Us
 type DefaultUsersService struct {
 	crypto    CryptoHelper
 	usersRepo repositories.UsersRepository
-	db        *gorm.DB
 }
 
-func NewDefaultUsersService(crypto CryptoHelper, usersRepo repositories.UsersRepository, db *gorm.DB) *DefaultUsersService {
-	return &DefaultUsersService{crypto, usersRepo, db}
+func NewDefaultUsersService(crypto CryptoHelper, usersRepo repositories.UsersRepository) *DefaultUsersService {
+	return &DefaultUsersService{crypto, usersRepo}
 }
 
 func (s *DefaultUsersService) FindUserByName(name string) (*models.User, error) {

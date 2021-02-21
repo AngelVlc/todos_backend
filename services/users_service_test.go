@@ -37,7 +37,7 @@ var (
 func TestGetUsers(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 
-	svc := NewDefaultUsersService(nil, &mockedUsersRepo, nil)
+	svc := NewDefaultUsersService(nil, &mockedUsersRepo)
 
 	t.Run("should return an error if repository GetAll fails", func(t *testing.T) {
 		mockedUsersRepo.On("GetAll").Return(nil, fmt.Errorf("some error")).Once()
@@ -76,7 +76,7 @@ func TestGetUsers(t *testing.T) {
 func TestFindByID(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 
-	svc := NewDefaultUsersService(nil, &mockedUsersRepo, nil)
+	svc := NewDefaultUsersService(nil, &mockedUsersRepo)
 
 	userID := int32(11)
 	foundUser := models.User{
@@ -112,7 +112,7 @@ func TestFindByID(t *testing.T) {
 func TestFindByName(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 
-	svc := NewDefaultUsersService(nil, &mockedUsersRepo, nil)
+	svc := NewDefaultUsersService(nil, &mockedUsersRepo)
 
 	userID := int32(11)
 	foundUser := models.User{
@@ -149,7 +149,7 @@ func TestAddUser(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 	mockedCh := MockedCryptoHelper{}
 
-	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo, nil)
+	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo)
 
 	t.Run("should return an error if passwords does not match", func(t *testing.T) {
 		dto := dtos.UserDto{
@@ -266,7 +266,7 @@ func TestRemoveUser(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 	mockedCh := MockedCryptoHelper{}
 
-	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo, nil)
+	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo)
 
 	t.Run("should return an error if finding the user fails", func(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(nil, fmt.Errorf("some error")).Once()
@@ -320,7 +320,7 @@ func TestUpdateUser(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 	mockedCh := MockedCryptoHelper{}
 
-	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo, nil)
+	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo)
 
 	t.Run("should return an error if finding the user fails", func(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(nil, fmt.Errorf("some error")).Once()
@@ -424,7 +424,7 @@ func TestUpdateUser(t *testing.T) {
 func TestCheckIfUserPasswordIsOk(t *testing.T) {
 	mockedCh := MockedCryptoHelper{}
 	mockedUsersRepo := repositories.MockedUsersRepository{}
-	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo, nil)
+	svc := NewDefaultUsersService(&mockedCh, &mockedUsersRepo)
 
 	t.Run("should return nil if the password is ok", func(t *testing.T) {
 		user := models.User{

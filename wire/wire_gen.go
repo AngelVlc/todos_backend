@@ -87,7 +87,7 @@ func initMockedAuthService() services.AuthService {
 func initDefaultUsersService(db *gorm.DB) services.UsersService {
 	bcryptHelper := services.NewBcryptHelper()
 	defaultUsersRepository := repositories.NewDefaultUsersRepository(db)
-	defaultUsersService := services.NewDefaultUsersService(bcryptHelper, defaultUsersRepository, db)
+	defaultUsersService := services.NewDefaultUsersService(bcryptHelper, defaultUsersRepository)
 	return defaultUsersService
 }
 

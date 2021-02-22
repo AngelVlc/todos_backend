@@ -43,6 +43,33 @@ func TestListsServiceAddList(t *testing.T) {
 	})
 }
 
+func TestListsServiceRemoveList(t *testing.T) {
+	mockedListsRepo := repositories.NewMockedListsRepository()
+
+	svc := NewDefaultListsService(nil, mockedListsRepo)
+
+	userID := int32(1)
+	listID := int32(11)
+
+	t.Run("should return an error if delete fails", func(t *testing.T) {
+		mockedListsRepo.On("Remove", listID, userID).Return(fmt.Errorf("some error")).Once()
+
+		err := svc.RemoveUserList(listID, userID)
+
+		assert.Error(t, err)
+		mockedListsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should delete the user list", func(t *testing.T) {
+		mockedListsRepo.On("Remove", listID, userID).Return(nil).Once()
+
+		err := svc.RemoveUserList(listID, userID)
+
+		assert.Nil(t, err)
+		mockedListsRepo.AssertExpectations(t)
+	})
+}
+
 func TestListsService(t *testing.T) {
 	listColumns := []string{"id", "name", "userID"}
 	listItemsColumns := []string{"id", "listId", "title", "description"}
@@ -78,35 +105,6 @@ func TestListsService(t *testing.T) {
 	defer db.Close()
 
 	svc := NewDefaultListsService(db, nil)
-
-	expectedRemoveListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `lists` WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?)")).
-			WithArgs(listID, userID)
-	}
-
-	t.Run("RemoveUserList() should return an error if delete fails", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedRemoveListExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		err := svc.RemoveUserList(listID, userID)
-
-		appErrors.CheckUnexpectedError(t, err, "Error deleting user list", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("RemoveUserList() should delete the user list", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedRemoveListExec().WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectCommit()
-
-		err := svc.RemoveUserList(listID, userID)
-
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name` = ?, `userId` = ? WHERE `lists`.`id` = ?")).

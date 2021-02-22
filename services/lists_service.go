@@ -96,10 +96,7 @@ func (s *DefaultListsService) AddUserList(userID int32, dto *dtos.ListDto) (int3
 
 // RemoveUserList removes a list
 func (s *DefaultListsService) RemoveUserList(id int32, userID int32) error {
-	if err := s.db.Where(models.List{ID: id, UserID: userID}).Delete(models.List{}).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error deleting user list", InternalError: err}
-	}
-	return nil
+	return s.listsRepo.Remove(id, userID)
 }
 
 // UpdateUserList updates an existing list

@@ -9,6 +9,7 @@ import (
 
 type ListsRepository interface {
 	Insert(list *models.List) (int32, error)
+	Remove(id int32, userID int32) error
 }
 
 type MockedListsRepository struct {
@@ -28,6 +29,11 @@ func (m *MockedListsRepository) Insert(list *models.List) (int32, error) {
 	return args.Get(0).(int32), args.Error(1)
 }
 
+func (m *MockedListsRepository) Remove(id int32, userID int32) error {
+	args := m.Called(id, userID)
+	return args.Error(0)
+}
+
 type DefaultListsRepository struct {
 	db *gorm.DB
 }
@@ -42,4 +48,11 @@ func (r *DefaultListsRepository) Insert(list *models.List) (int32, error) {
 	}
 
 	return list.ID, nil
+}
+
+func (r *DefaultListsRepository) Remove(id int32, userID int32) error {
+	if err := r.db.Where(models.List{ID: id, UserID: userID}).Delete(models.List{}).Error; err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error deleting user list", InternalError: err}
+	}
+	return nil
 }

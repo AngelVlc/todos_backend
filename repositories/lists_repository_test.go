@@ -54,3 +54,47 @@ func TestListsRepositoryInsert(t *testing.T) {
 		checkMockExpectations(t, mock)
 	})
 }
+
+func TestListsRepositoryRemove(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	userID := int32(1)
+	listID := int32(11)
+
+	repo := NewDefaultListsRepository(db)
+
+	expectedRemoveListExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `lists` WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?)")).
+			WithArgs(listID, userID)
+	}
+
+	t.Run("should return an error if delete fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedRemoveListExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.Remove(listID, userID)
+
+		appErrors.CheckUnexpectedError(t, err, "Error deleting user list", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should delete the user list", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedRemoveListExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+
+		err := repo.Remove(listID, userID)
+
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+
+}

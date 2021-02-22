@@ -13,8 +13,9 @@ type ListsService interface {
 	AddUserList(userID int32, dto *dtos.ListDto) (int32, error)
 	RemoveUserList(id int32, userID int32) error
 	UpdateUserList(id int32, userID int32, dto *dtos.ListDto) error
-	GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error
+	GetUserList(id int32, userID int32) (*dtos.ListResponseDto, error)
 	GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error
+
 	GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error
 	AddUserListItem(listID int32, userId int32, dto *dtos.ListItemDto) (int32, error)
 	RemoveUserListItem(id int32, listID int32, userID int32) error
@@ -44,9 +45,13 @@ func (m *MockedListsService) UpdateUserList(id int32, userID int32, dto *dtos.Li
 	return args.Error(0)
 }
 
-func (m *MockedListsService) GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error {
-	args := m.Called(id, userID, l)
-	return args.Error(0)
+func (m *MockedListsService) GetUserList(id int32, userID int32) (*dtos.ListResponseDto, error) {
+	args := m.Called(id, userID)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*dtos.ListResponseDto), args.Error(1)
 }
 
 func (m *MockedListsService) GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error {
@@ -101,25 +106,31 @@ func (s *DefaultListsService) RemoveUserList(id int32, userID int32) error {
 
 // UpdateUserList updates an existing list
 func (s *DefaultListsService) UpdateUserList(id int32, userID int32, dto *dtos.ListDto) error {
-	l := models.List{}
-	l.FromDto(dto)
-	l.ID = id
-	l.UserID = userID
-
-	if err := s.db.Save(&l).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error updating list", InternalError: err}
+	foundList, err := s.listsRepo.FindByID(id, userID)
+	if err != nil {
+		return err
 	}
 
-	return nil
+	if foundList == nil {
+		return &appErrors.BadRequestError{Msg: "The list does not exist"}
+	}
+
+	foundList.FromDto(dto)
+
+	return s.listsRepo.Update(foundList)
 }
 
-// GetSingleUserList returns a single list from its id
-func (s *DefaultListsService) GetSingleUserList(id int32, userID int32, l *dtos.GetSingleListResultDto) error {
-	if err := s.db.Where(models.List{ID: id, UserID: userID}).Preload("ListItems").Find(&l).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error getting user list", InternalError: err}
+func (s *DefaultListsService) GetUserList(id int32, userID int32) (*dtos.ListResponseDto, error) {
+	foundList, err := s.listsRepo.FindByID(id, userID)
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	if foundList == nil {
+		return nil, nil
+	}
+
+	return foundList.ToResponseDto(), nil
 }
 
 // GetUserLists returns the lists for the given user
@@ -152,10 +163,13 @@ func (s *DefaultListsService) getListItem(id int32, listID int32, userID int32) 
 
 // AddUserListItem adds a list item
 func (s *DefaultListsService) AddUserListItem(listID int32, userID int32, dto *dtos.ListItemDto) (int32, error) {
-	foundList := &dtos.GetSingleListResultDto{}
-
-	if err := s.GetSingleUserList(listID, userID, foundList); err != nil {
+	foundList, err := s.listsRepo.FindByID(listID, userID)
+	if err != nil {
 		return 0, err
+	}
+
+	if foundList == nil {
+		return 0, &appErrors.BadRequestError{Msg: "The list does not exist"}
 	}
 
 	i := models.ListItem{}
@@ -170,10 +184,13 @@ func (s *DefaultListsService) AddUserListItem(listID int32, userID int32, dto *d
 
 // RemoveUserListItem removes a list item
 func (s *DefaultListsService) RemoveUserListItem(id int32, listID int32, userID int32) error {
-	foundList := &dtos.GetSingleListResultDto{}
-
-	if err := s.GetSingleUserList(listID, userID, foundList); err != nil {
+	foundList, err := s.listsRepo.FindByID(listID, userID)
+	if err != nil {
 		return err
+	}
+
+	if foundList == nil {
+		return &appErrors.BadRequestError{Msg: "The list does not exist"}
 	}
 
 	if err := s.db.Where(models.ListItem{ID: id, ListID: listID}).Delete(models.ListItem{}).Error; err != nil {

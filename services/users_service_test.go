@@ -331,6 +331,15 @@ func TestUpdateUser(t *testing.T) {
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
+	t.Run("should return an error if the user fails does not exist", func(t *testing.T) {
+		mockedUsersRepo.On("FindByID", int32(11)).Return(nil, nil).Once()
+
+		err := svc.UpdateUser(11, &dtos.UserDto{})
+
+		appErrors.CheckBadRequestError(t, err, "The user does not exist", "")
+		mockedUsersRepo.AssertExpectations(t)
+	})
+
 	t.Run("should return an error when trying to update the admin user name", func(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(&models.User{ID: 11, Name: "admin", IsAdmin: true}, nil).Once()
 
@@ -394,7 +403,7 @@ func TestUpdateUser(t *testing.T) {
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
-	t.Run("should to update the user changing its password when the passwords match", func(t *testing.T) {
+	t.Run("should update the user changing its password when the passwords match", func(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(&models.User{ID: 11, Name: "user", PasswordHash: "hash"}, nil).Once()
 
 		dto := dtos.UserDto{

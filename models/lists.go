@@ -13,3 +13,21 @@ type List struct {
 func (l *List) FromDto(dto *dtos.ListDto) {
 	l.Name = dto.Name
 }
+
+func (l *List) ToResponseDto() *dtos.ListResponseDto {
+	res := dtos.ListResponseDto{
+		ID:        l.ID,
+		Name:      l.Name,
+		ListItems: make([]*dtos.ListItemResponseDto, len(l.ListItems)),
+	}
+
+	for i, v := range l.ListItems {
+		res.ListItems[i] = &dtos.ListItemResponseDto{
+			ID:          v.ID,
+			Title:       v.Title,
+			Description: v.Description,
+		}
+	}
+
+	return &res
+}

@@ -138,7 +138,7 @@ func TestServer(t *testing.T) {
 		err := appErrors.BadRequestError{Msg: "Some error"}
 		mockedListsSrv, _ := s.listsSrv.(*services.MockedListsService)
 		mockedListsSrv.On("GetUserLists", int32(0), &[]dtos.GetListsResultDto{}).Return(&err).Once()
-		mockedListsSrv.On("GetSingleUserList", int32(12), int32(0), &dtos.GetSingleListResultDto{}).Return(&err).Once()
+		mockedListsSrv.On("GetUserList", int32(12), int32(0)).Return(nil, &err).Once()
 		mockedListsSrv.On("RemoveUserList", int32(12), int32(0)).Return(&err).Once()
 		mockedListsSrv.On("GetUserListItem", int32(3), int32(12), int32(0), &dtos.GetItemResultDto{}).Return(&err).Once()
 		mockedListsSrv.On("RemoveUserListItem", int32(3), int32(12), int32(0)).Return(&err).Once()

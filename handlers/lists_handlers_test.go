@@ -79,8 +79,7 @@ func TestGetUserSingleListHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if the list id is valid but the query fails", func(t *testing.T) {
-		res := dtos.GetSingleListResultDto{}
-		mockedListsService.On("GetSingleUserList", int32(11), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("GetUserList", int32(11), userID).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUserSingleListHandler(httptest.NewRecorder(), request(), handler)
 
@@ -90,33 +89,28 @@ func TestGetUserSingleListHandler(t *testing.T) {
 	})
 
 	t.Run("Should return the list it there is no errors", func(t *testing.T) {
-		res := dtos.GetSingleListResultDto{
+		res := dtos.ListResponseDto{
 			ID:   int32(11),
 			Name: "list1",
-			ListItems: []dtos.GetSingleListResultItemDto{
+			ListItems: []*dtos.ListItemResponseDto{
 				{
 					ID:          int32(1),
-					ListID:      int32(11),
 					Title:       "the title",
 					Description: "the description",
 				},
 			},
 		}
-		mockedListsService.On("GetSingleUserList", int32(11), userID, &dtos.GetSingleListResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(2).(*dtos.GetSingleListResultDto)
-			*arg = res
-		})
+		mockedListsService.On("GetUserList", int32(11), userID).Return(&res, nil).Once()
 
 		result := GetUserSingleListHandler(httptest.NewRecorder(), request(), handler)
 
 		okRes := CheckOkResult(t, result, http.StatusOK)
-		resDto, isOk := okRes.content.(dtos.GetSingleListResultDto)
-		require.Equal(t, true, isOk, "should be a single list result dto")
+		resDto, isOk := okRes.content.(*dtos.ListResponseDto)
+		require.Equal(t, true, isOk, "should be a list response dto")
 		assert.Equal(t, res.ID, resDto.ID)
 		assert.Equal(t, res.Name, resDto.Name)
 		require.Equal(t, 1, len(resDto.ListItems))
 		assert.Equal(t, res.ListItems[0].ID, resDto.ListItems[0].ID)
-		assert.Equal(t, res.ListItems[0].ListID, resDto.ListItems[0].ListID)
 		assert.Equal(t, res.ListItems[0].Title, resDto.ListItems[0].Title)
 		assert.Equal(t, res.ListItems[0].Description, resDto.ListItems[0].Description)
 

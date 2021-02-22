@@ -21,12 +21,11 @@ func GetUserSingleListHandler(w http.ResponseWriter, r *http.Request, h Handler)
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "id")
 
-	l := dtos.GetSingleListResultDto{}
-	err := h.listsSrv.GetSingleUserList(listID, userID, &l)
+	res, err := h.listsSrv.GetUserList(listID, userID)
 	if err != nil {
 		return errorResult{err}
 	}
-	return okResult{l, http.StatusOK}
+	return okResult{res, http.StatusOK}
 }
 
 func AddUserListHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {

@@ -81,9 +81,9 @@ func TestUsersRepositoryFindByID(t *testing.T) {
 	t.Run("should not return a user if it does not exist", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(columns))
 
-		dto, err := repo.FindByID(11)
+		res, err := repo.FindByID(11)
 
-		assert.Nil(t, dto)
+		assert.Nil(t, res)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)
@@ -92,9 +92,9 @@ func TestUsersRepositoryFindByID(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-		dto, err := repo.FindByID(11)
+		res, err := repo.FindByID(11)
 
-		assert.Nil(t, dto)
+		assert.Nil(t, res)
 		appErrors.CheckUnexpectedError(t, err, "Error getting user by user id", "some error")
 
 		checkMockExpectations(t, mock)
@@ -103,12 +103,12 @@ func TestUsersRepositoryFindByID(t *testing.T) {
 	t.Run("should return the user if it exists", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(5, user, "", true))
 
-		dto, err := repo.FindByID(11)
+		res, err := repo.FindByID(11)
 
-		require.NotNil(t, dto)
-		assert.Equal(t, user, dto.Name)
-		assert.Equal(t, true, dto.IsAdmin)
-		assert.Equal(t, int32(5), dto.ID)
+		require.NotNil(t, res)
+		assert.Equal(t, user, res.Name)
+		assert.Equal(t, true, res.IsAdmin)
+		assert.Equal(t, int32(5), res.ID)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)

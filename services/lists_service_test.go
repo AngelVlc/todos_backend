@@ -8,10 +8,40 @@ import (
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
+	"github.com/AngelVlc/todos/repositories"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 )
+
+func TestListsServiceAddList(t *testing.T) {
+	mockedListsRepo := repositories.NewMockedListsRepository()
+
+	svc := NewDefaultListsService(nil, mockedListsRepo)
+
+	userID := int32(1)
+
+	listDto := dtos.ListDto{Name: "list1"}
+
+	t.Run("should return an error if insert fails", func(t *testing.T) {
+		mockedListsRepo.On("Insert", &models.List{Name: "list1", UserID: userID}).Return(nil, fmt.Errorf("some error")).Once()
+
+		_, err := svc.AddUserList(userID, &listDto)
+
+		assert.Error(t, err)
+		mockedListsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should insert the new list", func(t *testing.T) {
+		mockedListsRepo.On("Insert", &models.List{Name: "list1", UserID: userID}).Return(int32(12), nil).Once()
+
+		id, err := svc.AddUserList(userID, &listDto)
+
+		assert.Equal(t, int32(12), id)
+		assert.Nil(t, err)
+		mockedListsRepo.AssertExpectations(t)
+	})
+}
 
 func TestListsService(t *testing.T) {
 	listColumns := []string{"id", "name", "userID"}
@@ -47,37 +77,7 @@ func TestListsService(t *testing.T) {
 	db, err := gorm.Open("mysql", mockDb)
 	defer db.Close()
 
-	svc := NewDefaultListsService(db)
-
-	expectedInsertListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`) VALUES (?,?)")).
-			WithArgs(l.Name, userID)
-	}
-
-	t.Run("AddUserList() should return an error if insert fails", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedInsertListExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		_, err := svc.AddUserList(userID, &listDto)
-
-		appErrors.CheckUnexpectedError(t, err, "Error inserting list", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("AddUserList() should insert the new list", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedInsertListExec().WillReturnResult(sqlmock.NewResult(12, 0))
-		mock.ExpectCommit()
-
-		id, err := svc.AddUserList(userID, &listDto)
-
-		assert.Equal(t, int32(12), id)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
+	svc := NewDefaultListsService(db, nil)
 
 	expectedRemoveListExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `lists` WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?)")).

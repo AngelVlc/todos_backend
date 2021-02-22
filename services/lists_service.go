@@ -4,6 +4,7 @@ import (
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
+	"github.com/AngelVlc/todos/repositories"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/mock"
 )
@@ -75,12 +76,13 @@ func (m *MockedListsService) UpdateUserListItem(id int32, listID int32, userID i
 
 // DefaultListsService is the service for the list entity
 type DefaultListsService struct {
-	db *gorm.DB
+	db        *gorm.DB
+	listsRepo repositories.ListsRepository
 }
 
 // NewDefaultListsService returns a new lists service
-func NewDefaultListsService(db *gorm.DB) *DefaultListsService {
-	return &DefaultListsService{db}
+func NewDefaultListsService(db *gorm.DB, listsRepo repositories.ListsRepository) *DefaultListsService {
+	return &DefaultListsService{db, listsRepo}
 }
 
 // AddUserList  adds a list
@@ -88,11 +90,8 @@ func (s *DefaultListsService) AddUserList(userID int32, dto *dtos.ListDto) (int3
 	l := models.List{}
 	l.FromDto(dto)
 	l.UserID = userID
-	if err := s.db.Create(&l).Error; err != nil {
-		return 0, &appErrors.UnexpectedError{Msg: "Error inserting list", InternalError: err}
-	}
 
-	return l.ID, nil
+	return s.listsRepo.Insert(&l)
 }
 
 // RemoveUserList removes a list

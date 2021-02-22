@@ -52,8 +52,8 @@ func TestGetUsers(t *testing.T) {
 
 	t.Run("GetUsers() should return the users", func(t *testing.T) {
 		found := []*models.User{
-			&models.User{ID: 2, Name: "user1", IsAdmin: true},
-			&models.User{ID: 5, Name: "user2", IsAdmin: false},
+			{ID: 2, Name: "user1", IsAdmin: true},
+			{ID: 5, Name: "user2", IsAdmin: false},
 		}
 
 		mockedUsersRepo.On("GetAll").Return(found, nil)
@@ -173,7 +173,7 @@ func TestAddUser(t *testing.T) {
 
 		_, err := svc.AddUser(&dto)
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
@@ -230,7 +230,7 @@ func TestAddUser(t *testing.T) {
 
 		_, err := svc.AddUser(&dto)
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		mockedCh.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 	})
@@ -301,7 +301,7 @@ func TestRemoveUser(t *testing.T) {
 
 		err := svc.RemoveUser(11)
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
@@ -444,7 +444,7 @@ func TestCheckIfUserPasswordIsOk(t *testing.T) {
 
 		err := svc.CheckIfUserPasswordIsOk(&user, "pass")
 
-		assert.NotNil(t, err)
+		assert.Error(t, err)
 		appErrors.CheckErrorMsg(t, err, "some error")
 		mockedCh.AssertExpectations(t)
 	})

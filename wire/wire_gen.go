@@ -62,7 +62,8 @@ func initMockedCountersService() services.CountersService {
 }
 
 func initDefaultListsService(db *gorm.DB) services.ListsService {
-	defaultListsService := services.NewDefaultListsService(db)
+	defaultListsRepository := repositories.NewDefaultListsRepository(db)
+	defaultListsService := services.NewDefaultListsService(db, defaultListsRepository)
 	return defaultListsService
 }
 

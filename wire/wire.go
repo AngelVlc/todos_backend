@@ -85,7 +85,7 @@ func InitListsService(db *gorm.DB) services.ListsService {
 }
 
 func initDefaultListsService(db *gorm.DB) services.ListsService {
-	wire.Build(ListsServiceSet)
+	wire.Build(ListsRepositorySet, ListsServiceSet)
 	return nil
 }
 

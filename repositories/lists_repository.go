@@ -8,7 +8,7 @@ import (
 )
 
 type ListsRepository interface {
-	Insert(userID int32, list *models.List) (int32, error)
+	Insert(list *models.List) (int32, error)
 }
 
 type MockedListsRepository struct {
@@ -19,8 +19,8 @@ func NewMockedListsRepository() *MockedListsRepository {
 	return &MockedListsRepository{}
 }
 
-func (m *MockedListsRepository) Insert(userID int32, list *models.List) (int32, error) {
-	args := m.Called(userID, list)
+func (m *MockedListsRepository) Insert(list *models.List) (int32, error) {
+	args := m.Called(list)
 	got := args.Get(0)
 	if got == nil {
 		return -1, args.Error(1)
@@ -36,7 +36,7 @@ func NewDefaultListsRepository(db *gorm.DB) *DefaultListsRepository {
 	return &DefaultListsRepository{db}
 }
 
-func (r *DefaultListsRepository) Insert(userID int32, list *models.List) (int32, error) {
+func (r *DefaultListsRepository) Insert(list *models.List) (int32, error) {
 	if err := r.db.Create(&list).Error; err != nil {
 		return 0, &appErrors.UnexpectedError{Msg: "Error inserting list", InternalError: err}
 	}

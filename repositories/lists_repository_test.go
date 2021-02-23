@@ -211,3 +211,51 @@ func TestListsRepositoryFindByID(t *testing.T) {
 		checkMockExpectations(t, mock)
 	})
 }
+
+func TestListsRepositoryGetAll(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	userID := int32(1)
+
+	repo := NewDefaultListsRepository(db)
+
+	expectedGetListsQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name FROM `lists` WHERE (`lists`.`userId` = ?)")).
+			WithArgs(userID)
+	}
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		expectedGetListsQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.GetAll(userID)
+
+		assert.Nil(t, res)
+		appErrors.CheckUnexpectedError(t, err, "Error getting user lists", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return the user lists", func(t *testing.T) {
+		expectedGetListsQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(int32(11), "list1", userID).AddRow(int32(12), "list2", userID))
+
+		res, err := repo.GetAll(userID)
+
+		assert.Nil(t, err)
+		require.NotNil(t, res)
+		require.Equal(t, 2, len(res))
+		assert.Equal(t, int32(11), res[0].ID)
+		assert.Equal(t, "list1", res[0].Name)
+		assert.Equal(t, userID, res[0].UserID)
+		assert.Equal(t, int32(12), res[1].ID)
+		assert.Equal(t, "list2", res[1].Name)
+		assert.Equal(t, userID, res[1].UserID)
+
+		checkMockExpectations(t, mock)
+	})
+
+}

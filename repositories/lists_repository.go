@@ -12,6 +12,7 @@ type ListsRepository interface {
 	Remove(id int32, userID int32) error
 	Update(list *models.List) error
 	FindByID(id int32, userID int32) (*models.List, error)
+	GetAll(userID int32) ([]*models.List, error)
 }
 
 type MockedListsRepository struct {
@@ -48,6 +49,15 @@ func (m *MockedListsRepository) FindByID(id int32, userID int32) (*models.List, 
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.List), args.Error(1)
+}
+
+func (m *MockedListsRepository) GetAll(userID int32) ([]*models.List, error) {
+	args := m.Called(userID)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*models.List), args.Error(1)
 }
 
 type DefaultListsRepository struct {
@@ -94,4 +104,12 @@ func (r *DefaultListsRepository) FindByID(id int32, userID int32) (*models.List,
 	}
 
 	return &foundList, nil
+}
+
+func (r *DefaultListsRepository) GetAll(userID int32) ([]*models.List, error) {
+	res := []*models.List{}
+	if err := r.db.Where(models.List{UserID: userID}).Select("id,name").Find(&res).Error; err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting user lists", InternalError: err}
+	}
+	return res, nil
 }

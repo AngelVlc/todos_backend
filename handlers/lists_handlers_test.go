@@ -32,8 +32,7 @@ func TestGetUserListsHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
-		res := []dtos.GetListsResultDto{}
-		mockedListsService.On("GetUserLists", userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("GetUserLists", userID).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUserListsHandler(httptest.NewRecorder(), request(), handler)
 
@@ -43,22 +42,19 @@ func TestGetUserListsHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an ok result with the user lists if there is no errors", func(t *testing.T) {
-		res := []dtos.GetListsResultDto{
+		res := []*dtos.ListResponseDto{
 			{
 				ID:   int32(1),
 				Name: "list1",
 			},
 		}
-		mockedListsService.On("GetUserLists", userID, &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(1).(*[]dtos.GetListsResultDto)
-			*arg = res
-		})
+		mockedListsService.On("GetUserLists", userID).Return(res, nil).Once()
 
 		result := GetUserListsHandler(httptest.NewRecorder(), request(), handler)
 
 		okRes := CheckOkResult(t, result, http.StatusOK)
-		resDto, isOk := okRes.content.([]dtos.GetListsResultDto)
-		require.Equal(t, true, isOk, "should be a list result dto")
+		resDto, isOk := okRes.content.([]*dtos.ListResponseDto)
+		require.Equal(t, true, isOk, "should be a list response dto")
 		require.Equal(t, 1, len(resDto))
 		assert.Equal(t, res[0].ID, resDto[0].ID)
 		assert.Equal(t, res[0].Name, resDto[0].Name)

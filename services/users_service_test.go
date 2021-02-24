@@ -50,7 +50,7 @@ func TestGetUsers(t *testing.T) {
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
-	t.Run("GetUsers() should return the users", func(t *testing.T) {
+	t.Run("should return the users", func(t *testing.T) {
 		found := []*models.User{
 			{ID: 2, Name: "user1", IsAdmin: true},
 			{ID: 5, Name: "user2", IsAdmin: false},

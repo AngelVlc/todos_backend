@@ -105,7 +105,7 @@ func TestServer(t *testing.T) {
 		mockedUsersSrv.On("GetUsers").Return(nil, &err).Once()
 		mockedUsersSrv.On("FindUserByID", int32(12)).Return(nil, &err).Once()
 		mockedListsSrv, _ := s.listsSrv.(*services.MockedListsService)
-		mockedListsSrv.On("GetUserLists", int32(12), &[]dtos.GetListsResultDto{}).Return(&err).Once()
+		mockedListsSrv.On("GetUserLists", int32(12)).Return(nil, &err).Once()
 
 		for _, r := range adminRoutes {
 			req, _ := http.NewRequest(r.method, r.url, nil)
@@ -137,7 +137,7 @@ func TestServer(t *testing.T) {
 	t.Run("handles private routes with auth", func(t *testing.T) {
 		err := appErrors.BadRequestError{Msg: "Some error"}
 		mockedListsSrv, _ := s.listsSrv.(*services.MockedListsService)
-		mockedListsSrv.On("GetUserLists", int32(0), &[]dtos.GetListsResultDto{}).Return(&err).Once()
+		mockedListsSrv.On("GetUserLists", int32(0)).Return(nil, &err).Once()
 		mockedListsSrv.On("GetUserList", int32(12), int32(0)).Return(nil, &err).Once()
 		mockedListsSrv.On("RemoveUserList", int32(12), int32(0)).Return(&err).Once()
 		mockedListsSrv.On("GetUserListItem", int32(3), int32(12), int32(0), &dtos.GetItemResultDto{}).Return(&err).Once()

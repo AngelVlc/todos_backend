@@ -14,7 +14,7 @@ type ListsService interface {
 	RemoveUserList(id int32, userID int32) error
 	UpdateUserList(id int32, userID int32, dto *dtos.ListDto) error
 	GetUserList(id int32, userID int32) (*dtos.ListResponseDto, error)
-	GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error
+	GetUserLists(userID int32) ([]*dtos.ListResponseDto, error)
 
 	GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error
 	AddUserListItem(listID int32, userId int32, dto *dtos.ListItemDto) (int32, error)
@@ -54,9 +54,13 @@ func (m *MockedListsService) GetUserList(id int32, userID int32) (*dtos.ListResp
 	return args.Get(0).(*dtos.ListResponseDto), args.Error(1)
 }
 
-func (m *MockedListsService) GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error {
-	args := m.Called(userID, r)
-	return args.Error(0)
+func (m *MockedListsService) GetUserLists(userID int32) ([]*dtos.ListResponseDto, error) {
+	args := m.Called(userID)
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*dtos.ListResponseDto), args.Error(1)
 }
 
 func (m *MockedListsService) GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error {
@@ -134,11 +138,19 @@ func (s *DefaultListsService) GetUserList(id int32, userID int32) (*dtos.ListRes
 }
 
 // GetUserLists returns the lists for the given user
-func (s *DefaultListsService) GetUserLists(userID int32, r *[]dtos.GetListsResultDto) error {
-	if err := s.db.Where(models.List{UserID: userID}).Select("id,name").Find(&r).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error getting user lists", InternalError: err}
+func (s *DefaultListsService) GetUserLists(userID int32) ([]*dtos.ListResponseDto, error) {
+	found, err := s.listsRepo.GetAll(userID)
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	res := make([]*dtos.ListResponseDto, len(found))
+
+	for i, v := range found {
+		res[i] = v.ToResponseDto()
+	}
+
+	return res, nil
 }
 
 // GetUserListItem returns a list item

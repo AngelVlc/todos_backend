@@ -172,8 +172,46 @@ func TestListsServiceGetList(t *testing.T) {
 	})
 }
 
+func TestListsServiceGetUserLists(t *testing.T) {
+	mockedListsRepo := repositories.NewMockedListsRepository()
+
+	svc := NewDefaultListsService(nil, mockedListsRepo)
+
+	userID := int32(1)
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		mockedListsRepo.On("GetAll", userID).Return(nil, fmt.Errorf("some error")).Once()
+
+		dto, err := svc.GetUserLists(userID)
+
+		assert.Nil(t, dto)
+		assert.Error(t, err)
+		mockedListsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return the user lists", func(t *testing.T) {
+		found := []*models.List{
+			{ID: 1, UserID: userID, Name: "list1"},
+			{ID: 2, UserID: userID, Name: "list2"},
+		}
+
+		mockedListsRepo.On("GetAll", userID).Return(found, nil).Once()
+
+		dto, err := svc.GetUserLists(userID)
+
+		assert.Nil(t, err)
+		require.NotNil(t, dto)
+		require.Equal(t, 2, len(dto))
+		assert.Equal(t, int32(1), dto[0].ID)
+		assert.Equal(t, "list1", dto[0].Name)
+		assert.Equal(t, int32(2), dto[1].ID)
+		assert.Equal(t, "list2", dto[1].Name)
+		mockedListsRepo.AssertExpectations(t)
+	})
+
+}
+
 func TestListsService(t *testing.T) {
-	listColumns := []string{"id", "name", "userID"}
 	listItemsColumns := []string{"id", "listId", "title", "description"}
 
 	listID := int32(15)
@@ -209,36 +247,6 @@ func TestListsService(t *testing.T) {
 	mockedListsRepo := repositories.NewMockedListsRepository()
 
 	svc := NewDefaultListsService(db, mockedListsRepo)
-
-	expectedGetListsQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name FROM `lists` WHERE (`lists`.`userId` = ?)")).
-			WithArgs(userID)
-	}
-
-	t.Run("GetUserLists() should return an error if the query fails", func(t *testing.T) {
-		dto := []dtos.GetListsResultDto{}
-
-		expectedGetListsQuery().WillReturnError(fmt.Errorf("some error"))
-
-		err := svc.GetUserLists(userID, &dto)
-
-		appErrors.CheckUnexpectedError(t, err, "Error getting user lists", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("GetUserLists() should return the user lists", func(t *testing.T) {
-		dto := []dtos.GetListsResultDto{}
-
-		expectedGetListsQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID).AddRow(12, "list2", userID))
-
-		err := svc.GetUserLists(userID, &dto)
-
-		assert.Equal(t, len(dto), 2)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
 
 	expectedGetItemQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT `listItems`.* FROM `listItems` JOIN lists on listItems.listId=lists.id WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?) AND (`listItems`.`id` = ?)")).

@@ -14,7 +14,6 @@ import (
 	"github.com/AngelVlc/todos/models"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -108,7 +107,7 @@ func TestDeleteUserHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
-		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("GetUserLists", int32(40)).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
@@ -118,16 +117,13 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the user has some list", func(t *testing.T) {
-		res := []dtos.GetListsResultDto{
-			dtos.GetListsResultDto{
+		res := []*dtos.ListResponseDto{
+			{
 				ID:   int32(1),
 				Name: "list1",
 			},
 		}
-		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(1).(*[]dtos.GetListsResultDto)
-			*arg = res
-		})
+		mockedListsService.On("GetUserLists", int32(40)).Return(res, nil).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
@@ -137,11 +133,7 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
-		res := []dtos.GetListsResultDto{}
-		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(1).(*[]dtos.GetListsResultDto)
-			*arg = res
-		})
+		mockedListsService.On("GetUserLists", int32(40)).Return([]*dtos.ListResponseDto{}, nil).Once()
 		mockedUsersService.On("RemoveUser", int32(40)).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
@@ -153,11 +145,7 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should delete the user if there is no errors", func(t *testing.T) {
-		res := []dtos.GetListsResultDto{}
-		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(1).(*[]dtos.GetListsResultDto)
-			*arg = res
-		})
+		mockedListsService.On("GetUserLists", int32(40)).Return([]*dtos.ListResponseDto{}, nil).Once()
 		mockedUsersService.On("RemoveUser", int32(40)).Return(nil).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)

@@ -32,8 +32,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerR
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := parseInt32UrlVar(r, "id")
 
-	foundUserLists := []dtos.GetListsResultDto{}
-	err := h.listsSrv.GetUserLists(userID, &foundUserLists)
+	foundUserLists, err := h.listsSrv.GetUserLists(userID)
 	if err != nil {
 		return errorResult{err}
 	}

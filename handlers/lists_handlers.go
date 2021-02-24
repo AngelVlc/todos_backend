@@ -9,8 +9,7 @@ import (
 func GetUserListsHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
-	res := []dtos.GetListsResultDto{}
-	err := h.listsSrv.GetUserLists(userID, &res)
+	res, err := h.listsSrv.GetUserLists(userID)
 	if err != nil {
 		return errorResult{err}
 	}

@@ -16,8 +16,6 @@ type ListsService interface {
 	GetUserList(id int32, userID int32) (*dtos.ListResponseDto, error)
 	GetUserLists(userID int32) ([]*dtos.ListResponseDto, error)
 
-	GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error
-	AddUserListItem(listID int32, userId int32, dto *dtos.ListItemDto) (int32, error)
 	RemoveUserListItem(id int32, listID int32, userID int32) error
 	UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error
 }
@@ -61,16 +59,6 @@ func (m *MockedListsService) GetUserLists(userID int32) ([]*dtos.ListResponseDto
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*dtos.ListResponseDto), args.Error(1)
-}
-
-func (m *MockedListsService) GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error {
-	args := m.Called(id, listID, userID, i)
-	return args.Error(0)
-}
-
-func (m *MockedListsService) AddUserListItem(listID int32, userID int32, dto *dtos.ListItemDto) (int32, error) {
-	args := m.Called(listID, userID, dto)
-	return args.Get(0).(int32), args.Error(1)
 }
 
 func (m *MockedListsService) RemoveUserListItem(id int32, listID int32, userID int32) error {
@@ -153,15 +141,6 @@ func (s *DefaultListsService) GetUserLists(userID int32) ([]*dtos.ListResponseDt
 	return res, nil
 }
 
-// GetUserListItem returns a list item
-func (s *DefaultListsService) GetUserListItem(id int32, listID int32, userID int32, i *dtos.GetItemResultDto) error {
-	if err := s.db.Joins("JOIN lists on listItems.listId=lists.id").Where(models.List{ID: listID, UserID: userID}).Where(models.ListItem{ID: id}).Find(&i).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error getting user list item", InternalError: err}
-	}
-
-	return nil
-}
-
 // TEMP
 func (s *DefaultListsService) getListItem(id int32, listID int32, userID int32) (*models.ListItem, error) {
 	foundItem := models.ListItem{}
@@ -171,27 +150,6 @@ func (s *DefaultListsService) getListItem(id int32, listID int32, userID int32) 
 	}
 
 	return &foundItem, nil
-}
-
-// AddUserListItem adds a list item
-func (s *DefaultListsService) AddUserListItem(listID int32, userID int32, dto *dtos.ListItemDto) (int32, error) {
-	foundList, err := s.listsRepo.FindByID(listID, userID)
-	if err != nil {
-		return 0, err
-	}
-
-	if foundList == nil {
-		return 0, &appErrors.BadRequestError{Msg: "The list does not exist"}
-	}
-
-	i := models.ListItem{}
-	i.ListID = listID
-	i.FromDto(dto)
-	if err := s.db.Create(&i).Error; err != nil {
-		return 0, &appErrors.UnexpectedError{Msg: "Error inserting list item", InternalError: err}
-	}
-
-	return i.ID, nil
 }
 
 // RemoveUserListItem removes a list item

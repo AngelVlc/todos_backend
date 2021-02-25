@@ -187,8 +187,9 @@ func TestUsersRepositoryInsert(t *testing.T) {
 		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		_, err := repo.Insert(&user)
+		id, err := repo.Insert(&user)
 
+		assert.Equal(t, int32(-1), id)
 		appErrors.CheckUnexpectedError(t, err, "Error inserting in the database", "some error")
 
 		checkMockExpectations(t, mock)

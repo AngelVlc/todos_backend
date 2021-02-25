@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos/consts"
-	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/services"
 	"github.com/stretchr/testify/assert"
@@ -140,8 +139,9 @@ func TestServer(t *testing.T) {
 		mockedListsSrv.On("GetUserLists", int32(0)).Return(nil, &err).Once()
 		mockedListsSrv.On("GetUserList", int32(12), int32(0)).Return(nil, &err).Once()
 		mockedListsSrv.On("RemoveUserList", int32(12), int32(0)).Return(&err).Once()
-		mockedListsSrv.On("GetUserListItem", int32(3), int32(12), int32(0), &dtos.GetItemResultDto{}).Return(&err).Once()
 		mockedListsSrv.On("RemoveUserListItem", int32(3), int32(12), int32(0)).Return(&err).Once()
+		mockedListItemsSrv, _ := s.listItemsSrv.(*services.MockedListItemsService)
+		mockedListItemsSrv.On("GetListItem", int32(3), int32(12), int32(0)).Return(nil, &err).Once()
 
 		for _, r := range privateRoutes {
 			req, _ := http.NewRequest(r.method, r.url, nil)

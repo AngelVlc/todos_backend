@@ -18,14 +18,16 @@ import (
 )
 
 var (
-	mockedAuthService  = services.NewMockedAuthService()
-	mockedUsersService = services.NewMockedUsersService()
-	mockedListsService = services.NewMockedListsService()
+	mockedAuthService      = services.NewMockedAuthService()
+	mockedUsersService     = services.NewMockedUsersService()
+	mockedListsService     = services.NewMockedListsService()
+	mockedListItemsService = services.NewMockedListItemsService()
 
 	handler = Handler{
-		usersSrv: mockedUsersService,
-		authSrv:  mockedAuthService,
-		listsSrv: mockedListsService,
+		usersSrv:     mockedUsersService,
+		authSrv:      mockedAuthService,
+		listsSrv:     mockedListsService,
+		listItemsSrv: mockedListItemsService,
 	}
 )
 
@@ -259,13 +261,13 @@ func TestRefreshTokenHandler(t *testing.T) {
 	})
 }
 
-func newTokenResultDto() *dtos.TokenResultDto {
-	return &dtos.TokenResultDto{Token: "theToken", RefreshToken: "theRefreshToken"}
+func newTokenResultDto() *dtos.TokenResponseDto {
+	return &dtos.TokenResponseDto{Token: "theToken", RefreshToken: "theRefreshToken"}
 }
 
-func checkTokensResponse(t *testing.T, result HandlerResult, expectedTokens *dtos.TokenResultDto) {
+func checkTokensResponse(t *testing.T, result HandlerResult, expectedTokens *dtos.TokenResponseDto) {
 	okRes := CheckOkResult(t, result, http.StatusOK)
-	tokenDto, isTokenResultDto := okRes.content.(*dtos.TokenResultDto)
+	tokenDto, isTokenResultDto := okRes.content.(*dtos.TokenResponseDto)
 	require.Equal(t, true, isTokenResultDto, "should be a token result dto")
 	assert.Equal(t, expectedTokens.Token, tokenDto.Token)
 	assert.Equal(t, expectedTokens.RefreshToken, tokenDto.RefreshToken)

@@ -74,12 +74,12 @@ func GetUserSingleListItemHandler(w http.ResponseWriter, r *http.Request, h Hand
 	listID := parseInt32UrlVar(r, "listId")
 	itemID := parseInt32UrlVar(r, "itemId")
 
-	l := dtos.GetItemResultDto{}
-	err := h.listsSrv.GetUserListItem(itemID, listID, userID, &l)
+	dto, err := h.listItemsSrv.GetListItem(itemID, listID, userID)
 	if err != nil {
 		return errorResult{err}
 	}
-	return okResult{l, http.StatusOK}
+
+	return okResult{dto, http.StatusOK}
 }
 
 func AddUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
@@ -91,7 +91,7 @@ func AddUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler) H
 		return errorResult{err}
 	}
 
-	id, err := h.listsSrv.AddUserListItem(listID, userID, i)
+	id, err := h.listItemsSrv.AddListItem(listID, userID, i)
 	if err != nil {
 		return errorResult{err}
 	}

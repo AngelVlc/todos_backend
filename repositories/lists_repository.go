@@ -69,8 +69,8 @@ func NewDefaultListsRepository(db *gorm.DB) *DefaultListsRepository {
 }
 
 func (r *DefaultListsRepository) Insert(list *models.List) (int32, error) {
-	if err := r.db.Create(&list).Error; err != nil {
-		return 0, &appErrors.UnexpectedError{Msg: "Error inserting list", InternalError: err}
+	if err := r.db.Create(list).Error; err != nil {
+		return -1, &appErrors.UnexpectedError{Msg: "Error inserting list", InternalError: err}
 	}
 
 	return list.ID, nil

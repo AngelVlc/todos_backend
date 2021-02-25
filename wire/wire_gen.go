@@ -107,7 +107,7 @@ func initMockedUsersRepository() repositories.UsersRepository {
 	return mockedUsersRepository
 }
 
-func initDefaultListsRepositories(db *gorm.DB) repositories.ListsRepository {
+func initDefaultListsRepository(db *gorm.DB) repositories.ListsRepository {
 	defaultListsRepository := repositories.NewDefaultListsRepository(db)
 	return defaultListsRepository
 }
@@ -115,6 +115,28 @@ func initDefaultListsRepositories(db *gorm.DB) repositories.ListsRepository {
 func initMockedListsRepository() repositories.ListsRepository {
 	mockedListsRepository := repositories.NewMockedListsRepository()
 	return mockedListsRepository
+}
+
+func initDefaultListItemsRepository(db *gorm.DB) repositories.ListItemsRepository {
+	defaultListItemsRepository := repositories.NewDefaultListItemsRepository(db)
+	return defaultListItemsRepository
+}
+
+func initMockedListItemsRepository() repositories.ListItemsRepository {
+	mockedListItemsRepository := repositories.NewMockedListItemsRepository()
+	return mockedListItemsRepository
+}
+
+func initDefaultListItemsService(db *gorm.DB) services.ListItemsService {
+	defaultListItemsRepository := repositories.NewDefaultListItemsRepository(db)
+	defaultListsRepository := repositories.NewDefaultListsRepository(db)
+	defaultListItemsService := services.NewDefaultListItemsService(defaultListItemsRepository, defaultListsRepository)
+	return defaultListItemsService
+}
+
+func initMockedListItemsService() services.ListItemsService {
+	mockedListItemsService := services.NewMockedListItemsService()
+	return mockedListItemsService
 }
 
 func InitConfigurationService() services.ConfigurationService {
@@ -185,7 +207,23 @@ func InitListsRepository(db *gorm.DB) repositories.ListsRepository {
 	if inTestingMode() {
 		return initMockedListsRepository()
 	} else {
-		return initDefaultListsRepositories(db)
+		return initDefaultListsRepository(db)
+	}
+}
+
+func InitListItemsRepository(db *gorm.DB) repositories.ListItemsRepository {
+	if inTestingMode() {
+		return initMockedListItemsRepository()
+	} else {
+		return initDefaultListItemsRepository(db)
+	}
+}
+
+func InitListItemsService(db *gorm.DB) services.ListItemsService {
+	if inTestingMode() {
+		return initMockedListItemsService()
+	} else {
+		return initDefaultListItemsService(db)
 	}
 }
 
@@ -243,3 +281,11 @@ var MockedUsersRepositorySet = wire.NewSet(repositories.NewMockedUsersRepository
 var ListsRepositorySet = wire.NewSet(repositories.NewDefaultListsRepository, wire.Bind(new(repositories.ListsRepository), new(*repositories.DefaultListsRepository)))
 
 var MockedListsRepositorySet = wire.NewSet(repositories.NewMockedListsRepository, wire.Bind(new(repositories.ListsRepository), new(*repositories.MockedListsRepository)))
+
+var ListItemsServiceSet = wire.NewSet(services.NewDefaultListItemsService, wire.Bind(new(services.ListItemsService), new(*services.DefaultListItemsService)))
+
+var MockedListItemsServiceSet = wire.NewSet(services.NewMockedListItemsService, wire.Bind(new(services.ListItemsService), new(*services.MockedListItemsService)))
+
+var ListItemsRepositorySet = wire.NewSet(repositories.NewDefaultListItemsRepository, wire.Bind(new(repositories.ListItemsRepository), new(*repositories.DefaultListItemsRepository)))
+
+var MockedListItemsRepositorySet = wire.NewSet(repositories.NewMockedListItemsRepository, wire.Bind(new(repositories.ListItemsRepository), new(*repositories.MockedListItemsRepository)))

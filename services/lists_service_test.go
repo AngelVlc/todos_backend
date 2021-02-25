@@ -136,7 +136,7 @@ func TestListsServiceGetList(t *testing.T) {
 		mockedListsRepo.AssertExpectations(t)
 	})
 
-	t.Run("should return an error if the list don't exist", func(t *testing.T) {
+	t.Run("should return an error if the list doesn't exist", func(t *testing.T) {
 		mockedListsRepo.On("FindByID", listID, userID).Return(nil, nil).Once()
 
 		dto, err := svc.GetUserList(listID, userID)
@@ -252,80 +252,6 @@ func TestListsService(t *testing.T) {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT `listItems`.* FROM `listItems` JOIN lists on listItems.listId=lists.id WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?) AND (`listItems`.`id` = ?)")).
 			WithArgs(listID, userID, itemID)
 	}
-
-	t.Run("GetUserListItem() should return an error if the query fails", func(t *testing.T) {
-
-		dto := dtos.GetItemResultDto{}
-
-		expectedGetItemQuery().WillReturnError(fmt.Errorf("some error"))
-
-		err := svc.GetUserListItem(itemID, listID, userID, &dto)
-
-		appErrors.CheckUnexpectedError(t, err, "Error getting user list item", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("GetUserListItem() should get a single item", func(t *testing.T) {
-		dto := dtos.GetItemResultDto{}
-
-		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, "title", "description"))
-
-		err := svc.GetUserListItem(itemID, listID, userID, &dto)
-
-		assert.Equal(t, "title", dto.Title)
-		assert.Equal(t, "description", dto.Description)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("AddUserListItem() should return an error if getting the list fails", func(t *testing.T) {
-		mockedListsRepo.On("FindByID", i.ListID, userID).Return(nil, fmt.Errorf("some error")).Once()
-
-		_, err := svc.AddUserListItem(i.ListID, userID, &listItemDto)
-
-		assert.Error(t, err)
-
-		mockedListsRepo.AssertExpectations(t)
-		checkMockExpectations(t, mock)
-	})
-
-	expectedInsertListItemExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`title`,`description`) VALUES (?,?,?)")).
-			WithArgs(i.ListID, i.Title, i.Description)
-	}
-
-	t.Run("AddUserListItem() should return an error if insert fails", func(t *testing.T) {
-		mockedListsRepo.On("FindByID", i.ListID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
-
-		mock.ExpectBegin()
-		expectedInsertListItemExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		_, err := svc.AddUserListItem(i.ListID, userID, &listItemDto)
-
-		appErrors.CheckUnexpectedError(t, err, "Error inserting list item", "some error")
-
-		mockedListsRepo.AssertExpectations(t)
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("AddUserListItem() should insert the new list item", func(t *testing.T) {
-		mockedListsRepo.On("FindByID", i.ListID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
-
-		mock.ExpectBegin()
-		expectedInsertListItemExec().WillReturnResult(sqlmock.NewResult(12, 0))
-		mock.ExpectCommit()
-
-		id, err := svc.AddUserListItem(i.ListID, userID, &listItemDto)
-
-		assert.Equal(t, int32(12), id)
-		assert.Nil(t, err)
-
-		mockedListsRepo.AssertExpectations(t)
-		checkMockExpectations(t, mock)
-	})
 
 	t.Run("RemoveUserListItem() should return an error if getting the list fails", func(t *testing.T) {
 		mockedListsRepo.On("FindByID", i.ListID, userID).Return(nil, fmt.Errorf("some error")).Once()

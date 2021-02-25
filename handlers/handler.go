@@ -15,21 +15,23 @@ import (
 // Handler is the type used to handle the endpoints
 type Handler struct {
 	HandlerFunc
-	usersSrv services.UsersService
-	authSrv  services.AuthService
-	listsSrv services.ListsService
+	usersSrv     services.UsersService
+	authSrv      services.AuthService
+	listsSrv     services.ListsService
+	listItemsSrv services.ListItemsService
 }
 
 type HandlerResult interface {
 	IsError() bool
 }
 
-func NewHandler(f HandlerFunc, u services.UsersService, a services.AuthService, l services.ListsService) Handler {
+func NewHandler(f HandlerFunc, usersSvc services.UsersService, authSvc services.AuthService, listsSvc services.ListsService, listItemsSvc services.ListItemsService) Handler {
 	return Handler{
-		HandlerFunc: f,
-		usersSrv:    u,
-		authSrv:     a,
-		listsSrv:    l,
+		HandlerFunc:  f,
+		usersSrv:     usersSvc,
+		authSrv:      authSvc,
+		listsSrv:     listsSvc,
+		listItemsSrv: listItemsSvc,
 	}
 }
 

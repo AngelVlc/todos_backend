@@ -10,7 +10,7 @@ import (
 )
 
 type AuthService interface {
-	GetTokens(u *models.User) (*dtos.TokenResultDto, error)
+	GetTokens(u *models.User) (*dtos.TokenResponseDto, error)
 	ParseToken(tokenString string) (*models.JwtClaimsInfo, error)
 	ParseRefreshToken(refreshTokenString string) (*models.RefreshTokenClaimsInfo, error)
 }
@@ -23,13 +23,13 @@ func NewMockedAuthService() *MockedAuthService {
 	return &MockedAuthService{}
 }
 
-func (m *MockedAuthService) GetTokens(u *models.User) (*dtos.TokenResultDto, error) {
+func (m *MockedAuthService) GetTokens(u *models.User) (*dtos.TokenResponseDto, error) {
 	args := m.Called(u)
 	got := args.Get(0)
 	if got == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*dtos.TokenResultDto), args.Error(1)
+	return args.Get(0).(*dtos.TokenResponseDto), args.Error(1)
 }
 
 func (m *MockedAuthService) ParseToken(t string) (*models.JwtClaimsInfo, error) {
@@ -63,7 +63,7 @@ func NewDefaultAuthService(jwtp TokenHelper, cfgSvc ConfigurationService) *Defau
 }
 
 // GetTokens returns a new jwt token and a refresh token for the given user
-func (s *DefaultAuthService) GetTokens(u *models.User) (*dtos.TokenResultDto, error) {
+func (s *DefaultAuthService) GetTokens(u *models.User) (*dtos.TokenResponseDto, error) {
 	t := s.getNewToken(u)
 	st, err := s.jwtPrv.SignToken(t, s.cfgSvc.GetJwtSecret())
 	if err != nil {
@@ -76,7 +76,7 @@ func (s *DefaultAuthService) GetTokens(u *models.User) (*dtos.TokenResultDto, er
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
 	}
 
-	result := dtos.TokenResultDto{Token: st, RefreshToken: srt}
+	result := dtos.TokenResponseDto{Token: st, RefreshToken: srt}
 
 	return &result, nil
 }

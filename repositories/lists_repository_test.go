@@ -40,8 +40,9 @@ func TestListsRepositoryInsert(t *testing.T) {
 		expectedInsertListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		_, err := repo.Insert(&list)
+		id, err := repo.Insert(&list)
 
+		assert.Equal(t, int32(-1), id)
 		appErrors.CheckUnexpectedError(t, err, "Error inserting list", "some error")
 
 		checkMockExpectations(t, mock)

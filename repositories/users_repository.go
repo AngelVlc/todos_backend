@@ -120,7 +120,7 @@ func (r *DefaultUsersRepository) FindByName(name string) (*models.User, error) {
 
 // Insert adds a new user
 func (r *DefaultUsersRepository) Insert(user *models.User) (int32, error) {
-	err := r.db.Create(&user).Error
+	err := r.db.Create(user).Error
 	if err != nil {
 		return -1, &appErrors.UnexpectedError{Msg: "Error inserting in the database", InternalError: err}
 	}

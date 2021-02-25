@@ -14,7 +14,11 @@ func (ListItem) TableName() string {
 	return "listItems"
 }
 
-func (l *ListItem) FromDto(dto *dtos.ListItemDto) {
-	l.Title = dto.Title
-	l.Description = dto.Description
+func (i *ListItem) FromDto(dto *dtos.ListItemDto) {
+	i.Title = dto.Title
+	i.Description = dto.Description
+}
+
+func (i *ListItem) ToResponseDto() *dtos.ListItemResponseDto {
+	return &dtos.ListItemResponseDto{ID: i.ID, Title: i.Title, Description: i.Description}
 }

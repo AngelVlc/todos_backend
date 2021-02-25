@@ -69,7 +69,7 @@ func TestAuthServiceGetTokens(t *testing.T) {
 
 		tokens, err := service.GetTokens(&u)
 
-		want := &dtos.TokenResultDto{
+		want := &dtos.TokenResponseDto{
 			Token:        theToken,
 			RefreshToken: theRefreshToken,
 		}

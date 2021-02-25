@@ -15,7 +15,6 @@ import (
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -261,35 +260,31 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if the listId is valid but the query fails", func(t *testing.T) {
-		res := dtos.GetItemResultDto{}
-		mockedListsService.On("GetUserListItem", int32(3), int32(5), userID, &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListItemsService.On("GetListItem", int32(3), int32(5), userID).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUserSingleListItemHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
-		mockedListsService.AssertExpectations(t)
+		mockedListItemsService.AssertExpectations(t)
 	})
 
 	t.Run("Should return the item it there is no errors", func(t *testing.T) {
-		res := dtos.GetItemResultDto{
+		res := dtos.ListItemResponseDto{
 			Title:       "Title",
 			Description: "Description",
 		}
-		mockedListsService.On("GetUserListItem", int32(3), int32(5), userID, &dtos.GetItemResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(3).(*dtos.GetItemResultDto)
-			*arg = res
-		})
+		mockedListItemsService.On("GetListItem", int32(3), int32(5), userID).Return(&res, nil).Once()
 
 		result := GetUserSingleListItemHandler(httptest.NewRecorder(), request(), handler)
 
 		okRes := CheckOkResult(t, result, http.StatusOK)
-		resDto, isOk := okRes.content.(dtos.GetItemResultDto)
-		require.Equal(t, true, isOk, "should be an item result dto")
+		resDto, isOk := okRes.content.(*dtos.ListItemResponseDto)
+		require.Equal(t, true, isOk, "should be a list item response dto")
 		assert.Equal(t, res.Title, resDto.Title)
 		assert.Equal(t, res.Description, resDto.Description)
 
-		mockedListsService.AssertExpectations(t)
+		mockedListItemsService.AssertExpectations(t)
 	})
 }
 
@@ -324,24 +319,24 @@ func TestAddUserListItemHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the body is valid but the insert fails", func(t *testing.T) {
-		mockedListsService.On("AddUserListItem", listID, userID, &dto).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListItemsService.On("AddListItem", listID, userID, &dto).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
-		mockedListsService.AssertExpectations(t)
+		mockedListItemsService.AssertExpectations(t)
 	})
 
 	t.Run("Should add the list item if the body is valid and the insert does not fail", func(t *testing.T) {
-		mockedListsService.On("AddUserListItem", listID, userID, &dto).Return(int32(40), nil).Once()
+		mockedListItemsService.On("AddListItem", listID, userID, &dto).Return(int32(40), nil).Once()
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
 		okRes := CheckOkResult(t, result, http.StatusCreated)
 		assert.Equal(t, int32(40), okRes.content)
 
-		mockedListsService.AssertExpectations(t)
+		mockedListItemsService.AssertExpectations(t)
 	})
 }
 

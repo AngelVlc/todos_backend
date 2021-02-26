@@ -253,52 +253,6 @@ func TestListsService(t *testing.T) {
 			WithArgs(listID, userID, itemID)
 	}
 
-	t.Run("RemoveUserListItem() should return an error if getting the list fails", func(t *testing.T) {
-		mockedListsRepo.On("FindByID", i.ListID, userID).Return(nil, fmt.Errorf("some error")).Once()
-
-		err := svc.RemoveUserListItem(i.ID, i.ListID, userID)
-
-		assert.Error(t, err)
-
-		mockedListsRepo.AssertExpectations(t)
-		checkMockExpectations(t, mock)
-	})
-
-	expectedRemoveListItemExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE (`listItems`.`id` = ?) AND (`listItems`.`listId` = ?)")).
-			WithArgs(i.ID, i.ListID)
-	}
-
-	t.Run("RemoveUserListItem() should return an error if delete fails", func(t *testing.T) {
-		mockedListsRepo.On("FindByID", i.ListID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
-
-		mock.ExpectBegin()
-		expectedRemoveListItemExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		err := svc.RemoveUserListItem(i.ID, i.ListID, userID)
-
-		appErrors.CheckUnexpectedError(t, err, "Error deleting user list item", "some error")
-
-		mockedListsRepo.AssertExpectations(t)
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("RemoveUserListItem() should delete the user list item", func(t *testing.T) {
-		mockedListsRepo.On("FindByID", i.ListID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
-
-		mock.ExpectBegin()
-		expectedRemoveListItemExec().WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectCommit()
-
-		err := svc.RemoveUserListItem(i.ID, i.ListID, userID)
-
-		assert.Nil(t, err)
-
-		mockedListsRepo.AssertExpectations(t)
-		checkMockExpectations(t, mock)
-	})
-
 	t.Run("UpdateUserListItem() should return an error if getting the list fails", func(t *testing.T) {
 		expectedGetItemQuery().WillReturnError(fmt.Errorf("some error"))
 

@@ -103,7 +103,7 @@ func DeleteUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler
 	listID := parseInt32UrlVar(r, "listId")
 	itemID := parseInt32UrlVar(r, "itemId")
 
-	err := h.listsSrv.RemoveUserListItem(itemID, listID, userID)
+	err := h.listItemsSrv.RemoveItem(itemID, listID, userID)
 	if err != nil {
 		return errorResult{err}
 	}

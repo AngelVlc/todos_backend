@@ -353,24 +353,24 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
-		mockedListsService.On("RemoveUserListItem", int32(20), int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListItemsService.On("RemoveItem", int32(20), int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
-		mockedListsService.AssertExpectations(t)
+		mockedListItemsService.AssertExpectations(t)
 	})
 
 	t.Run("Should delete the list item if there is no errors", func(t *testing.T) {
-		mockedListsService.On("RemoveUserListItem", int32(20), int32(40), userID).Return(nil).Once()
+		mockedListItemsService.On("RemoveItem", int32(20), int32(40), userID).Return(nil).Once()
 
 		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), handler)
 
 		okRes := CheckOkResult(t, result, http.StatusNoContent)
 		assert.Nil(t, okRes.content)
 
-		mockedListsService.AssertExpectations(t)
+		mockedListItemsService.AssertExpectations(t)
 	})
 }
 

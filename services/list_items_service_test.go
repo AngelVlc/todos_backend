@@ -120,3 +120,48 @@ func TestListItemsServiceAddItem(t *testing.T) {
 		mockedListItemsRepo.AssertExpectations(t)
 	})
 }
+
+func TestListItemsServiceRemoveItem(t *testing.T) {
+	mockedListItemsRepo := repositories.NewMockedListItemsRepository()
+	mockedListsRepo := repositories.NewMockedListsRepository()
+
+	svc := NewDefaultListItemsService(mockedListItemsRepo, mockedListsRepo)
+
+	itemID := int32(111)
+	listID := int32(11)
+	userID := int32(1)
+
+	t.Run("should return an error if getting the list fails", func(t *testing.T) {
+		mockedListsRepo.On("FindByID", listID, userID).Return(nil, fmt.Errorf("some error")).Once()
+
+		err := svc.RemoveItem(itemID, listID, userID)
+
+		assert.Error(t, err)
+
+		mockedListsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return an error if delete fails", func(t *testing.T) {
+		mockedListsRepo.On("FindByID", listID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
+		mockedListItemsRepo.On("Remove", itemID, listID, userID).Return(fmt.Errorf("some error")).Once()
+
+		err := svc.RemoveItem(itemID, listID, userID)
+
+		assert.Error(t, err)
+
+		mockedListsRepo.AssertExpectations(t)
+		mockedListItemsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should delete the user list item", func(t *testing.T) {
+		mockedListsRepo.On("FindByID", listID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
+		mockedListItemsRepo.On("Remove", itemID, listID, userID).Return(nil).Once()
+
+		err := svc.RemoveItem(itemID, listID, userID)
+
+		assert.Nil(t, err)
+
+		mockedListsRepo.AssertExpectations(t)
+		mockedListItemsRepo.AssertExpectations(t)
+	})
+}

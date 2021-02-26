@@ -11,6 +11,7 @@ import (
 type ListItemsService interface {
 	GetListItem(id int32, listID int32, userID int32) (*dtos.ListItemResponseDto, error)
 	AddListItem(listID int32, userID int32, dto *dtos.ListItemDto) (int32, error)
+	RemoveItem(id int32, listID int32, userID int32) error
 }
 
 type MockedListItemsService struct {
@@ -32,6 +33,11 @@ func (m *MockedListItemsService) GetListItem(id int32, listID int32, userID int3
 func (m *MockedListItemsService) AddListItem(listID int32, userID int32, dto *dtos.ListItemDto) (int32, error) {
 	args := m.Called(listID, userID, dto)
 	return args.Get(0).(int32), args.Error(1)
+}
+
+func (m *MockedListItemsService) RemoveItem(id int32, listID int32, userID int32) error {
+	args := m.Called(id, listID, userID)
+	return args.Error(0)
 }
 
 type DefaultListItemsService struct {
@@ -71,4 +77,18 @@ func (s *DefaultListItemsService) AddListItem(listID int32, userID int32, dto *d
 	i.FromDto(dto)
 
 	return s.itemsRepo.Insert(&i)
+}
+
+// RemoveItem removes an item
+func (s *DefaultListItemsService) RemoveItem(id int32, listID int32, userID int32) error {
+	foundList, err := s.listsRepo.FindByID(listID, userID)
+	if err != nil {
+		return err
+	}
+
+	if foundList == nil {
+		return &appErrors.BadRequestError{Msg: "The list does not exist"}
+	}
+
+	return s.itemsRepo.Remove(id, listID, userID)
 }

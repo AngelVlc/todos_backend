@@ -16,7 +16,6 @@ type ListsService interface {
 	GetUserList(id int32, userID int32) (*dtos.ListResponseDto, error)
 	GetUserLists(userID int32) ([]*dtos.ListResponseDto, error)
 
-	RemoveUserListItem(id int32, listID int32, userID int32) error
 	UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error
 }
 
@@ -59,11 +58,6 @@ func (m *MockedListsService) GetUserLists(userID int32) ([]*dtos.ListResponseDto
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*dtos.ListResponseDto), args.Error(1)
-}
-
-func (m *MockedListsService) RemoveUserListItem(id int32, listID int32, userID int32) error {
-	args := m.Called(id, listID, userID)
-	return args.Error(0)
 }
 
 func (m *MockedListsService) UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error {
@@ -150,23 +144,6 @@ func (s *DefaultListsService) getListItem(id int32, listID int32, userID int32) 
 	}
 
 	return &foundItem, nil
-}
-
-// RemoveUserListItem removes a list item
-func (s *DefaultListsService) RemoveUserListItem(id int32, listID int32, userID int32) error {
-	foundList, err := s.listsRepo.FindByID(listID, userID)
-	if err != nil {
-		return err
-	}
-
-	if foundList == nil {
-		return &appErrors.BadRequestError{Msg: "The list does not exist"}
-	}
-
-	if err := s.db.Where(models.ListItem{ID: id, ListID: listID}).Delete(models.ListItem{}).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error deleting user list item", InternalError: err}
-	}
-	return nil
 }
 
 // UpdateUserListItem updates a list item

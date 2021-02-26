@@ -2,15 +2,12 @@ package services
 
 import (
 	"fmt"
-	"regexp"
 	"testing"
 
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
 	"github.com/AngelVlc/todos/repositories"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -207,95 +204,5 @@ func TestListsServiceGetUserLists(t *testing.T) {
 		assert.Equal(t, int32(2), dto[1].ID)
 		assert.Equal(t, "list2", dto[1].Name)
 		mockedListsRepo.AssertExpectations(t)
-	})
-
-}
-
-func TestListsService(t *testing.T) {
-	listItemsColumns := []string{"id", "listId", "title", "description"}
-
-	listID := int32(15)
-	itemID := int32(5)
-	userID := int32(11)
-
-	listDto := dtos.ListDto{
-		Name: "list",
-	}
-
-	l := models.List{}
-	l.FromDto(&listDto)
-
-	i := models.ListItem{
-		ID:          itemID,
-		ListID:      listID,
-		Title:       "title",
-		Description: "description",
-	}
-
-	listItemDto := dtos.ListItemDto{
-		Title:       i.Title,
-		Description: i.Description,
-	}
-
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
-
-	mockedListsRepo := repositories.NewMockedListsRepository()
-
-	svc := NewDefaultListsService(db, mockedListsRepo)
-
-	expectedGetItemQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT `listItems`.* FROM `listItems` JOIN lists on listItems.listId=lists.id WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?) AND (`listItems`.`id` = ?)")).
-			WithArgs(listID, userID, itemID)
-	}
-
-	t.Run("UpdateUserListItem() should return an error if getting the list fails", func(t *testing.T) {
-		expectedGetItemQuery().WillReturnError(fmt.Errorf("some error"))
-
-		err := svc.UpdateUserListItem(i.ID, i.ListID, userID, &listItemDto)
-
-		appErrors.CheckUnexpectedError(t, err, "Error getting list item", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	expectedUpdateListItemExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId` = ?, `title` = ?, `description` = ? WHERE `listItems`.`id` = ?")).
-			WithArgs(i.ListID, i.Title, i.Description, i.ID)
-	}
-
-	t.Run("UpdateUserListItem() should return an error if delete fails", func(t *testing.T) {
-		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, "title", "description"))
-
-		mock.ExpectBegin()
-		expectedUpdateListItemExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		err := svc.UpdateUserListItem(i.ID, i.ListID, userID, &listItemDto)
-
-		appErrors.CheckUnexpectedError(t, err, "Error updating list item", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("UpdateUserListItem() should update the list", func(t *testing.T) {
-		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, "title", "description"))
-
-		mock.ExpectBegin()
-		expectedUpdateListItemExec().WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectCommit()
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? ORDER BY `listItems`.`id` ASC LIMIT 1")).
-			WithArgs(itemID).
-			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, l.Name, userID))
-
-		err := svc.UpdateUserListItem(i.ID, i.ListID, userID, &listItemDto)
-
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
 	})
 }

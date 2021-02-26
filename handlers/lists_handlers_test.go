@@ -353,7 +353,7 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
-		mockedListItemsService.On("RemoveItem", int32(20), int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListItemsService.On("RemoveListItem", int32(20), int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), handler)
 
@@ -363,7 +363,7 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 	})
 
 	t.Run("Should delete the list item if there is no errors", func(t *testing.T) {
-		mockedListItemsService.On("RemoveItem", int32(20), int32(40), userID).Return(nil).Once()
+		mockedListItemsService.On("RemoveListItem", int32(20), int32(40), userID).Return(nil).Once()
 
 		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), handler)
 
@@ -404,17 +404,17 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the body is valid but the update fails", func(t *testing.T) {
-		mockedListsService.On("UpdateUserListItem", listID, int32(40), userID, &dto).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListItemsService.On("UpdateListItem", listID, int32(40), userID, &dto).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
-		mockedListsService.AssertExpectations(t)
+		mockedListItemsService.AssertExpectations(t)
 	})
 
 	t.Run("Should update the list item if the body is valid and the update does not fail", func(t *testing.T) {
-		mockedListsService.On("UpdateUserListItem", listID, int32(40), userID, &dto).Return(nil).Once()
+		mockedListItemsService.On("UpdateListItem", listID, int32(40), userID, &dto).Return(nil).Once()
 
 		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), handler)
 
@@ -423,6 +423,6 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 		require.Equal(t, true, isOk, "should be a list item result dto")
 		assert.Equal(t, dto.Title, resDto.Title)
 
-		mockedListsService.AssertExpectations(t)
+		mockedListItemsService.AssertExpectations(t)
 	})
 }

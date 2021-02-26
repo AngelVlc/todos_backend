@@ -11,7 +11,8 @@ import (
 type ListItemsService interface {
 	GetListItem(id int32, listID int32, userID int32) (*dtos.ListItemResponseDto, error)
 	AddListItem(listID int32, userID int32, dto *dtos.ListItemDto) (int32, error)
-	RemoveItem(id int32, listID int32, userID int32) error
+	RemoveListItem(id int32, listID int32, userID int32) error
+	UpdateListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error
 }
 
 type MockedListItemsService struct {
@@ -35,8 +36,13 @@ func (m *MockedListItemsService) AddListItem(listID int32, userID int32, dto *dt
 	return args.Get(0).(int32), args.Error(1)
 }
 
-func (m *MockedListItemsService) RemoveItem(id int32, listID int32, userID int32) error {
+func (m *MockedListItemsService) RemoveListItem(id int32, listID int32, userID int32) error {
 	args := m.Called(id, listID, userID)
+	return args.Error(0)
+}
+
+func (m *MockedListItemsService) UpdateListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error {
+	args := m.Called(id, listID, userID, dto)
 	return args.Error(0)
 }
 
@@ -79,8 +85,8 @@ func (s *DefaultListItemsService) AddListItem(listID int32, userID int32, dto *d
 	return s.itemsRepo.Insert(&i)
 }
 
-// RemoveItem removes an item
-func (s *DefaultListItemsService) RemoveItem(id int32, listID int32, userID int32) error {
+// RemoveListItem removes an item
+func (s *DefaultListItemsService) RemoveListItem(id int32, listID int32, userID int32) error {
 	foundList, err := s.listsRepo.FindByID(listID, userID)
 	if err != nil {
 		return err
@@ -91,4 +97,20 @@ func (s *DefaultListItemsService) RemoveItem(id int32, listID int32, userID int3
 	}
 
 	return s.itemsRepo.Remove(id, listID, userID)
+}
+
+// UpdateListItem updates an item
+func (s *DefaultListItemsService) UpdateListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error {
+	foundItem, err := s.itemsRepo.FindByID(id, listID, userID)
+	if err != nil {
+		return err
+	}
+
+	if foundItem == nil {
+		return &appErrors.BadRequestError{Msg: "The item does not exist"}
+	}
+
+	foundItem.FromDto(dto)
+
+	return s.itemsRepo.Update(foundItem)
 }

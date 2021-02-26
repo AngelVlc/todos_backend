@@ -11,6 +11,7 @@ type ListItemsRepository interface {
 	FindByID(id int32, listID int32, userID int32) (*models.ListItem, error)
 	Insert(item *models.ListItem) (int32, error)
 	Remove(id int32, listID int32, userID int32) error
+	Update(item *models.ListItem) error
 }
 
 type MockedListItemsRepository struct {
@@ -39,6 +40,11 @@ func (m *MockedListItemsRepository) Insert(item *models.ListItem) (int32, error)
 
 func (m *MockedListItemsRepository) Remove(id int32, listID int32, userID int32) error {
 	args := m.Called(id, listID, userID)
+	return args.Error(0)
+}
+
+func (m *MockedListItemsRepository) Update(item *models.ListItem) error {
+	args := m.Called(item)
 	return args.Error(0)
 }
 
@@ -77,5 +83,13 @@ func (r *DefaultListItemsRepository) Remove(id int32, listID int32, userID int32
 	if err := r.db.Where(models.ListItem{ID: id, ListID: listID}).Delete(models.ListItem{}).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting user list item", InternalError: err}
 	}
+	return nil
+}
+
+func (r *DefaultListItemsRepository) Update(item *models.ListItem) error {
+	if err := r.db.Save(item).Error; err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error updating list item", InternalError: err}
+	}
+
 	return nil
 }

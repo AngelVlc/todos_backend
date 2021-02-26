@@ -156,3 +156,48 @@ func TestListItemsRepositoryRemove(t *testing.T) {
 		checkMockExpectations(t, mock)
 	})
 }
+
+func TestListItemsRepositoryUpdate(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewDefaultListItemsRepository(db)
+
+	item := models.ListItem{ID: 111, ListID: 11, Title: "title", Description: "desc"}
+
+	expectedUpdateListItemExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId` = ?, `title` = ?, `description` = ? WHERE `listItems`.`id` = ?")).
+			WithArgs(int32(11), "title", "desc", int32(111))
+	}
+
+	t.Run("should return an error if update fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListItemExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.Update(&item)
+
+		appErrors.CheckUnexpectedError(t, err, "Error updating list item", "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should update the list", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListItemExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? ORDER BY `listItems`.`id` ASC LIMIT 1")).
+			WithArgs(int32(111)).
+			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), int32(11), "title", "desc"))
+
+		err := repo.Update(&item)
+
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}

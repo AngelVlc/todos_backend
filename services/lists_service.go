@@ -15,8 +15,6 @@ type ListsService interface {
 	UpdateUserList(id int32, userID int32, dto *dtos.ListDto) error
 	GetUserList(id int32, userID int32) (*dtos.ListResponseDto, error)
 	GetUserLists(userID int32) ([]*dtos.ListResponseDto, error)
-
-	UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error
 }
 
 type MockedListsService struct {
@@ -58,11 +56,6 @@ func (m *MockedListsService) GetUserLists(userID int32) ([]*dtos.ListResponseDto
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*dtos.ListResponseDto), args.Error(1)
-}
-
-func (m *MockedListsService) UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error {
-	args := m.Called(id, listID, userID, dto)
-	return args.Error(0)
 }
 
 // DefaultListsService is the service for the list entity
@@ -133,31 +126,4 @@ func (s *DefaultListsService) GetUserLists(userID int32) ([]*dtos.ListResponseDt
 	}
 
 	return res, nil
-}
-
-// TEMP
-func (s *DefaultListsService) getListItem(id int32, listID int32, userID int32) (*models.ListItem, error) {
-	foundItem := models.ListItem{}
-
-	if err := s.db.Joins("JOIN lists on listItems.listId=lists.id").Where(models.List{ID: listID, UserID: userID}).Where(models.ListItem{ID: id}).Find(&foundItem).Error; err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting list item", InternalError: err}
-	}
-
-	return &foundItem, nil
-}
-
-// UpdateUserListItem updates a list item
-func (s *DefaultListsService) UpdateUserListItem(id int32, listID int32, userID int32, dto *dtos.ListItemDto) error {
-	foundItem, err := s.getListItem(id, listID, userID)
-	if err != nil {
-		return err
-	}
-
-	foundItem.FromDto(dto)
-
-	if err := s.db.Save(&foundItem).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error updating list item", InternalError: err}
-	}
-
-	return nil
 }

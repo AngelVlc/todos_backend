@@ -121,7 +121,7 @@ func TestListItemsServiceAddItem(t *testing.T) {
 	})
 }
 
-func TestListItemsServiceRemoveItem(t *testing.T) {
+func TestListItemsServiceRemoveListItem(t *testing.T) {
 	mockedListItemsRepo := repositories.NewMockedListItemsRepository()
 	mockedListsRepo := repositories.NewMockedListsRepository()
 
@@ -134,9 +134,19 @@ func TestListItemsServiceRemoveItem(t *testing.T) {
 	t.Run("should return an error if getting the list fails", func(t *testing.T) {
 		mockedListsRepo.On("FindByID", listID, userID).Return(nil, fmt.Errorf("some error")).Once()
 
-		err := svc.RemoveItem(itemID, listID, userID)
+		err := svc.RemoveListItem(itemID, listID, userID)
 
 		assert.Error(t, err)
+
+		mockedListsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return an error if the list doesn't exist", func(t *testing.T) {
+		mockedListsRepo.On("FindByID", listID, userID).Return(nil, nil).Once()
+
+		err := svc.RemoveListItem(itemID, listID, userID)
+
+		appErrors.CheckBadRequestError(t, err, "The list does not exist", "")
 
 		mockedListsRepo.AssertExpectations(t)
 	})
@@ -145,7 +155,7 @@ func TestListItemsServiceRemoveItem(t *testing.T) {
 		mockedListsRepo.On("FindByID", listID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
 		mockedListItemsRepo.On("Remove", itemID, listID, userID).Return(fmt.Errorf("some error")).Once()
 
-		err := svc.RemoveItem(itemID, listID, userID)
+		err := svc.RemoveListItem(itemID, listID, userID)
 
 		assert.Error(t, err)
 
@@ -157,11 +167,60 @@ func TestListItemsServiceRemoveItem(t *testing.T) {
 		mockedListsRepo.On("FindByID", listID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
 		mockedListItemsRepo.On("Remove", itemID, listID, userID).Return(nil).Once()
 
-		err := svc.RemoveItem(itemID, listID, userID)
+		err := svc.RemoveListItem(itemID, listID, userID)
 
 		assert.Nil(t, err)
 
 		mockedListsRepo.AssertExpectations(t)
+		mockedListItemsRepo.AssertExpectations(t)
+	})
+}
+
+func TestListItemsServiceUpdateListItem(t *testing.T) {
+	mockedListItemsRepo := repositories.NewMockedListItemsRepository()
+
+	svc := NewDefaultListItemsService(mockedListItemsRepo, nil)
+
+	itemID := int32(111)
+	listID := int32(11)
+	userID := int32(1)
+	listItemDto := dtos.ListItemDto{Title: "title", Description: "desc"}
+
+	t.Run("should return an error if getting the list fails", func(t *testing.T) {
+		mockedListItemsRepo.On("FindByID", itemID, listID, userID).Return(nil, fmt.Errorf("some error")).Once()
+
+		err := svc.UpdateListItem(itemID, listID, userID, &listItemDto)
+
+		assert.Error(t, err)
+		mockedListItemsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return an error if the list doesn't exist", func(t *testing.T) {
+		mockedListItemsRepo.On("FindByID", itemID, listID, userID).Return(nil, nil).Once()
+
+		err := svc.UpdateListItem(itemID, listID, userID, &listItemDto)
+
+		appErrors.CheckBadRequestError(t, err, "The item does not exist", "")
+		mockedListItemsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should return an error if the update fails", func(t *testing.T) {
+		mockedListItemsRepo.On("FindByID", itemID, listID, userID).Return(&models.ListItem{ID: itemID, Title: "ori title", Description: "ori desc", ListID: listID}, nil).Once()
+		mockedListItemsRepo.On("Update", &models.ListItem{ID: itemID, Title: "title", Description: "desc", ListID: listID}).Return(fmt.Errorf("some error")).Once()
+
+		err := svc.UpdateListItem(itemID, listID, userID, &listItemDto)
+
+		assert.Error(t, err)
+		mockedListItemsRepo.AssertExpectations(t)
+	})
+
+	t.Run("should update the item", func(t *testing.T) {
+		mockedListItemsRepo.On("FindByID", itemID, listID, userID).Return(&models.ListItem{ID: itemID, Title: "ori title", Description: "ori desc", ListID: listID}, nil).Once()
+		mockedListItemsRepo.On("Update", &models.ListItem{ID: itemID, Title: "title", Description: "desc", ListID: listID}).Return(nil).Once()
+
+		err := svc.UpdateListItem(itemID, listID, userID, &listItemDto)
+
+		assert.Nil(t, err)
 		mockedListItemsRepo.AssertExpectations(t)
 	})
 }

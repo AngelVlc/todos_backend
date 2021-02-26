@@ -141,7 +141,7 @@ func TestServer(t *testing.T) {
 		mockedListsSrv.On("RemoveUserList", int32(12), int32(0)).Return(&err).Once()
 		mockedListItemsSrv, _ := s.listItemsSrv.(*services.MockedListItemsService)
 		mockedListItemsSrv.On("GetListItem", int32(3), int32(12), int32(0)).Return(nil, &err).Once()
-		mockedListItemsSrv.On("RemoveItem", int32(3), int32(12), int32(0)).Return(&err).Once()
+		mockedListItemsSrv.On("RemoveListItem", int32(3), int32(12), int32(0)).Return(&err).Once()
 
 		for _, r := range privateRoutes {
 			req, _ := http.NewRequest(r.method, r.url, nil)

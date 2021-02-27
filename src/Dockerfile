@@ -13,7 +13,7 @@ RUN go mod download
 
 COPY . $APP
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/app
+RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/app ./cmd/api/main.go
 
 FROM base as test
 

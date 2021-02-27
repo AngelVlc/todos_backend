@@ -29,9 +29,6 @@ db-version:
 mysql-client:
 	docker-compose exec mysql ${MYSQL_COMMAND}
 
-fmt:
-	go fmt ./...
-
 test:
 	docker-compose run --rm app go test ./...
 
@@ -40,7 +37,3 @@ coverage:
 
 coverage-html:
 	docker-compose run --rm app go test ./... -cover -coverprofile coverage.out && go tool cover -html=coverage.out	
-
-generate-wire:
-	wire wire/wire.go 
-

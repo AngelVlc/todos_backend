@@ -60,7 +60,7 @@ func TestCountersService(t *testing.T) {
 		}
 	})
 
-	t.Run("CreateCounterIfNotExists() should return an error if insert fails", func(t *testing.T) {
+	t.Run("CreateCounterIfNotExists() should return an error if create fails", func(t *testing.T) {
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `counters` WHERE (`counters`.`name` = ?) ORDER BY `counters`.`id` ASC LIMIT 1")).
 			WithArgs(counterName).
 			WillReturnRows(sqlmock.NewRows(columns))

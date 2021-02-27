@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/handlers"
+	"github.com/AngelVlc/todos/repositories"
 	"github.com/AngelVlc/todos/services"
 	"github.com/AngelVlc/todos/wire"
 	"github.com/gorilla/mux"
@@ -12,8 +13,12 @@ import (
 
 type server struct {
 	http.Handler
+	usersRepo       repositories.UsersRepository
+	listsRepo       repositories.ListsRepository
+	listItemsRepo   repositories.ListItemsRepository
 	authSrv         services.AuthService
 	listsSrv        services.ListsService
+	listItemsSrv    services.ListItemsService
 	usersSrv        services.UsersService
 	authMdw         handlers.AuthMiddleware
 	countersMdw     handlers.RequestCounterMiddleware
@@ -23,8 +28,12 @@ type server struct {
 
 func newServer(db *gorm.DB) *server {
 	s := server{
+		usersRepo:       wire.InitUsersRepository(db),
+		listsRepo:       wire.InitListsRepository(db),
+		listItemsRepo:   wire.InitListItemsRepository(db),
 		authSrv:         wire.InitAuthService(),
 		listsSrv:        wire.InitListsService(db),
+		listItemsSrv:    wire.InitListItemsService(db),
 		usersSrv:        wire.InitUsersService(db),
 		countersMdw:     wire.InitRequestCounterMiddleware(db),
 		authMdw:         wire.InitAuthMiddleware(db),
@@ -68,5 +77,5 @@ func newServer(db *gorm.DB) *server {
 }
 
 func (s *server) getHandler(handlerFunc handlers.HandlerFunc) handlers.Handler {
-	return handlers.NewHandler(handlerFunc, s.usersSrv, s.authSrv, s.listsSrv)
+	return handlers.NewHandler(handlerFunc, s.usersSrv, s.authSrv, s.listsSrv, s.listItemsSrv)
 }

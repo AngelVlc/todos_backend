@@ -4,14 +4,12 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/dtos"
-	"github.com/AngelVlc/todos/models"
 )
 
 func GetUserListsHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
-	res := []dtos.GetListsResultDto{}
-	err := h.listsSrv.GetUserLists(userID, &res)
+	res, err := h.listsSrv.GetUserLists(userID)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -22,23 +20,22 @@ func GetUserSingleListHandler(w http.ResponseWriter, r *http.Request, h Handler)
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "id")
 
-	l := dtos.GetSingleListResultDto{}
-	err := h.listsSrv.GetSingleUserList(listID, userID, &l)
+	res, err := h.listsSrv.GetUserList(listID, userID)
 	if err != nil {
 		return errorResult{err}
 	}
-	return okResult{l, http.StatusOK}
+	return okResult{res, http.StatusOK}
 }
 
 func AddUserListHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := getUserIDFromContext(r)
 
-	l, err := parseListBody(r)
+	dto, err := parseListBody(r)
 	if err != nil {
 		return errorResult{err}
 	}
 
-	id, err := h.listsSrv.AddUserList(userID, l)
+	id, err := h.listsSrv.AddUserList(userID, dto)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -49,16 +46,16 @@ func UpdateUserListHandler(w http.ResponseWriter, r *http.Request, h Handler) Ha
 	userID := getUserIDFromContext(r)
 	listID := parseInt32UrlVar(r, "id")
 
-	l, err := parseListBody(r)
+	dto, err := parseListBody(r)
 	if err != nil {
 		return errorResult{err}
 	}
 
-	err = h.listsSrv.UpdateUserList(listID, userID, l)
+	err = h.listsSrv.UpdateUserList(listID, userID, dto)
 	if err != nil {
 		return errorResult{err}
 	}
-	return okResult{l, http.StatusOK}
+	return okResult{dto, http.StatusOK}
 }
 
 func DeleteUserListHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
@@ -77,12 +74,12 @@ func GetUserSingleListItemHandler(w http.ResponseWriter, r *http.Request, h Hand
 	listID := parseInt32UrlVar(r, "listId")
 	itemID := parseInt32UrlVar(r, "itemId")
 
-	l := dtos.GetItemResultDto{}
-	err := h.listsSrv.GetUserListItem(itemID, listID, userID, &l)
+	dto, err := h.listItemsSrv.GetListItem(itemID, listID, userID)
 	if err != nil {
 		return errorResult{err}
 	}
-	return okResult{l, http.StatusOK}
+
+	return okResult{dto, http.StatusOK}
 }
 
 func AddUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
@@ -94,9 +91,7 @@ func AddUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler) H
 		return errorResult{err}
 	}
 
-	i.ListID = listID
-
-	id, err := h.listsSrv.AddUserListItem(userID, i)
+	id, err := h.listItemsSrv.AddListItem(listID, userID, i)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -108,7 +103,7 @@ func DeleteUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler
 	listID := parseInt32UrlVar(r, "listId")
 	itemID := parseInt32UrlVar(r, "itemId")
 
-	err := h.listsSrv.RemoveUserListItem(itemID, listID, userID)
+	err := h.listItemsSrv.RemoveListItem(itemID, listID, userID)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -125,31 +120,27 @@ func UpdateUserListItemHandler(w http.ResponseWriter, r *http.Request, h Handler
 		return errorResult{err}
 	}
 
-	i.ListID = listID
-
-	err = h.listsSrv.UpdateUserListItem(itemID, listID, userID, i)
+	err = h.listItemsSrv.UpdateListItem(itemID, listID, userID, i)
 	if err != nil {
 		return errorResult{err}
 	}
 	return okResult{i, http.StatusOK}
 }
 
-func parseListBody(r *http.Request) (*models.List, error) {
+func parseListBody(r *http.Request) (*dtos.ListDto, error) {
 	var dto dtos.ListDto
 	err := parseBody(r, &dto)
 	if err != nil {
 		return nil, err
 	}
-	l := dto.ToList()
-	return &l, nil
+	return &dto, nil
 }
 
-func parseListItemBody(r *http.Request) (*models.ListItem, error) {
+func parseListItemBody(r *http.Request) (*dtos.ListItemDto, error) {
 	var dto dtos.ListItemDto
 	err := parseBody(r, &dto)
 	if err != nil {
 		return nil, err
 	}
-	l := dto.ToListItem()
-	return &l, nil
+	return &dto, nil
 }

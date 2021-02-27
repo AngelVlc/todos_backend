@@ -6,7 +6,7 @@ import (
 	"github.com/AngelVlc/todos/dtos"
 	appErrors "github.com/AngelVlc/todos/errors"
 	"github.com/AngelVlc/todos/models"
-	"github.com/jinzhu/gorm"
+	"github.com/AngelVlc/todos/repositories"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -15,9 +15,9 @@ type UsersService interface {
 	CheckIfUserPasswordIsOk(user *models.User, password string) error
 	FindUserByID(id int32) (*models.User, error)
 	AddUser(dto *dtos.UserDto) (int32, error)
-	GetUsers(r *[]dtos.GetUserResultDto) error
+	GetUsers() ([]*dtos.UserResponseDto, error)
 	RemoveUser(id int32) error
-	UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error)
+	UpdateUser(id int32, dto *dtos.UserDto) error
 }
 
 type MockedUsersService struct {
@@ -56,9 +56,13 @@ func (m *MockedUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 	return args.Get(0).(int32), args.Error(1)
 }
 
-func (m *MockedUsersService) GetUsers(r *[]dtos.GetUserResultDto) error {
-	args := m.Called(r)
-	return args.Error(0)
+func (m *MockedUsersService) GetUsers() ([]*dtos.UserResponseDto, error) {
+	args := m.Called()
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*dtos.UserResponseDto), args.Error(1)
 }
 
 func (m *MockedUsersService) RemoveUser(id int32) error {
@@ -66,37 +70,22 @@ func (m *MockedUsersService) RemoveUser(id int32) error {
 	return args.Error(0)
 }
 
-func (m *MockedUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error) {
+func (m *MockedUsersService) UpdateUser(id int32, dto *dtos.UserDto) error {
 	args := m.Called(id, dto)
-	got := args.Get(0)
-	if got == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.User), args.Error(1)
+	return args.Error(0)
 }
 
 type DefaultUsersService struct {
-	crypto CryptoHelper
-	db     *gorm.DB
+	crypto    CryptoHelper
+	usersRepo repositories.UsersRepository
 }
 
-func NewDefaultUsersService(crypto CryptoHelper, db *gorm.DB) *DefaultUsersService {
-	return &DefaultUsersService{crypto, db}
+func NewDefaultUsersService(crypto CryptoHelper, usersRepo repositories.UsersRepository) *DefaultUsersService {
+	return &DefaultUsersService{crypto, usersRepo}
 }
 
 func (s *DefaultUsersService) FindUserByName(name string) (*models.User, error) {
-	foundUser := models.User{}
-	err := s.db.Where(models.User{Name: name}).Table("users").First(&foundUser).Error
-
-	if gorm.IsRecordNotFoundError(err) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
-	}
-
-	return &foundUser, nil
+	return s.usersRepo.FindByName(name)
 }
 
 // CheckIfUserPasswordIsOk returns nil if the password is correct or an error if it isn't
@@ -106,18 +95,7 @@ func (s *DefaultUsersService) CheckIfUserPasswordIsOk(user *models.User, passwor
 
 // FindUserByID returns a single user from its id
 func (s *DefaultUsersService) FindUserByID(id int32) (*models.User, error) {
-	foundUser := models.User{}
-	err := s.db.Where(models.User{ID: id}).Table("users").First(&foundUser).Error
-
-	if gorm.IsRecordNotFoundError(err) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user id", InternalError: err}
-	}
-
-	return &foundUser, nil
+	return s.usersRepo.FindByID(id)
 }
 
 // AddUser  adds a user
@@ -126,7 +104,7 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 		return -1, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
 	}
 
-	foundUser, err := s.FindUserByName(dto.Name)
+	foundUser, err := s.usersRepo.FindByName(dto.Name)
 	if err != nil {
 		return -1, err
 	}
@@ -135,7 +113,8 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 		return -1, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
 	}
 
-	user := dto.ToUser()
+	user := models.User{}
+	user.FromDto(dto)
 
 	hasshedPass, err := s.getPasswordHash(dto.NewPassword)
 	if err != nil {
@@ -144,26 +123,31 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 
 	user.PasswordHash = hasshedPass
 
-	err = s.db.Create(&user).Error
+	id, err := s.usersRepo.Create(&user)
 	if err != nil {
-		return -1, &appErrors.UnexpectedError{
-			Msg:           "Error inserting in the database",
-			InternalError: err,
-		}
+		return -1, err
 	}
 
-	return user.ID, nil
+	return id, nil
 }
 
-func (s *DefaultUsersService) GetUsers(r *[]dtos.GetUserResultDto) error {
-	if err := s.db.Select("id,name,is_admin").Find(&r).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
+func (s *DefaultUsersService) GetUsers() ([]*dtos.UserResponseDto, error) {
+	found, err := s.usersRepo.GetAll()
+	if err != nil {
+		return nil, err
 	}
-	return nil
+
+	res := make([]*dtos.UserResponseDto, len(found))
+
+	for i, v := range found {
+		res[i] = v.ToResponseDto()
+	}
+
+	return res, nil
 }
 
 func (s *DefaultUsersService) RemoveUser(id int32) error {
-	foundUser, err := s.FindUserByID(id)
+	foundUser, err := s.usersRepo.FindByID(id)
 	if err != nil {
 		return err
 	}
@@ -176,55 +160,45 @@ func (s *DefaultUsersService) RemoveUser(id int32) error {
 		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
 	}
 
-	if err := s.db.Where(models.User{ID: id}).Delete(models.User{}).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error deleting user", InternalError: err}
-	}
-	return nil
+	return s.usersRepo.Delete(id)
 }
 
-func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) (*models.User, error) {
-	foundUser, err := s.FindUserByID(id)
+func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) error {
+	foundUser, err := s.usersRepo.FindByID(id)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if foundUser == nil {
-		return nil, &appErrors.BadRequestError{Msg: "The user does not exist"}
+		return &appErrors.BadRequestError{Msg: "The user does not exist"}
 	}
 
-	if strings.ToLower(foundUser.Name) == "admin" && dto.Name != "admin" {
-		return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
+	if strings.ToLower(foundUser.Name) == "admin" {
+		if dto.Name != "admin" {
+			return &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
+		}
+
+		if !dto.IsAdmin {
+			return &appErrors.BadRequestError{Msg: "It is not possible to change the admin's is admin field"}
+		}
 	}
 
-	if strings.ToLower(foundUser.Name) == "admin" && !dto.IsAdmin {
-		return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin's is admin field"}
-	}
+	foundUser.FromDto(dto)
 
-	user := dto.ToUser()
-	user.ID = foundUser.ID
-
-	if len(dto.NewPassword) == 0 {
-		user.PasswordHash = foundUser.PasswordHash
-	} else {
+	if len(dto.NewPassword) > 0 {
 		if dto.NewPassword != dto.ConfirmNewPassword {
-			return nil, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
+			return &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
 		}
 
 		hasshedPass, err := s.getPasswordHash(dto.NewPassword)
 		if err != nil {
-			return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
+			return &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 		}
 
-		user.PasswordHash = hasshedPass
+		foundUser.PasswordHash = hasshedPass
 	}
 
-	if err := s.db.Save(&user).Error; err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error updating user", InternalError: err}
-	}
-
-	user.PasswordHash = ""
-
-	return &user, nil
+	return s.usersRepo.Update(foundUser)
 }
 
 func (s *DefaultUsersService) getPasswordHash(p string) (string, error) {

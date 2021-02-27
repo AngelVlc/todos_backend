@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/AngelVlc/todos/handlers"
+	"github.com/AngelVlc/todos/repositories"
 	"github.com/AngelVlc/todos/services"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
@@ -84,7 +85,7 @@ func InitListsService(db *gorm.DB) services.ListsService {
 }
 
 func initDefaultListsService(db *gorm.DB) services.ListsService {
-	wire.Build(ListsServiceSet)
+	wire.Build(ListsRepositorySet, ListsServiceSet)
 	return nil
 }
 
@@ -120,12 +121,84 @@ func InitUsersService(db *gorm.DB) services.UsersService {
 }
 
 func initDefaultUsersService(db *gorm.DB) services.UsersService {
-	wire.Build(CryptoHelperSet, UsersServiceSet)
+	wire.Build(CryptoHelperSet, UsersRepositorySet, UsersServiceSet)
 	return nil
 }
 
 func initMockedUsersService() services.UsersService {
 	wire.Build(MockedUsersServiceSet)
+	return nil
+}
+
+func InitUsersRepository(db *gorm.DB) repositories.UsersRepository {
+	if inTestingMode() {
+		return initMockedUsersRepository()
+	} else {
+		return initDefaultUsersRepository(db)
+	}
+}
+
+func initDefaultUsersRepository(db *gorm.DB) repositories.UsersRepository {
+	wire.Build(UsersRepositorySet)
+	return nil
+}
+
+func initMockedUsersRepository() repositories.UsersRepository {
+	wire.Build(MockedUsersRepositorySet)
+	return nil
+}
+
+func InitListsRepository(db *gorm.DB) repositories.ListsRepository {
+	if inTestingMode() {
+		return initMockedListsRepository()
+	} else {
+		return initDefaultListsRepository(db)
+	}
+}
+
+func initDefaultListsRepository(db *gorm.DB) repositories.ListsRepository {
+	wire.Build(ListsRepositorySet)
+	return nil
+}
+
+func initMockedListsRepository() repositories.ListsRepository {
+	wire.Build(MockedListsRepositorySet)
+	return nil
+}
+
+func InitListItemsRepository(db *gorm.DB) repositories.ListItemsRepository {
+	if inTestingMode() {
+		return initMockedListItemsRepository()
+	} else {
+		return initDefaultListItemsRepository(db)
+	}
+}
+
+func initDefaultListItemsRepository(db *gorm.DB) repositories.ListItemsRepository {
+	wire.Build(ListItemsRepositorySet)
+	return nil
+}
+
+func initMockedListItemsRepository() repositories.ListItemsRepository {
+	wire.Build(MockedListItemsRepositorySet)
+	return nil
+}
+
+func InitListItemsService(db *gorm.DB) services.ListItemsService {
+	if inTestingMode() {
+		return initMockedListItemsService()
+	} else {
+		return initDefaultListItemsService(db)
+	}
+}
+
+func initDefaultListItemsService(db *gorm.DB) services.ListItemsService {
+	wire.Build(ListItemsRepositorySet, ListsRepositorySet, ListItemsServiceSet)
+	return nil
+}
+
+func initMockedListItemsService() services.ListItemsService {
+	wire.Build(MockedListItemsServiceSet)
 	return nil
 }
 
@@ -218,3 +291,35 @@ var MockedAuthMiddlewareSet = wire.NewSet(
 var RequireAdminMiddlewareSet = wire.NewSet(
 	handlers.NewDefaultRequireAdminMiddleware,
 	wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
+
+var UsersRepositorySet = wire.NewSet(
+	repositories.NewDefaultUsersRepository,
+	wire.Bind(new(repositories.UsersRepository), new(*repositories.DefaultUsersRepository)))
+
+var MockedUsersRepositorySet = wire.NewSet(
+	repositories.NewMockedUsersRepository,
+	wire.Bind(new(repositories.UsersRepository), new(*repositories.MockedUsersRepository)))
+
+var ListsRepositorySet = wire.NewSet(
+	repositories.NewDefaultListsRepository,
+	wire.Bind(new(repositories.ListsRepository), new(*repositories.DefaultListsRepository)))
+
+var MockedListsRepositorySet = wire.NewSet(
+	repositories.NewMockedListsRepository,
+	wire.Bind(new(repositories.ListsRepository), new(*repositories.MockedListsRepository)))
+
+var ListItemsServiceSet = wire.NewSet(
+	services.NewDefaultListItemsService,
+	wire.Bind(new(services.ListItemsService), new(*services.DefaultListItemsService)))
+
+var MockedListItemsServiceSet = wire.NewSet(
+	services.NewMockedListItemsService,
+	wire.Bind(new(services.ListItemsService), new(*services.MockedListItemsService)))
+
+var ListItemsRepositorySet = wire.NewSet(
+	repositories.NewDefaultListItemsRepository,
+	wire.Bind(new(repositories.ListItemsRepository), new(*repositories.DefaultListItemsRepository)))
+
+var MockedListItemsRepositorySet = wire.NewSet(
+	repositories.NewMockedListItemsRepository,
+	wire.Bind(new(repositories.ListItemsRepository), new(*repositories.MockedListItemsRepository)))

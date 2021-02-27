@@ -22,8 +22,7 @@ func AddUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerRe
 }
 
 func GetUsersHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-	res := []dtos.GetUserResultDto{}
-	err := h.usersSrv.GetUsers(&res)
+	res, err := h.usersSrv.GetUsers()
 	if err != nil {
 		return errorResult{err}
 	}
@@ -33,8 +32,7 @@ func GetUsersHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerR
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 	userID := parseInt32UrlVar(r, "id")
 
-	foundUserLists := []dtos.GetListsResultDto{}
-	err := h.listsSrv.GetUserLists(userID, &foundUserLists)
+	foundUserLists, err := h.listsSrv.GetUserLists(userID)
 	if err != nil {
 		return errorResult{err}
 	}
@@ -59,11 +57,11 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h Handler) Handle
 		return errorResult{err}
 	}
 
-	u, err := h.usersSrv.UpdateUser(userID, &dto)
+	err = h.usersSrv.UpdateUser(userID, &dto)
 	if err != nil {
 		return errorResult{err}
 	}
-	return okResult{u, http.StatusCreated}
+	return okResult{nil, http.StatusNoContent}
 }
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
@@ -74,7 +72,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerRe
 		return errorResult{err}
 	}
 
-	result := dtos.GetUserResultDto{
+	result := dtos.UserResponseDto{
 		Name:    u.Name,
 		IsAdmin: u.IsAdmin,
 		ID:      u.ID,

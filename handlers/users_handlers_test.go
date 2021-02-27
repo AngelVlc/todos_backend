@@ -14,7 +14,7 @@ import (
 	"github.com/AngelVlc/todos/models"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAddUserHandler(t *testing.T) {
@@ -50,7 +50,8 @@ func TestAddUserHandler(t *testing.T) {
 
 		result := AddUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
-		assert.Equal(t, okResult{int32(11), http.StatusCreated}, result)
+		okRes := CheckOkResult(t, result, http.StatusCreated)
+		assert.Equal(t, int32(11), okRes.content)
 
 		mockedUsersService.AssertExpectations(t)
 	})
@@ -63,8 +64,7 @@ func TestGetUsersHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if getting the users fails", func(t *testing.T) {
-		res := []dtos.GetUserResultDto{}
-		mockedUsersService.On("GetUsers", &res).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedUsersService.On("GetUsers").Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUsersHandler(httptest.NewRecorder(), request(), handler)
 
@@ -74,21 +74,24 @@ func TestGetUsersHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an ok result with the users if there is no errors", func(t *testing.T) {
-		res := []dtos.GetUserResultDto{
-			dtos.GetUserResultDto{
+		res := []*dtos.UserResponseDto{
+			{
 				ID:      int32(1),
 				Name:    "user1",
 				IsAdmin: true,
 			},
 		}
-		mockedUsersService.On("GetUsers", &[]dtos.GetUserResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(0).(*[]dtos.GetUserResultDto)
-			*arg = res
-		})
+		mockedUsersService.On("GetUsers").Return(res, nil).Once()
 
 		result := GetUsersHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{res, http.StatusOK}, result)
+		okRes := CheckOkResult(t, result, http.StatusOK)
+		resDto, isOk := okRes.content.([]*dtos.UserResponseDto)
+		require.Equal(t, true, isOk, "should be a user result dto")
+		require.Equal(t, len(res), len(resDto))
+		assert.Equal(t, res[0].ID, resDto[0].ID)
+		assert.Equal(t, res[0].Name, resDto[0].Name)
+		assert.Equal(t, res[0].IsAdmin, resDto[0].IsAdmin)
 
 		mockedUsersService.AssertExpectations(t)
 	})
@@ -104,7 +107,7 @@ func TestDeleteUserHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
-		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
+		mockedListsService.On("GetUserLists", int32(40)).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
@@ -114,16 +117,13 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the user has some list", func(t *testing.T) {
-		res := []dtos.GetListsResultDto{
-			dtos.GetListsResultDto{
+		res := []*dtos.ListResponseDto{
+			{
 				ID:   int32(1),
 				Name: "list1",
 			},
 		}
-		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(1).(*[]dtos.GetListsResultDto)
-			*arg = res
-		})
+		mockedListsService.On("GetUserLists", int32(40)).Return(res, nil).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
@@ -133,11 +133,7 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
-		res := []dtos.GetListsResultDto{}
-		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(1).(*[]dtos.GetListsResultDto)
-			*arg = res
-		})
+		mockedListsService.On("GetUserLists", int32(40)).Return([]*dtos.ListResponseDto{}, nil).Once()
 		mockedUsersService.On("RemoveUser", int32(40)).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
@@ -149,16 +145,13 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should delete the user if there is no errors", func(t *testing.T) {
-		res := []dtos.GetListsResultDto{}
-		mockedListsService.On("GetUserLists", int32(40), &[]dtos.GetListsResultDto{}).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(1).(*[]dtos.GetListsResultDto)
-			*arg = res
-		})
+		mockedListsService.On("GetUserLists", int32(40)).Return([]*dtos.ListResponseDto{}, nil).Once()
 		mockedUsersService.On("RemoveUser", int32(40)).Return(nil).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), handler)
 
-		assert.Equal(t, okResult{nil, http.StatusNoContent}, result)
+		noContentRes := CheckOkResult(t, result, http.StatusNoContent)
+		assert.Nil(t, noContentRes.content)
 
 		mockedUsersService.AssertExpectations(t)
 		mockedListsService.AssertExpectations(t)
@@ -184,7 +177,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(nil, &appErrors.BadRequestError{Msg: "Some error"}).Once()
+		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(&appErrors.BadRequestError{Msg: "Some error"}).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
@@ -197,13 +190,12 @@ func TestUpdateUserHandler(t *testing.T) {
 		dto := dtos.UserDto{}
 		body, _ := json.Marshal(dto)
 
-		user := models.User{}
-
-		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(&user, nil).Once()
+		mockedUsersService.On("UpdateUser", int32(40), &dto).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), handler)
 
-		assert.Equal(t, okResult{&user, http.StatusCreated}, result)
+		noContentRes := CheckOkResult(t, result, http.StatusNoContent)
+		assert.Nil(t, noContentRes.content)
 
 		mockedUsersService.AssertExpectations(t)
 	})
@@ -240,13 +232,12 @@ func TestGetUserHandler(t *testing.T) {
 
 		result := GetUserHandler(httptest.NewRecorder(), request(), handler)
 
-		dto := dtos.GetUserResultDto{
-			Name:    "user",
-			IsAdmin: true,
-			ID:      40,
-		}
-
-		assert.Equal(t, okResult{dto, http.StatusCreated}, result)
+		okRes := CheckOkResult(t, result, http.StatusCreated)
+		resDto, isOk := okRes.content.(dtos.UserResponseDto)
+		require.Equal(t, true, isOk, "should be a user result dto")
+		assert.Equal(t, user.ID, resDto.ID)
+		assert.Equal(t, user.Name, resDto.Name)
+		assert.Equal(t, user.IsAdmin, resDto.IsAdmin)
 
 		mockedUsersService.AssertExpectations(t)
 	})

@@ -82,7 +82,7 @@ func (s *DefaultListItemsService) AddListItem(listID int32, userID int32, dto *d
 	i.ListID = listID
 	i.FromDto(dto)
 
-	return s.itemsRepo.Insert(&i)
+	return s.itemsRepo.Create(&i)
 }
 
 // RemoveListItem removes an item
@@ -96,7 +96,7 @@ func (s *DefaultListItemsService) RemoveListItem(id int32, listID int32, userID 
 		return &appErrors.BadRequestError{Msg: "The list does not exist"}
 	}
 
-	return s.itemsRepo.Remove(id, listID, userID)
+	return s.itemsRepo.Delete(id, listID, userID)
 }
 
 // UpdateListItem updates an item

@@ -95,9 +95,9 @@ func TestListItemsServiceAddItem(t *testing.T) {
 		mockedListsRepo.AssertExpectations(t)
 	})
 
-	t.Run("should return an error if insert fails", func(t *testing.T) {
+	t.Run("should return an error if create fails", func(t *testing.T) {
 		mockedListsRepo.On("FindByID", listID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
-		mockedListItemsRepo.On("Insert", &models.ListItem{ListID: listID, Title: "title", Description: "desc"}).Return(nil, fmt.Errorf("some error")).Once()
+		mockedListItemsRepo.On("Create", &models.ListItem{ListID: listID, Title: "title", Description: "desc"}).Return(nil, fmt.Errorf("some error")).Once()
 
 		_, err := svc.AddListItem(listID, userID, &listItemDto)
 
@@ -107,9 +107,9 @@ func TestListItemsServiceAddItem(t *testing.T) {
 		mockedListItemsRepo.AssertExpectations(t)
 	})
 
-	t.Run("should insert the new list item", func(t *testing.T) {
+	t.Run("should create the new list item", func(t *testing.T) {
 		mockedListsRepo.On("FindByID", listID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
-		mockedListItemsRepo.On("Insert", &models.ListItem{ListID: listID, Title: "title", Description: "desc"}).Return(int32(111), nil).Once()
+		mockedListItemsRepo.On("Create", &models.ListItem{ListID: listID, Title: "title", Description: "desc"}).Return(int32(111), nil).Once()
 
 		id, err := svc.AddListItem(listID, userID, &listItemDto)
 
@@ -153,7 +153,7 @@ func TestListItemsServiceRemoveListItem(t *testing.T) {
 
 	t.Run("should return an error if delete fails", func(t *testing.T) {
 		mockedListsRepo.On("FindByID", listID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
-		mockedListItemsRepo.On("Remove", itemID, listID, userID).Return(fmt.Errorf("some error")).Once()
+		mockedListItemsRepo.On("Delete", itemID, listID, userID).Return(fmt.Errorf("some error")).Once()
 
 		err := svc.RemoveListItem(itemID, listID, userID)
 
@@ -165,7 +165,7 @@ func TestListItemsServiceRemoveListItem(t *testing.T) {
 
 	t.Run("should delete the user list item", func(t *testing.T) {
 		mockedListsRepo.On("FindByID", listID, userID).Return(&models.List{ID: listID, Name: "list1", UserID: userID}, nil).Once()
-		mockedListItemsRepo.On("Remove", itemID, listID, userID).Return(nil).Once()
+		mockedListItemsRepo.On("Delete", itemID, listID, userID).Return(nil).Once()
 
 		err := svc.RemoveListItem(itemID, listID, userID)
 

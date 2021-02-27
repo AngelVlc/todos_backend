@@ -182,20 +182,20 @@ func TestUsersRepositoryInsert(t *testing.T) {
 			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
 	}
 
-	t.Run("should return an error if inserting the new user fails", func(t *testing.T) {
+	t.Run("should return an error if creating the new user fails", func(t *testing.T) {
 		mock.ExpectBegin()
 		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		id, err := repo.Insert(&user)
+		id, err := repo.Create(&user)
 
 		assert.Equal(t, int32(-1), id)
-		appErrors.CheckUnexpectedError(t, err, "Error inserting in the database", "some error")
+		appErrors.CheckUnexpectedError(t, err, "Error creating in the database", "some error")
 
 		checkMockExpectations(t, mock)
 	})
 
-	t.Run("should insert the new user", func(t *testing.T) {
+	t.Run("should create the new user", func(t *testing.T) {
 		var affected int64
 		result := sqlmock.NewResult(12, affected)
 
@@ -203,7 +203,7 @@ func TestUsersRepositoryInsert(t *testing.T) {
 		expectedInsertExec().WillReturnResult(result)
 		mock.ExpectCommit()
 
-		id, err := repo.Insert(&user)
+		id, err := repo.Create(&user)
 
 		assert.Equal(t, int32(12), id)
 		assert.Nil(t, err)
@@ -232,7 +232,7 @@ func TestUsersRepositoryRemove(t *testing.T) {
 		expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.Remove(11)
+		err := repo.Delete(11)
 
 		appErrors.CheckUnexpectedError(t, err, "Error deleting user", "some error")
 		checkMockExpectations(t, mock)
@@ -243,7 +243,7 @@ func TestUsersRepositoryRemove(t *testing.T) {
 		expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.Remove(11)
+		err := repo.Delete(11)
 
 		assert.Nil(t, err)
 		checkMockExpectations(t, mock)

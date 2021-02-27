@@ -35,25 +35,25 @@ func TestListsRepositoryInsert(t *testing.T) {
 			WithArgs(list.Name, list.UserID)
 	}
 
-	t.Run("should return an error if insert fails", func(t *testing.T) {
+	t.Run("should return an error if create fails", func(t *testing.T) {
 		mock.ExpectBegin()
 		expectedInsertListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		id, err := repo.Insert(&list)
+		id, err := repo.Create(&list)
 
 		assert.Equal(t, int32(-1), id)
-		appErrors.CheckUnexpectedError(t, err, "Error inserting list", "some error")
+		appErrors.CheckUnexpectedError(t, err, "Error creating list", "some error")
 
 		checkMockExpectations(t, mock)
 	})
 
-	t.Run("should insert the new list", func(t *testing.T) {
+	t.Run("should create the new list", func(t *testing.T) {
 		mock.ExpectBegin()
 		expectedInsertListExec().WillReturnResult(sqlmock.NewResult(12, 0))
 		mock.ExpectCommit()
 
-		id, err := repo.Insert(&list)
+		id, err := repo.Create(&list)
 
 		assert.Equal(t, int32(12), id)
 		assert.Nil(t, err)
@@ -85,7 +85,7 @@ func TestListsRepositoryRemove(t *testing.T) {
 		expectedRemoveListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.Remove(listID, userID)
+		err := repo.Delete(listID, userID)
 
 		appErrors.CheckUnexpectedError(t, err, "Error deleting user list", "some error")
 
@@ -97,7 +97,7 @@ func TestListsRepositoryRemove(t *testing.T) {
 		expectedRemoveListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.Remove(listID, userID)
+		err := repo.Delete(listID, userID)
 
 		assert.Nil(t, err)
 

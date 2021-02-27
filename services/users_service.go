@@ -123,7 +123,7 @@ func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
 
 	user.PasswordHash = hasshedPass
 
-	id, err := s.usersRepo.Insert(&user)
+	id, err := s.usersRepo.Create(&user)
 	if err != nil {
 		return -1, err
 	}
@@ -160,7 +160,7 @@ func (s *DefaultUsersService) RemoveUser(id int32) error {
 		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
 	}
 
-	return s.usersRepo.Remove(id)
+	return s.usersRepo.Delete(id)
 }
 
 func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) error {

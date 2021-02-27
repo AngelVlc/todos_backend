@@ -211,7 +211,7 @@ func TestAddUser(t *testing.T) {
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
-	t.Run("should return an error if inserting the new user fails", func(t *testing.T) {
+	t.Run("should return an error if creating the new user fails", func(t *testing.T) {
 		dto := dtos.UserDto{
 			Name:               user,
 			NewPassword:        "a",
@@ -226,7 +226,7 @@ func TestAddUser(t *testing.T) {
 		user.FromDto(&dto)
 		user.PasswordHash = hasshedPass
 
-		mockedUsersRepo.On("Insert", &user).Return(nil, fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("Create", &user).Return(nil, fmt.Errorf("some error")).Once()
 
 		_, err := svc.AddUser(&dto)
 
@@ -235,7 +235,7 @@ func TestAddUser(t *testing.T) {
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
-	t.Run("should insert the new user", func(t *testing.T) {
+	t.Run("should create the new user", func(t *testing.T) {
 		dto := dtos.UserDto{
 			Name:               user,
 			NewPassword:        "a",
@@ -250,7 +250,7 @@ func TestAddUser(t *testing.T) {
 		user.FromDto(&dto)
 		user.PasswordHash = hasshedPass
 
-		mockedUsersRepo.On("Insert", &user).Return(int32(12), nil).Once()
+		mockedUsersRepo.On("Create", &user).Return(int32(12), nil).Once()
 
 		id, err := svc.AddUser(&dto)
 
@@ -297,7 +297,7 @@ func TestRemoveUser(t *testing.T) {
 
 	t.Run("should return an error if delete fails", func(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(&models.User{ID: 11}, nil).Once()
-		mockedUsersRepo.On("Remove", int32(11)).Return(fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("Delete", int32(11)).Return(fmt.Errorf("some error")).Once()
 
 		err := svc.RemoveUser(11)
 
@@ -307,7 +307,7 @@ func TestRemoveUser(t *testing.T) {
 
 	t.Run("should delete the user", func(t *testing.T) {
 		mockedUsersRepo.On("FindByID", int32(11)).Return(&models.User{ID: 11}, nil).Once()
-		mockedUsersRepo.On("Remove", int32(11)).Return(nil).Once()
+		mockedUsersRepo.On("Delete", int32(11)).Return(nil).Once()
 
 		err := svc.RemoveUser(11)
 

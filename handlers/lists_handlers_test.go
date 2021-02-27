@@ -139,7 +139,7 @@ func TestAddUserListHandler(t *testing.T) {
 		mockedListsService.AssertExpectations(t)
 	})
 
-	t.Run("Should return an errorResult if the body is valid but the insert fails", func(t *testing.T) {
+	t.Run("Should return an errorResult if the body is valid but the create fails", func(t *testing.T) {
 		mockedListsService.On("AddUserList", userID, &dto).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := AddUserListHandler(httptest.NewRecorder(), request(true), handler)
@@ -149,7 +149,7 @@ func TestAddUserListHandler(t *testing.T) {
 		mockedListsService.AssertExpectations(t)
 	})
 
-	t.Run("Should add the list if the body is valid and the insert does not fail", func(t *testing.T) {
+	t.Run("Should add the list if the body is valid and the create does not fail", func(t *testing.T) {
 		mockedListsService.On("AddUserList", userID, &dto).Return(int32(40), nil).Once()
 
 		result := AddUserListHandler(httptest.NewRecorder(), request(true), handler)
@@ -318,7 +318,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 		mockedListsService.AssertExpectations(t)
 	})
 
-	t.Run("Should return an errorResult if the body is valid but the insert fails", func(t *testing.T) {
+	t.Run("Should return an errorResult if the body is valid but the create fails", func(t *testing.T) {
 		mockedListItemsService.On("AddListItem", listID, userID, &dto).Return(int32(-1), &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)
@@ -328,7 +328,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 		mockedListItemsService.AssertExpectations(t)
 	})
 
-	t.Run("Should add the list item if the body is valid and the insert does not fail", func(t *testing.T) {
+	t.Run("Should add the list item if the body is valid and the create does not fail", func(t *testing.T) {
 		mockedListItemsService.On("AddListItem", listID, userID, &dto).Return(int32(40), nil).Once()
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), handler)

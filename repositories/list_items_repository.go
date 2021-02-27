@@ -9,8 +9,8 @@ import (
 
 type ListItemsRepository interface {
 	FindByID(id int32, listID int32, userID int32) (*models.ListItem, error)
-	Insert(item *models.ListItem) (int32, error)
-	Remove(id int32, listID int32, userID int32) error
+	Create(item *models.ListItem) (int32, error)
+	Delete(id int32, listID int32, userID int32) error
 	Update(item *models.ListItem) error
 }
 
@@ -30,7 +30,7 @@ func (m *MockedListItemsRepository) FindByID(id int32, listID int32, userID int3
 	return args.Get(0).(*models.ListItem), args.Error(1)
 }
 
-func (m *MockedListItemsRepository) Insert(item *models.ListItem) (int32, error) {
+func (m *MockedListItemsRepository) Create(item *models.ListItem) (int32, error) {
 	args := m.Called(item)
 	if args.Get(0) == nil {
 		return -1, args.Error(1)
@@ -38,7 +38,7 @@ func (m *MockedListItemsRepository) Insert(item *models.ListItem) (int32, error)
 	return args.Get(0).(int32), args.Error(1)
 }
 
-func (m *MockedListItemsRepository) Remove(id int32, listID int32, userID int32) error {
+func (m *MockedListItemsRepository) Delete(id int32, listID int32, userID int32) error {
 	args := m.Called(id, listID, userID)
 	return args.Error(0)
 }
@@ -71,15 +71,15 @@ func (r *DefaultListItemsRepository) FindByID(id int32, listID int32, userID int
 	return &found, nil
 }
 
-func (r *DefaultListItemsRepository) Insert(item *models.ListItem) (int32, error) {
+func (r *DefaultListItemsRepository) Create(item *models.ListItem) (int32, error) {
 	if err := r.db.Create(item).Error; err != nil {
-		return -1, &appErrors.UnexpectedError{Msg: "Error inserting list item", InternalError: err}
+		return -1, &appErrors.UnexpectedError{Msg: "Error creating list item", InternalError: err}
 	}
 
 	return item.ID, nil
 }
 
-func (r *DefaultListItemsRepository) Remove(id int32, listID int32, userID int32) error {
+func (r *DefaultListItemsRepository) Delete(id int32, listID int32, userID int32) error {
 	if err := r.db.Where(models.ListItem{ID: id, ListID: listID}).Delete(models.ListItem{}).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting user list item", InternalError: err}
 	}

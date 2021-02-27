@@ -75,12 +75,12 @@ func (s *DefaultListsService) AddUserList(userID int32, dto *dtos.ListDto) (int3
 	l.FromDto(dto)
 	l.UserID = userID
 
-	return s.listsRepo.Insert(&l)
+	return s.listsRepo.Create(&l)
 }
 
 // RemoveUserList removes a list
 func (s *DefaultListsService) RemoveUserList(id int32, userID int32) error {
-	return s.listsRepo.Remove(id, userID)
+	return s.listsRepo.Delete(id, userID)
 }
 
 // UpdateUserList updates an existing list

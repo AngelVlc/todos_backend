@@ -11,8 +11,8 @@ type UsersRepository interface {
 	GetAll() ([]*models.User, error)
 	FindByID(id int32) (*models.User, error)
 	FindByName(name string) (*models.User, error)
-	Insert(user *models.User) (int32, error)
-	Remove(id int32) error
+	Create(user *models.User) (int32, error)
+	Delete(id int32) error
 	Update(user *models.User) error
 }
 
@@ -51,7 +51,7 @@ func (m *MockedUsersRepository) FindByName(name string) (*models.User, error) {
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (m *MockedUsersRepository) Insert(user *models.User) (int32, error) {
+func (m *MockedUsersRepository) Create(user *models.User) (int32, error) {
 	args := m.Called(user)
 	got := args.Get(0)
 	if got == nil {
@@ -60,7 +60,7 @@ func (m *MockedUsersRepository) Insert(user *models.User) (int32, error) {
 	return args.Get(0).(int32), args.Error(1)
 }
 
-func (m *MockedUsersRepository) Remove(id int32) error {
+func (m *MockedUsersRepository) Delete(id int32) error {
 	args := m.Called(id)
 	return args.Error(0)
 }
@@ -118,18 +118,18 @@ func (r *DefaultUsersRepository) FindByName(name string) (*models.User, error) {
 	return &foundUser, nil
 }
 
-// Insert adds a new user
-func (r *DefaultUsersRepository) Insert(user *models.User) (int32, error) {
+// Create adds a new user
+func (r *DefaultUsersRepository) Create(user *models.User) (int32, error) {
 	err := r.db.Create(user).Error
 	if err != nil {
-		return -1, &appErrors.UnexpectedError{Msg: "Error inserting in the database", InternalError: err}
+		return -1, &appErrors.UnexpectedError{Msg: "Error creating in the database", InternalError: err}
 	}
 
 	return user.ID, nil
 }
 
-// Remove removes a user
-func (r *DefaultUsersRepository) Remove(id int32) error {
+// Delete removes a user
+func (r *DefaultUsersRepository) Delete(id int32) error {
 	if err := r.db.Where(models.User{ID: id}).Delete(models.User{}).Error; err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting user", InternalError: err}
 	}

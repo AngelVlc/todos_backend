@@ -21,8 +21,8 @@ func TestListsServiceAddList(t *testing.T) {
 
 	listDto := dtos.ListDto{Name: "list1"}
 
-	t.Run("should return an error if insert fails", func(t *testing.T) {
-		mockedListsRepo.On("Insert", &models.List{Name: "list1", UserID: userID}).Return(nil, fmt.Errorf("some error")).Once()
+	t.Run("should return an error if create fails", func(t *testing.T) {
+		mockedListsRepo.On("Create", &models.List{Name: "list1", UserID: userID}).Return(nil, fmt.Errorf("some error")).Once()
 
 		_, err := svc.AddUserList(userID, &listDto)
 
@@ -30,8 +30,8 @@ func TestListsServiceAddList(t *testing.T) {
 		mockedListsRepo.AssertExpectations(t)
 	})
 
-	t.Run("should insert the new list", func(t *testing.T) {
-		mockedListsRepo.On("Insert", &models.List{Name: "list1", UserID: userID}).Return(int32(12), nil).Once()
+	t.Run("should create the new list", func(t *testing.T) {
+		mockedListsRepo.On("Create", &models.List{Name: "list1", UserID: userID}).Return(int32(12), nil).Once()
 
 		id, err := svc.AddUserList(userID, &listDto)
 
@@ -50,7 +50,7 @@ func TestListsServiceRemoveList(t *testing.T) {
 	listID := int32(11)
 
 	t.Run("should return an error if delete fails", func(t *testing.T) {
-		mockedListsRepo.On("Remove", listID, userID).Return(fmt.Errorf("some error")).Once()
+		mockedListsRepo.On("Delete", listID, userID).Return(fmt.Errorf("some error")).Once()
 
 		err := svc.RemoveUserList(listID, userID)
 
@@ -59,7 +59,7 @@ func TestListsServiceRemoveList(t *testing.T) {
 	})
 
 	t.Run("should delete the user list", func(t *testing.T) {
-		mockedListsRepo.On("Remove", listID, userID).Return(nil).Once()
+		mockedListsRepo.On("Delete", listID, userID).Return(nil).Once()
 
 		err := svc.RemoveUserList(listID, userID)
 

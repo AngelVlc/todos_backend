@@ -2,7 +2,7 @@ version: '3.7'
 services:
   app:
     build:
-      context: .
+      context: ./src/
       target: test
     ports:
       - 5001:5001
@@ -10,7 +10,7 @@ services:
     depends_on:
       - mysql
     volumes:
-      - '.:/go/src'
+      - './src:/go/src'
     env_file: 
       - ./local.env
     init: true

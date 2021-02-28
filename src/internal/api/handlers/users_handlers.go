@@ -78,5 +78,5 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerRe
 		ID:      u.ID,
 	}
 
-	return okResult{result, http.StatusCreated}
+	return okResult{result, http.StatusOK}
 }

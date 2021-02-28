@@ -1,6 +1,6 @@
 //+build !e2e
 
-package services
+package application
 
 import (
 	"testing"

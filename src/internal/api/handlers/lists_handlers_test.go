@@ -13,8 +13,11 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos/internal/api/dtos"
+	"github.com/AngelVlc/todos/internal/api/services"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -31,13 +34,15 @@ func TestGetUserListsHandler(t *testing.T) {
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, userID)
 		return request.WithContext(ctx)
 	}
+	mockedListsService := services.NewMockedListsService()
+	h := handler.Handler{ListsSrv: mockedListsService}
 
 	t.Run("Should return an errorResult if getting the user lists fails", func(t *testing.T) {
 		mockedListsService.On("GetUserLists", userID).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUserListsHandler(httptest.NewRecorder(), request(), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -53,7 +58,7 @@ func TestGetUserListsHandler(t *testing.T) {
 
 		result := GetUserListsHandler(httptest.NewRecorder(), request(), h)
 
-		okRes := CheckOkResult(t, result, http.StatusOK)
+		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.Content.([]*dtos.ListResponseDto)
 		require.Equal(t, true, isOk, "should be a list response dto")
 		require.Equal(t, 1, len(resDto))
@@ -75,12 +80,15 @@ func TestGetUserSingleListHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	mockedListsService := services.NewMockedListsService()
+	h := handler.Handler{ListsSrv: mockedListsService}
+
 	t.Run("Should return an errorResult if the list id is valid but the query fails", func(t *testing.T) {
 		mockedListsService.On("GetUserList", int32(11), userID).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUserSingleListHandler(httptest.NewRecorder(), request(), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -101,7 +109,7 @@ func TestGetUserSingleListHandler(t *testing.T) {
 
 		result := GetUserSingleListHandler(httptest.NewRecorder(), request(), h)
 
-		okRes := CheckOkResult(t, result, http.StatusOK)
+		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.Content.(*dtos.ListResponseDto)
 		require.Equal(t, true, isOk, "should be a list response dto")
 		assert.Equal(t, res.ID, resDto.ID)
@@ -133,10 +141,13 @@ func TestAddUserListHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	mockedListsService := services.NewMockedListsService()
+	h := handler.Handler{ListsSrv: mockedListsService}
+
 	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
 		result := AddUserListHandler(httptest.NewRecorder(), request(false), h)
 
-		CheckBadRequestErrorResult(t, result, "Invalid body")
+		results.CheckBadRequestErrorResult(t, result, "Invalid body")
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -146,7 +157,7 @@ func TestAddUserListHandler(t *testing.T) {
 
 		result := AddUserListHandler(httptest.NewRecorder(), request(true), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -156,7 +167,7 @@ func TestAddUserListHandler(t *testing.T) {
 
 		result := AddUserListHandler(httptest.NewRecorder(), request(true), h)
 
-		okRes := CheckOkResult(t, result, http.StatusCreated)
+		okRes := results.CheckOkResult(t, result, http.StatusCreated)
 		assert.Equal(t, int32(40), okRes.Content)
 
 		mockedListsService.AssertExpectations(t)
@@ -184,10 +195,13 @@ func TestUpdateUserListHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	mockedListsService := services.NewMockedListsService()
+	h := handler.Handler{ListsSrv: mockedListsService}
+
 	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
 		result := UpdateUserListHandler(httptest.NewRecorder(), request(false), h)
 
-		CheckBadRequestErrorResult(t, result, "Invalid body")
+		results.CheckBadRequestErrorResult(t, result, "Invalid body")
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -197,7 +211,7 @@ func TestUpdateUserListHandler(t *testing.T) {
 
 		result := UpdateUserListHandler(httptest.NewRecorder(), request(true), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -207,7 +221,7 @@ func TestUpdateUserListHandler(t *testing.T) {
 
 		result := UpdateUserListHandler(httptest.NewRecorder(), request(true), h)
 
-		okRes := CheckOkResult(t, result, http.StatusOK)
+		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.Content.(*dtos.ListDto)
 		require.Equal(t, true, isOk, "should be a list")
 		assert.Equal(t, resDto.Name, dto.Name)
@@ -227,12 +241,15 @@ func TestDeleteUserListHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	mockedListsService := services.NewMockedListsService()
+	h := handler.Handler{ListsSrv: mockedListsService}
+
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
 		mockedListsService.On("RemoveUserList", int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := DeleteUserListHandler(httptest.NewRecorder(), request(), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -242,7 +259,7 @@ func TestDeleteUserListHandler(t *testing.T) {
 
 		result := DeleteUserListHandler(httptest.NewRecorder(), request(), h)
 
-		okRes := CheckOkResult(t, result, http.StatusNoContent)
+		okRes := results.CheckOkResult(t, result, http.StatusNoContent)
 		assert.Nil(t, okRes.Content)
 
 		mockedListsService.AssertExpectations(t)
@@ -261,12 +278,15 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	mockedListItemsService := services.NewMockedListItemsService()
+	h := handler.Handler{ListItemsSrv: mockedListItemsService}
+
 	t.Run("Should return an errorResult if the listId is valid but the query fails", func(t *testing.T) {
 		mockedListItemsService.On("GetListItem", int32(3), int32(5), userID).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := GetUserSingleListItemHandler(httptest.NewRecorder(), request(), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListItemsService.AssertExpectations(t)
 	})
@@ -280,7 +300,7 @@ func TestGetUserSingleListItemHandler(t *testing.T) {
 
 		result := GetUserSingleListItemHandler(httptest.NewRecorder(), request(), h)
 
-		okRes := CheckOkResult(t, result, http.StatusOK)
+		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.Content.(*dtos.ListItemResponseDto)
 		require.Equal(t, true, isOk, "should be a list item response dto")
 		assert.Equal(t, res.Title, resDto.Title)
@@ -312,10 +332,14 @@ func TestAddUserListItemHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	mockedListsService := services.NewMockedListsService()
+	mockedListItemsService := services.NewMockedListItemsService()
+	h := handler.Handler{ListsSrv: mockedListsService, ListItemsSrv: mockedListItemsService}
+
 	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(false), h)
 
-		CheckBadRequestErrorResult(t, result, "Invalid body")
+		results.CheckBadRequestErrorResult(t, result, "Invalid body")
 
 		mockedListsService.AssertExpectations(t)
 	})
@@ -325,7 +349,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListItemsService.AssertExpectations(t)
 	})
@@ -335,7 +359,7 @@ func TestAddUserListItemHandler(t *testing.T) {
 
 		result := AddUserListItemHandler(httptest.NewRecorder(), request(true), h)
 
-		okRes := CheckOkResult(t, result, http.StatusCreated)
+		okRes := results.CheckOkResult(t, result, http.StatusCreated)
 		assert.Equal(t, int32(40), okRes.Content)
 
 		mockedListItemsService.AssertExpectations(t)
@@ -354,12 +378,15 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	mockedListItemsService := services.NewMockedListItemsService()
+	h := handler.Handler{ListItemsSrv: mockedListItemsService}
+
 	t.Run("Should return an errorResult if the delete fails", func(t *testing.T) {
 		mockedListItemsService.On("RemoveListItem", int32(20), int32(40), userID).Return(&appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
 		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListItemsService.AssertExpectations(t)
 	})
@@ -369,7 +396,7 @@ func TestDeleteUserListItemHandler(t *testing.T) {
 
 		result := DeleteUserListItemHandler(httptest.NewRecorder(), request(), h)
 
-		okRes := CheckOkResult(t, result, http.StatusNoContent)
+		okRes := results.CheckOkResult(t, result, http.StatusNoContent)
 		assert.Nil(t, okRes.Content)
 
 		mockedListItemsService.AssertExpectations(t)
@@ -399,10 +426,13 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	mockedListItemsService := services.NewMockedListItemsService()
+	h := handler.Handler{ListItemsSrv: mockedListItemsService}
+
 	t.Run("Should return an errorResult if the body is not valid", func(t *testing.T) {
 		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(false), h)
 
-		CheckBadRequestErrorResult(t, result, "Invalid body")
+		results.CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
 
 	t.Run("Should return an errorResult if the body is valid but the update fails", func(t *testing.T) {
@@ -410,7 +440,7 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 
 		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), h)
 
-		CheckUnexpectedErrorResult(t, result, "Some error")
+		results.CheckUnexpectedErrorResult(t, result, "Some error")
 
 		mockedListItemsService.AssertExpectations(t)
 	})
@@ -420,7 +450,7 @@ func TestUpdateUserListItemHandler(t *testing.T) {
 
 		result := UpdateUserListItemHandler(httptest.NewRecorder(), request(true), h)
 
-		okRes := CheckOkResult(t, result, http.StatusOK)
+		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.Content.(*dtos.ListItemDto)
 		require.Equal(t, true, isOk, "should be a list item result dto")
 		assert.Equal(t, dto.Title, resDto.Title)

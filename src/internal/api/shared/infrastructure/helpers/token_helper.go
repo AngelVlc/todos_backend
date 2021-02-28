@@ -1,4 +1,4 @@
-package services
+package helpers
 
 import (
 	"fmt"
@@ -57,7 +57,7 @@ func (m *MockedTokenHelper) IsTokenValid(token interface{}) bool {
 
 // JwtTokenHelper is the type used as JwtTokenHelper
 type JwtTokenHelper struct {
-	secret string
+	// secret string
 }
 
 // NewJwtTokenHelper returns a new JwtTokenHelper

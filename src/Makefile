@@ -4,6 +4,9 @@ fmt:
 test:
 	go test ./...
 
+clean-test-cache:
+	go clean -testcache
+
 generate-wire:
 	wire internal/api/wire/wire.go
 

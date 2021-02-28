@@ -9,9 +9,11 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
+	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/dtos"
 	"github.com/stretchr/testify/require"
 )
@@ -25,13 +27,13 @@ func TestEndtoEnd(t *testing.T) {
 
 	client := &http.Client{}
 
-	tokenDtoBody, _ := bufferFromBody(dtos.TokenDto{UserName: "admin", Password: adminPass})
-	req := createRequest(t, "POST", baseURL+"/auth/token", tokenDtoBody)
+	loginBody := "{\"username\": \"admin\",\"password\": \"admin\"}"
+	req := createRequest(t, "POST", baseURL+"/auth/login", strings.NewReader(loginBody))
 	req.Header.Set("Content-type", "application/json")
 	res, err := client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
-	tokenRes := dtos.TokenResponseDto{}
+	tokenRes := authDomain.TokenResponse{}
 	err = objFromRes(res.Body, &tokenRes)
 	require.Nil(t, err)
 

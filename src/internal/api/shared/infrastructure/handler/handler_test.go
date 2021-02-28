@@ -3,6 +3,8 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,9 +14,10 @@ import (
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestHandler(t *testing.T) {
+func TestHandlerServeHTTP(t *testing.T) {
 	t.Run("Returns 200 when no error", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
 			return results.OkResult{nil, http.StatusOK}
@@ -147,5 +150,42 @@ func TestHandler(t *testing.T) {
 
 		assert.Equal(t, http.StatusInternalServerError, response.Result().StatusCode)
 		assert.Equal(t, "Internal error\n", string(response.Body.String()))
+	})
+}
+
+func TestHandlerParseBody(t *testing.T) {
+	handler := Handler{}
+
+	t.Run("Returns a bad request error when the body is nil", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		res := handler.ParseBody(request, nil)
+
+		assert.Error(t, res)
+		badReqErr, isBadReqErr := res.(*appErrors.BadRequestError)
+		require.Equal(t, true, isBadReqErr, "should be a bad request error")
+		assert.Equal(t, "Invalid body", badReqErr.Error())
+	})
+
+	t.Run("Returns a bad request error when the body is invalid", func(t *testing.T) {
+		body, _ := json.Marshal("")
+
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
+		res := handler.ParseBody(request, nil)
+
+		assert.Error(t, res)
+		badReqErr, isBadReqErr := res.(*appErrors.BadRequestError)
+		require.Equal(t, true, isBadReqErr, "should be a bad request error")
+		assert.Equal(t, "Invalid body", badReqErr.Error())
+	})
+
+	t.Run("Returns nil when the body is valid", func(t *testing.T) {
+		body, _ := json.Marshal("text")
+
+		data := ""
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
+		res := handler.ParseBody(request, &data)
+
+		assert.Nil(t, res)
+		assert.Equal(t, "text", data)
 	})
 }

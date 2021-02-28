@@ -27,7 +27,7 @@ type route struct {
 }
 
 var publicRoutes = []route{
-	{"/auth/token", http.MethodPost},
+	{"/auth/login", http.MethodPost},
 	{"/auth/refreshtoken", http.MethodPost},
 }
 

@@ -5,9 +5,13 @@ package wire
 import (
 	"os"
 
+	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
+	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
 	"github.com/AngelVlc/todos/internal/api/handlers"
 	"github.com/AngelVlc/todos/internal/api/repositories"
 	"github.com/AngelVlc/todos/internal/api/services"
+	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 )
@@ -17,21 +21,21 @@ func InitLogMiddleware() handlers.LogMiddleware {
 	return handlers.LogMiddleware{}
 }
 
-func InitAuthMiddleware(db *gorm.DB) handlers.AuthMiddleware {
+func InitAuthMiddleware(db *gorm.DB) authInfra.AuthMiddleware {
 	if inTestingMode() {
-		return initMockedAuthMiddleware()
+		return initFakeAuthMiddleware()
 	} else {
-		return initDefaultAuthMiddleware(db)
+		return initDefaultAuthMiddleware()
 	}
 }
 
-func initDefaultAuthMiddleware(db *gorm.DB) handlers.AuthMiddleware {
+func initDefaultAuthMiddleware() authInfra.AuthMiddleware {
 	wire.Build(AuthMiddlewareSet)
 	return nil
 }
 
-func initMockedAuthMiddleware() handlers.AuthMiddleware {
-	wire.Build(MockedAuthMiddlewareSet)
+func initFakeAuthMiddleware() authInfra.AuthMiddleware {
+	wire.Build(FakeAuthMiddlewareSet)
 	return nil
 }
 
@@ -91,24 +95,6 @@ func initDefaultListsService(db *gorm.DB) services.ListsService {
 
 func initMockedListsService() services.ListsService {
 	wire.Build(MockedListsServiceSet)
-	return nil
-}
-
-func InitAuthService() services.AuthService {
-	if inTestingMode() {
-		return initMockedAuthService()
-	} else {
-		return initDefaultAuthService()
-	}
-}
-
-func initDefaultAuthService() services.AuthService {
-	wire.Build(AuthServiceSet)
-	return nil
-}
-
-func initMockedAuthService() services.AuthService {
-	wire.Build(MockedAuthServiceSet)
 	return nil
 }
 
@@ -202,8 +188,26 @@ func initMockedListItemsService() services.ListItemsService {
 	return nil
 }
 
-func InitConfigurationService() services.ConfigurationService {
+func InitConfigurationService() sharedApp.ConfigurationService {
 	wire.Build(ConfigurationServiceSet)
+	return nil
+}
+
+func InitAuthRepository(db *gorm.DB) authDomain.AuthRepository {
+	if inTestingMode() {
+		return initMockedAuthRepositorySet()
+	} else {
+		return initMySqlAuthRepository(db)
+	}
+}
+
+func initMockedAuthRepositorySet() authDomain.AuthRepository {
+	wire.Build(MockedAuthRepositorySet)
+	return nil
+}
+
+func initMySqlAuthRepository(db *gorm.DB) authDomain.AuthRepository {
+	wire.Build(MySqlAuthRepositorySet)
 	return nil
 }
 
@@ -212,16 +216,16 @@ func inTestingMode() bool {
 }
 
 var EnvGetterSet = wire.NewSet(
-	services.NewOsEnvGetter,
-	wire.Bind(new(services.EnvGetter), new(*services.OsEnvGetter)))
+	sharedApp.NewOsEnvGetter,
+	wire.Bind(new(sharedApp.EnvGetter), new(*sharedApp.OsEnvGetter)))
 
 var TokenHelperSet = wire.NewSet(
-	services.NewJwtTokenHelper,
-	wire.Bind(new(services.TokenHelper), new(*services.JwtTokenHelper)))
+	helpers.NewJwtTokenHelper,
+	wire.Bind(new(helpers.TokenHelper), new(*helpers.JwtTokenHelper)))
 
 var MockedTokenHelperSet = wire.NewSet(
-	services.NewMockedTokenHelper,
-	wire.Bind(new(services.TokenHelper), new(*services.MockedTokenHelper)))
+	helpers.NewMockedTokenHelper,
+	wire.Bind(new(helpers.TokenHelper), new(*helpers.MockedTokenHelper)))
 
 var CryptoHelperSet = wire.NewSet(
 	services.NewBcryptHelper,
@@ -229,22 +233,12 @@ var CryptoHelperSet = wire.NewSet(
 
 var ConfigurationServiceSet = wire.NewSet(
 	EnvGetterSet,
-	services.NewDefaultConfigurationService,
-	wire.Bind(new(services.ConfigurationService), new(*services.DefaultConfigurationService)))
+	sharedApp.NewDefaultConfigurationService,
+	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.DefaultConfigurationService)))
 
 var MockedConfigurationServiceSet = wire.NewSet(
-	services.NewMockedConfigurationService,
-	wire.Bind(new(services.ConfigurationService), new(*services.MockedConfigurationService)))
-
-var AuthServiceSet = wire.NewSet(
-	TokenHelperSet,
-	ConfigurationServiceSet,
-	services.NewDefaultAuthService,
-	wire.Bind(new(services.AuthService), new(*services.DefaultAuthService)))
-
-var MockedAuthServiceSet = wire.NewSet(
-	services.NewMockedAuthService,
-	wire.Bind(new(services.AuthService), new(*services.MockedAuthService)))
+	sharedApp.NewMockedConfigurationService,
+	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.MockedConfigurationService)))
 
 var UsersServiceSet = wire.NewSet(
 	services.NewDefaultUsersService,
@@ -280,13 +274,13 @@ var MockedRequestCounterMiddlewareSet = wire.NewSet(
 	wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.MockedRequestCounterMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	AuthServiceSet,
-	handlers.NewDefaultAuthMiddleware,
-	wire.Bind(new(handlers.AuthMiddleware), new(*handlers.DefaultAuthMiddleware)))
+	ConfigurationServiceSet,
+	authInfra.NewRealAuthMiddleware,
+	wire.Bind(new(authInfra.AuthMiddleware), new(*authInfra.RealAuthMiddleware)))
 
-var MockedAuthMiddlewareSet = wire.NewSet(
-	handlers.NewMockedAuthMiddleware,
-	wire.Bind(new(handlers.AuthMiddleware), new(*handlers.MockedAuthMiddleware)))
+var FakeAuthMiddlewareSet = wire.NewSet(
+	authInfra.NewFakeAuthMiddleware,
+	wire.Bind(new(authInfra.AuthMiddleware), new(*authInfra.FakeAuthMiddleware)))
 
 var RequireAdminMiddlewareSet = wire.NewSet(
 	handlers.NewDefaultRequireAdminMiddleware,
@@ -323,3 +317,11 @@ var ListItemsRepositorySet = wire.NewSet(
 var MockedListItemsRepositorySet = wire.NewSet(
 	repositories.NewMockedListItemsRepository,
 	wire.Bind(new(repositories.ListItemsRepository), new(*repositories.MockedListItemsRepository)))
+
+var MySqlAuthRepositorySet = wire.NewSet(
+	authInfra.NewMySqlAuthRepository,
+	wire.Bind(new(authDomain.AuthRepository), new(*authInfra.MySqlAuthRepository)))
+
+var MockedAuthRepositorySet = wire.NewSet(
+	authInfra.NewMockedAuthRepository,
+	wire.Bind(new(authDomain.AuthRepository), new(*authInfra.MockedAuthRepository)))

@@ -7,7 +7,7 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/dtos"
 	"github.com/AngelVlc/todos/internal/api/server"
-	"github.com/AngelVlc/todos/internal/api/services"
+	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/handlers"
 	"github.com/jinzhu/gorm"
@@ -69,7 +69,7 @@ func main() {
 	}
 }
 
-func initDb(c services.ConfigurationService) (*gorm.DB, error) {
+func initDb(c sharedApp.ConfigurationService) (*gorm.DB, error) {
 	db, err := gorm.Open("mysql", c.GetDatasource())
 	if err != nil {
 		return nil, err

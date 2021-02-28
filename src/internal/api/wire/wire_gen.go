@@ -6,9 +6,13 @@
 package wire
 
 import (
+	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/infrastructure"
 	"github.com/AngelVlc/todos/internal/api/handlers"
 	"github.com/AngelVlc/todos/internal/api/repositories"
 	"github.com/AngelVlc/todos/internal/api/services"
+	"github.com/AngelVlc/todos/internal/api/shared/application"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 	"os"
@@ -21,18 +25,16 @@ func InitLogMiddleware() handlers.LogMiddleware {
 	return logMiddleware
 }
 
-func initDefaultAuthMiddleware(db *gorm.DB) handlers.AuthMiddleware {
-	jwtTokenHelper := services.NewJwtTokenHelper()
-	osEnvGetter := services.NewOsEnvGetter()
-	defaultConfigurationService := services.NewDefaultConfigurationService(osEnvGetter)
-	defaultAuthService := services.NewDefaultAuthService(jwtTokenHelper, defaultConfigurationService)
-	defaultAuthMiddleware := handlers.NewDefaultAuthMiddleware(defaultAuthService)
-	return defaultAuthMiddleware
+func initDefaultAuthMiddleware() infrastructure.AuthMiddleware {
+	osEnvGetter := application.NewOsEnvGetter()
+	defaultConfigurationService := application.NewDefaultConfigurationService(osEnvGetter)
+	realAuthMiddleware := infrastructure.NewRealAuthMiddleware(defaultConfigurationService)
+	return realAuthMiddleware
 }
 
-func initMockedAuthMiddleware() handlers.AuthMiddleware {
-	mockedAuthMiddleware := handlers.NewMockedAuthMiddleware()
-	return mockedAuthMiddleware
+func initFakeAuthMiddleware() infrastructure.AuthMiddleware {
+	fakeAuthMiddleware := infrastructure.NewFakeAuthMiddleware()
+	return fakeAuthMiddleware
 }
 
 func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
@@ -70,19 +72,6 @@ func initDefaultListsService(db *gorm.DB) services.ListsService {
 func initMockedListsService() services.ListsService {
 	mockedListsService := services.NewMockedListsService()
 	return mockedListsService
-}
-
-func initDefaultAuthService() services.AuthService {
-	jwtTokenHelper := services.NewJwtTokenHelper()
-	osEnvGetter := services.NewOsEnvGetter()
-	defaultConfigurationService := services.NewDefaultConfigurationService(osEnvGetter)
-	defaultAuthService := services.NewDefaultAuthService(jwtTokenHelper, defaultConfigurationService)
-	return defaultAuthService
-}
-
-func initMockedAuthService() services.AuthService {
-	mockedAuthService := services.NewMockedAuthService()
-	return mockedAuthService
 }
 
 func initDefaultUsersService(db *gorm.DB) services.UsersService {
@@ -139,19 +128,29 @@ func initMockedListItemsService() services.ListItemsService {
 	return mockedListItemsService
 }
 
-func InitConfigurationService() services.ConfigurationService {
-	osEnvGetter := services.NewOsEnvGetter()
-	defaultConfigurationService := services.NewDefaultConfigurationService(osEnvGetter)
+func InitConfigurationService() application.ConfigurationService {
+	osEnvGetter := application.NewOsEnvGetter()
+	defaultConfigurationService := application.NewDefaultConfigurationService(osEnvGetter)
 	return defaultConfigurationService
+}
+
+func initMockedAuthRepositorySet() domain.AuthRepository {
+	mockedAuthRepository := infrastructure.NewMockedAuthRepository()
+	return mockedAuthRepository
+}
+
+func initMySqlAuthRepository(db *gorm.DB) domain.AuthRepository {
+	mySqlAuthRepository := infrastructure.NewMySqlAuthRepository(db)
+	return mySqlAuthRepository
 }
 
 // wire.go:
 
-func InitAuthMiddleware(db *gorm.DB) handlers.AuthMiddleware {
+func InitAuthMiddleware(db *gorm.DB) infrastructure.AuthMiddleware {
 	if inTestingMode() {
-		return initMockedAuthMiddleware()
+		return initFakeAuthMiddleware()
 	} else {
-		return initDefaultAuthMiddleware(db)
+		return initDefaultAuthMiddleware()
 	}
 }
 
@@ -176,14 +175,6 @@ func InitListsService(db *gorm.DB) services.ListsService {
 		return initMockedListsService()
 	} else {
 		return initDefaultListsService(db)
-	}
-}
-
-func InitAuthService() services.AuthService {
-	if inTestingMode() {
-		return initMockedAuthService()
-	} else {
-		return initDefaultAuthService()
 	}
 }
 
@@ -227,28 +218,30 @@ func InitListItemsService(db *gorm.DB) services.ListItemsService {
 	}
 }
 
+func InitAuthRepository(db *gorm.DB) domain.AuthRepository {
+	if inTestingMode() {
+		return initMockedAuthRepositorySet()
+	} else {
+		return initMySqlAuthRepository(db)
+	}
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
 
-var EnvGetterSet = wire.NewSet(services.NewOsEnvGetter, wire.Bind(new(services.EnvGetter), new(*services.OsEnvGetter)))
+var EnvGetterSet = wire.NewSet(application.NewOsEnvGetter, wire.Bind(new(application.EnvGetter), new(*application.OsEnvGetter)))
 
-var TokenHelperSet = wire.NewSet(services.NewJwtTokenHelper, wire.Bind(new(services.TokenHelper), new(*services.JwtTokenHelper)))
+var TokenHelperSet = wire.NewSet(helpers.NewJwtTokenHelper, wire.Bind(new(helpers.TokenHelper), new(*helpers.JwtTokenHelper)))
 
-var MockedTokenHelperSet = wire.NewSet(services.NewMockedTokenHelper, wire.Bind(new(services.TokenHelper), new(*services.MockedTokenHelper)))
+var MockedTokenHelperSet = wire.NewSet(helpers.NewMockedTokenHelper, wire.Bind(new(helpers.TokenHelper), new(*helpers.MockedTokenHelper)))
 
 var CryptoHelperSet = wire.NewSet(services.NewBcryptHelper, wire.Bind(new(services.CryptoHelper), new(*services.BcryptHelper)))
 
 var ConfigurationServiceSet = wire.NewSet(
-	EnvGetterSet, services.NewDefaultConfigurationService, wire.Bind(new(services.ConfigurationService), new(*services.DefaultConfigurationService)))
+	EnvGetterSet, application.NewDefaultConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.DefaultConfigurationService)))
 
-var MockedConfigurationServiceSet = wire.NewSet(services.NewMockedConfigurationService, wire.Bind(new(services.ConfigurationService), new(*services.MockedConfigurationService)))
-
-var AuthServiceSet = wire.NewSet(
-	TokenHelperSet,
-	ConfigurationServiceSet, services.NewDefaultAuthService, wire.Bind(new(services.AuthService), new(*services.DefaultAuthService)))
-
-var MockedAuthServiceSet = wire.NewSet(services.NewMockedAuthService, wire.Bind(new(services.AuthService), new(*services.MockedAuthService)))
+var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.MockedConfigurationService)))
 
 var UsersServiceSet = wire.NewSet(services.NewDefaultUsersService, wire.Bind(new(services.UsersService), new(*services.DefaultUsersService)))
 
@@ -268,9 +261,9 @@ var RequestCounterMiddlewareSet = wire.NewSet(
 var MockedRequestCounterMiddlewareSet = wire.NewSet(handlers.NewMockedRequestCounterMiddleware, wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.MockedRequestCounterMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	AuthServiceSet, handlers.NewDefaultAuthMiddleware, wire.Bind(new(handlers.AuthMiddleware), new(*handlers.DefaultAuthMiddleware)))
+	ConfigurationServiceSet, infrastructure.NewRealAuthMiddleware, wire.Bind(new(infrastructure.AuthMiddleware), new(*infrastructure.RealAuthMiddleware)))
 
-var MockedAuthMiddlewareSet = wire.NewSet(handlers.NewMockedAuthMiddleware, wire.Bind(new(handlers.AuthMiddleware), new(*handlers.MockedAuthMiddleware)))
+var FakeAuthMiddlewareSet = wire.NewSet(infrastructure.NewFakeAuthMiddleware, wire.Bind(new(infrastructure.AuthMiddleware), new(*infrastructure.FakeAuthMiddleware)))
 
 var RequireAdminMiddlewareSet = wire.NewSet(handlers.NewDefaultRequireAdminMiddleware, wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
 
@@ -289,3 +282,7 @@ var MockedListItemsServiceSet = wire.NewSet(services.NewMockedListItemsService, 
 var ListItemsRepositorySet = wire.NewSet(repositories.NewDefaultListItemsRepository, wire.Bind(new(repositories.ListItemsRepository), new(*repositories.DefaultListItemsRepository)))
 
 var MockedListItemsRepositorySet = wire.NewSet(repositories.NewMockedListItemsRepository, wire.Bind(new(repositories.ListItemsRepository), new(*repositories.MockedListItemsRepository)))
+
+var MySqlAuthRepositorySet = wire.NewSet(infrastructure.NewMySqlAuthRepository, wire.Bind(new(domain.AuthRepository), new(*infrastructure.MySqlAuthRepository)))
+
+var MockedAuthRepositorySet = wire.NewSet(infrastructure.NewMockedAuthRepository, wire.Bind(new(domain.AuthRepository), new(*infrastructure.MockedAuthRepository)))

@@ -1,9 +1,12 @@
 package handler
 
 import (
+	"encoding/json"
 	"net/http"
 
+	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/services"
+	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
@@ -12,23 +15,27 @@ import (
 // Handler is the type used to handle the endpoints
 type Handler struct {
 	HandlerFunc
-	UsersSrv     services.UsersService
-	AuthSrv      services.AuthService
-	ListsSrv     services.ListsService
-	ListItemsSrv services.ListItemsService
+	UsersSrv       services.UsersService
+	ListsSrv       services.ListsService
+	ListItemsSrv   services.ListItemsService
+	AuthRepository authDomain.AuthRepository
+	CfgSrv         sharedApp.ConfigurationService
 }
 
 type HandlerResult interface {
 	IsError() bool
 }
 
-func NewHandler(f HandlerFunc, usersSvc services.UsersService, authSvc services.AuthService, listsSvc services.ListsService, listItemsSvc services.ListItemsService) Handler {
+func NewHandler(f HandlerFunc, usersSvc services.UsersService,
+	listsSvc services.ListsService, listItemsSvc services.ListItemsService,
+	authRepo authDomain.AuthRepository, cfgSrv sharedApp.ConfigurationService) Handler {
 	return Handler{
-		HandlerFunc:  f,
-		UsersSrv:     usersSvc,
-		AuthSrv:      authSvc,
-		ListsSrv:     listsSvc,
-		ListItemsSrv: listItemsSvc,
+		HandlerFunc:    f,
+		UsersSrv:       usersSvc,
+		ListsSrv:       listsSvc,
+		ListItemsSrv:   listItemsSvc,
+		AuthRepository: authRepo,
+		CfgSrv:         cfgSrv,
 	}
 }
 
@@ -56,4 +63,18 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		okRes, _ := res.(results.OkResult)
 		helpers.WriteOkResponse(r, w, okRes.StatusCode, okRes.Content)
 	}
+}
+
+func (h Handler) ParseBody(r *http.Request, result interface{}) error {
+	if r.Body == nil {
+		return &appErrors.BadRequestError{Msg: "Invalid body"}
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(result)
+	if err != nil {
+		return &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+	}
+
+	return nil
 }

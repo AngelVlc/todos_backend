@@ -5,4 +5,10 @@ test:
 	go test ./...
 
 generate-wire:
-	wire wire/wire.go
+	wire internal/api/wire/wire.go
+
+coverage:
+	go test ./... -cover
+
+coverage-html:
+	go test ./... -cover -coverprofile coverage.out && go tool cover -html=coverage.out

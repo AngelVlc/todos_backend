@@ -6,10 +6,10 @@ build:
 	docker-compose build app
 
 up:
-	docker-compose up -d
+	docker-compose up -d app mysql
 
 run:
-	docker-compose run --rm -p 5001:5001 app go run .
+	docker-compose run --rm -p 5001:5001 app go run cmd/api/main.go
 
 console:
 	docker-compose run --rm -p 5001:5001 app bash
@@ -32,8 +32,5 @@ mysql-client:
 test:
 	docker-compose run --rm app go test ./...
 
-coverage:
-	docker-compose run --rm app go test ./... -cover
-
-coverage-html:
-	docker-compose run --rm app go test ./... -cover -coverprofile coverage.out && go tool cover -html=coverage.out	
+test-e2e:
+	docker-compose run --rm -e BASE_URL=http://app:5001 app-e2e

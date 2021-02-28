@@ -3,10 +3,10 @@ services:
   app:
     build:
       context: ./src/
-      target: test
+      target: base
     ports:
-      - 5001:5001
-    command: go run .
+      - '5001:5001'
+    command: go run cmd/api/main.go
     depends_on:
       - mysql
     volumes:
@@ -20,4 +20,16 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 'pass'
     ports:
-      - 3306:3306
+      - '3306:3306'
+
+  app-e2e:
+    build:
+      context: ./src/
+      target: base
+    depends_on:
+      - app
+    volumes:
+      - './src:/go/src'      
+    env_file: 
+      - ./local.env
+    command: ["go", "test", "--tags=e2e", "./..."]

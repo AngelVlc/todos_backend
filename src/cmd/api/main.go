@@ -55,6 +55,7 @@ func main() {
 	s := server.NewServer(db)
 
 	port := cfg.GetPort()
+
 	address := fmt.Sprintf(":%v", port)
 
 	validCorsHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})

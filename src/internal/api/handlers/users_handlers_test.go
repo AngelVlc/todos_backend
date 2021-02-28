@@ -1,3 +1,5 @@
+//+build !e2e
+
 package handlers
 
 import (
@@ -232,7 +234,7 @@ func TestGetUserHandler(t *testing.T) {
 
 		result := GetUserHandler(httptest.NewRecorder(), request(), handler)
 
-		okRes := CheckOkResult(t, result, http.StatusCreated)
+		okRes := CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.content.(dtos.UserResponseDto)
 		require.Equal(t, true, isOk, "should be a user result dto")
 		assert.Equal(t, user.ID, resDto.ID)

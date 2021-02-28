@@ -10,9 +10,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/consts"
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
 	"github.com/AngelVlc/todos/internal/api/services"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -4,72 +4,75 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/internal/api/dtos"
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 )
 
-func AddUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
+func AddUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	var dto dtos.UserDto
-	err := parseBody(r, &dto)
+	err := helpers.ParseBody(r, &dto)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
-	id, err := h.usersSrv.AddUser(&dto)
+	id, err := h.UsersSrv.AddUser(&dto)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
-	return okResult{id, http.StatusCreated}
+	return results.OkResult{id, http.StatusCreated}
 }
 
-func GetUsersHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-	res, err := h.usersSrv.GetUsers()
+func GetUsersHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+	res, err := h.UsersSrv.GetUsers()
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
-	return okResult{res, http.StatusOK}
+	return results.OkResult{res, http.StatusOK}
 }
 
-func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-	userID := parseInt32UrlVar(r, "id")
+func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+	userID := helpers.ParseInt32UrlVar(r, "id")
 
-	foundUserLists, err := h.listsSrv.GetUserLists(userID)
+	foundUserLists, err := h.ListsSrv.GetUserLists(userID)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
 	if len(foundUserLists) > 0 {
-		return errorResult{&appErrors.BadRequestError{Msg: "The user has lists", InternalError: nil}}
+		return results.ErrorResult{&appErrors.BadRequestError{Msg: "The user has lists", InternalError: nil}}
 	}
 
-	err = h.usersSrv.RemoveUser(userID)
+	err = h.UsersSrv.RemoveUser(userID)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
-	return okResult{nil, http.StatusNoContent}
+	return results.OkResult{nil, http.StatusNoContent}
 }
 
-func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-	userID := parseInt32UrlVar(r, "id")
+func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+	userID := helpers.ParseInt32UrlVar(r, "id")
 
 	var dto dtos.UserDto
-	err := parseBody(r, &dto)
+	err := helpers.ParseBody(r, &dto)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
-	err = h.usersSrv.UpdateUser(userID, &dto)
+	err = h.UsersSrv.UpdateUser(userID, &dto)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
-	return okResult{nil, http.StatusNoContent}
+	return results.OkResult{nil, http.StatusNoContent}
 }
 
-func GetUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-	userID := parseInt32UrlVar(r, "id")
+func GetUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+	userID := helpers.ParseInt32UrlVar(r, "id")
 
-	u, err := h.usersSrv.FindUserByID(userID)
+	u, err := h.UsersSrv.FindUserByID(userID)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
 	result := dtos.UserResponseDto{
@@ -78,5 +81,5 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerRe
 		ID:      u.ID,
 	}
 
-	return okResult{result, http.StatusOK}
+	return results.OkResult{result, http.StatusOK}
 }

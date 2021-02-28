@@ -12,9 +12,10 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos/internal/api/dtos"
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
 	"github.com/AngelVlc/todos/internal/api/models"
 	"github.com/AngelVlc/todos/internal/api/services"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -25,11 +26,11 @@ var (
 	mockedListsService     = services.NewMockedListsService()
 	mockedListItemsService = services.NewMockedListItemsService()
 
-	handler = Handler{
-		usersSrv:     mockedUsersService,
-		authSrv:      mockedAuthService,
-		listsSrv:     mockedListsService,
-		listItemsSrv: mockedListItemsService,
+	h = handler.Handler{
+		UsersSrv:     mockedUsersService,
+		AuthSrv:      mockedAuthService,
+		ListsSrv:     mockedListsService,
+		ListItemsSrv: mockedListItemsService,
 	}
 )
 
@@ -39,7 +40,7 @@ func TestTokenHandler(t *testing.T) {
 	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
 
-		result := TokenHandler(httptest.NewRecorder(), request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
@@ -54,7 +55,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(httptest.NewRecorder(), request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckBadRequestErrorResult(t, result, "UserName is mandatory")
 	})
@@ -69,7 +70,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(httptest.NewRecorder(), request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckBadRequestErrorResult(t, result, "Password is mandatory")
 	})
@@ -81,7 +82,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(httptest.NewRecorder(), request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -95,7 +96,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(httptest.NewRecorder(), request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckBadRequestErrorResult(t, result, "The user does not exist")
 
@@ -112,7 +113,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(httptest.NewRecorder(), request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckBadRequestErrorResult(t, result, "Invalid password")
 
@@ -130,7 +131,7 @@ func TestTokenHandler(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 
-		result := TokenHandler(httptest.NewRecorder(), request, handler)
+		result := TokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -152,7 +153,7 @@ func TestTokenHandler(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/auth/token", bytes.NewBuffer(body))
 		recorder := httptest.NewRecorder()
 
-		result := TokenHandler(recorder, request, handler)
+		result := TokenHandler(recorder, request, h)
 
 		checkTokensResponse(t, result, tokens)
 		checkResponseCookie(t, recorder)
@@ -174,7 +175,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 	t.Run("Should return an errorResult with a BadRequestError if there isn't refresh token cookie", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 
-		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckBadRequestErrorResult(t, result, "Missing refresh token cookie")
 	})
@@ -185,7 +186,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 		mockedAuthService.On("ParseRefreshToken", refreshToken).Return(nil, &appErrors.UnauthorizedError{Msg: "Some error"}).Once()
 
-		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckUnauthorizedErrorErrorResult(t, result, "Some error")
 
@@ -199,7 +200,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedAuthService.On("ParseRefreshToken", refreshToken).Return(&rtInfo, nil)
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -214,7 +215,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedAuthService.On("ParseRefreshToken", refreshToken).Return(&rtInfo, nil)
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(nil, nil).Once()
 
-		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckBadRequestErrorResult(t, result, "The user is no longer valid")
 
@@ -232,7 +233,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(&user, nil).Once()
 		mockedAuthService.On("GetTokens", &user).Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
 
-		result := RefreshTokenHandler(httptest.NewRecorder(), request, handler)
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		CheckUnexpectedErrorResult(t, result, "Some error")
 
@@ -253,7 +254,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedUsersService.On("FindUserByID", rtInfo.UserID).Return(&user, nil).Once()
 		mockedAuthService.On("GetTokens", &user).Return(tokens, nil).Once()
 
-		result := RefreshTokenHandler(recorder, request, handler)
+		result := RefreshTokenHandler(recorder, request, h)
 
 		checkTokensResponse(t, result, tokens)
 		checkResponseCookie(t, recorder)
@@ -267,9 +268,9 @@ func newTokenResultDto() *dtos.TokenResponseDto {
 	return &dtos.TokenResponseDto{Token: "theToken", RefreshToken: "theRefreshToken"}
 }
 
-func checkTokensResponse(t *testing.T, result HandlerResult, expectedTokens *dtos.TokenResponseDto) {
+func checkTokensResponse(t *testing.T, result handler.HandlerResult, expectedTokens *dtos.TokenResponseDto) {
 	okRes := CheckOkResult(t, result, http.StatusOK)
-	tokenDto, isTokenResultDto := okRes.content.(*dtos.TokenResponseDto)
+	tokenDto, isTokenResultDto := okRes.Content.(*dtos.TokenResponseDto)
 	require.Equal(t, true, isTokenResultDto, "should be a token result dto")
 	assert.Equal(t, expectedTokens.Token, tokenDto.Token)
 	assert.Equal(t, expectedTokens.RefreshToken, tokenDto.RefreshToken)

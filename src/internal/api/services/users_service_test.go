@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos/internal/api/dtos"
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
 	"github.com/AngelVlc/todos/internal/api/models"
 	"github.com/AngelVlc/todos/internal/api/repositories"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

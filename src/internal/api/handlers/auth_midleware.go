@@ -5,9 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/AngelVlc/todos/internal/api/consts"
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
 	"github.com/AngelVlc/todos/internal/api/services"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -28,7 +29,7 @@ func (m *MockedAuthMiddleware) Middleware(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 
 		if len(authHeader) == 0 {
-			writeErrorResponse(r, w, http.StatusUnauthorized, "No authorization header", nil)
+			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "No authorization header", nil)
 			return
 		}
 
@@ -48,13 +49,13 @@ func (m *DefaultAuthMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token, err := m.getAuthToken(r)
 		if err != nil {
-			writeErrorResponse(r, w, http.StatusUnauthorized, err.Error(), nil)
+			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, err.Error(), nil)
 			return
 		}
 
 		jwtInfo, err := m.auth.ParseToken(token)
 		if err != nil {
-			writeErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
+			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
 			return
 		}
 

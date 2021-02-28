@@ -3,7 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos/internal/api/consts"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -25,7 +26,7 @@ func NewDefaultRequireAdminMiddleware() *DefaultRequireAdminMiddleware {
 func (m *DefaultRequireAdminMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if !m.getUserIsAdminFromContext(r) {
-			writeErrorResponse(r, w, http.StatusForbidden, "Access forbidden", nil)
+			helpers.WriteErrorResponse(r, w, http.StatusForbidden, "Access forbidden", nil)
 			return
 		}
 		next.ServeHTTP(w, r)

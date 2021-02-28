@@ -4,7 +4,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AngelVlc/todos/internal/api/consts"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 )
 
 type LogMiddleware struct {
@@ -16,7 +17,7 @@ func NewLogMiddleware() LogMiddleware {
 
 func (m *LogMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestID := getRequestIDFromContext(r)
+		requestID := helpers.GetRequestIDFromContext(r)
 		userName := m.getUserNameFromContext(r)
 		if len(userName) > 0 {
 			log.Printf("[%v] %v %q", requestID, r.Method, r.URL)

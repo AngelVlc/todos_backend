@@ -2,9 +2,9 @@ package services
 
 import (
 	"github.com/AngelVlc/todos/internal/api/dtos"
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
 	"github.com/AngelVlc/todos/internal/api/models"
 	"github.com/AngelVlc/todos/internal/api/repositories"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 	"github.com/stretchr/testify/mock"
 )
 

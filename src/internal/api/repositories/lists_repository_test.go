@@ -7,8 +7,8 @@ import (
 	"regexp"
 	"testing"
 
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
 	"github.com/AngelVlc/todos/internal/api/models"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"

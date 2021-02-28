@@ -6,6 +6,7 @@ import (
 	"github.com/AngelVlc/todos/internal/api/handlers"
 	"github.com/AngelVlc/todos/internal/api/repositories"
 	"github.com/AngelVlc/todos/internal/api/services"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -76,6 +77,6 @@ func NewServer(db *gorm.DB) *server {
 	return &s
 }
 
-func (s *server) getHandler(handlerFunc handlers.HandlerFunc) handlers.Handler {
-	return handlers.NewHandler(handlerFunc, s.usersSrv, s.authSrv, s.listsSrv, s.listItemsSrv)
+func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
+	return handler.NewHandler(handlerFunc, s.usersSrv, s.authSrv, s.listsSrv, s.listItemsSrv)
 }

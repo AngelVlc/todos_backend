@@ -8,9 +8,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/consts"
 	"github.com/AngelVlc/todos/internal/api/models"
 	"github.com/AngelVlc/todos/internal/api/services"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 
 	"github.com/stretchr/testify/assert"
 )

@@ -5,7 +5,9 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/internal/api/dtos"
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 )
 
 const (
@@ -13,65 +15,65 @@ const (
 )
 
 // TokenHandler is the handler for the auth/token endpoint
-func TokenHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
+func TokenHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	l, err := parseTokenBody(r)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
-	foundUser, err := h.usersSrv.FindUserByName(l.UserName)
+	foundUser, err := h.UsersSrv.FindUserByName(l.UserName)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
 	if foundUser == nil {
-		return errorResult{&appErrors.BadRequestError{Msg: "The user does not exist", InternalError: nil}}
+		return results.ErrorResult{&appErrors.BadRequestError{Msg: "The user does not exist", InternalError: nil}}
 	}
 
-	err = h.usersSrv.CheckIfUserPasswordIsOk(foundUser, l.Password)
+	err = h.UsersSrv.CheckIfUserPasswordIsOk(foundUser, l.Password)
 	if err != nil {
-		return errorResult{&appErrors.BadRequestError{Msg: "Invalid password", InternalError: err}}
+		return results.ErrorResult{&appErrors.BadRequestError{Msg: "Invalid password", InternalError: err}}
 	}
 
-	tokens, err := h.authSrv.GetTokens(foundUser)
+	tokens, err := h.AuthSrv.GetTokens(foundUser)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
 	addRefreshTokenCookie(w, tokens.RefreshToken)
 
-	return okResult{tokens, http.StatusOK}
+	return results.OkResult{tokens, http.StatusOK}
 }
 
 // RefreshTokenHandler is the handler for the auth/refreshtoken endpoint
-func RefreshTokenHandler(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
+func RefreshTokenHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	rt, err := getRefreshTokenCookieValue(r)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
-	rtInfo, err := h.authSrv.ParseRefreshToken(rt)
+	rtInfo, err := h.AuthSrv.ParseRefreshToken(rt)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
-	foundUser, err := h.usersSrv.FindUserByID(rtInfo.UserID)
+	foundUser, err := h.UsersSrv.FindUserByID(rtInfo.UserID)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
 	if foundUser == nil {
-		return errorResult{&appErrors.BadRequestError{Msg: "The user is no longer valid", InternalError: nil}}
+		return results.ErrorResult{&appErrors.BadRequestError{Msg: "The user is no longer valid", InternalError: nil}}
 	}
 
-	tokens, err := h.authSrv.GetTokens(foundUser)
+	tokens, err := h.AuthSrv.GetTokens(foundUser)
 	if err != nil {
-		return errorResult{err}
+		return results.ErrorResult{err}
 	}
 
 	addRefreshTokenCookie(w, tokens.RefreshToken)
 
-	return okResult{tokens, http.StatusOK}
+	return results.OkResult{tokens, http.StatusOK}
 }
 
 func parseTokenBody(r *http.Request) (*dtos.TokenDto, error) {

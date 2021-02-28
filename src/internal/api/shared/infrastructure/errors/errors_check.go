@@ -14,7 +14,7 @@ func CheckErrorMsg(t *testing.T, err error, errorMsg string) {
 }
 
 func CheckUnexpectedError(t *testing.T, err interface{}, errorMsg string, internalErrorMsg string) {
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 	unexpectErr, isUnexpectError := err.(*UnexpectedError)
 	require.True(t, isUnexpectError, "should be an unexpected error")
 	CheckErrorMsg(t, unexpectErr, errorMsg)
@@ -24,7 +24,7 @@ func CheckUnexpectedError(t *testing.T, err interface{}, errorMsg string, intern
 }
 
 func CheckUnathorizedError(t *testing.T, err interface{}, errorMsg string, internalErrorMsg string) {
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 	unauthErr, isUnauthErr := err.(*UnauthorizedError)
 	require.True(t, isUnauthErr, "should be an unauthorized error")
 	CheckErrorMsg(t, unauthErr, errorMsg)
@@ -34,7 +34,7 @@ func CheckUnathorizedError(t *testing.T, err interface{}, errorMsg string, inter
 }
 
 func CheckBadRequestError(t *testing.T, err interface{}, errorMsg string, internalErrorMsg string) {
-	assert.NotNil(t, err)
+	require.NotNil(t, err)
 	badReqErr, isBadReqErr := err.(*BadRequestError)
 	require.True(t, isBadReqErr, "should be a bad request error")
 	CheckErrorMsg(t, badReqErr, errorMsg)

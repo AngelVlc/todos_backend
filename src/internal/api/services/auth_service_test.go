@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/AngelVlc/todos/internal/api/dtos"
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
 	"github.com/AngelVlc/todos/internal/api/models"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 )
 
 func TestAuthServiceGetTokens(t *testing.T) {

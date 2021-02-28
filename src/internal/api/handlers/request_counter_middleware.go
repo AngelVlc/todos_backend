@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/AngelVlc/todos/internal/api/consts"
 	"github.com/AngelVlc/todos/internal/api/services"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -42,7 +43,7 @@ func (m *DefaultRequestCounterMiddleware) Middleware(next http.Handler) http.Han
 		v, err := m.CountersSrv.IncrementCounter("requests")
 		if err != nil {
 			log.Printf("[] %v %q", r.Method, r.URL)
-			writeErrorResponse(r, w, http.StatusInternalServerError, "Error incrementing requests counter", err)
+			helpers.WriteErrorResponse(r, w, http.StatusInternalServerError, "Error incrementing requests counter", err)
 			return
 		}
 

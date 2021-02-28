@@ -1,6 +1,6 @@
 //+build !e2e
 
-package handlers
+package handler
 
 import (
 	"errors"
@@ -9,14 +9,15 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	appErrors "github.com/AngelVlc/todos/internal/api/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestHandler(t *testing.T) {
 	t.Run("Returns 200 when no error", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return okResult{nil, http.StatusOK}
+			return results.OkResult{nil, http.StatusOK}
 		}
 
 		handler := Handler{
@@ -37,7 +38,7 @@ func TestHandler(t *testing.T) {
 				Field1 string
 				Field2 string
 			}{Field1: "a", Field2: "b"}
-			return okResult{obj, http.StatusOK}
+			return results.OkResult{obj, http.StatusOK}
 		}
 
 		handler := Handler{
@@ -60,7 +61,7 @@ func TestHandler(t *testing.T) {
 
 	t.Run("Returns 500 when an unexpected error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return errorResult{&appErrors.UnexpectedError{Msg: "error", InternalError: errors.New("msg")}}
+			return results.ErrorResult{&appErrors.UnexpectedError{Msg: "error", InternalError: errors.New("msg")}}
 		}
 
 		handler := Handler{
@@ -78,7 +79,7 @@ func TestHandler(t *testing.T) {
 
 	t.Run("Returns 404 when a not found error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return errorResult{&appErrors.NotFoundError{Model: "model"}}
+			return results.ErrorResult{&appErrors.NotFoundError{Model: "model"}}
 		}
 
 		handler := Handler{
@@ -96,7 +97,7 @@ func TestHandler(t *testing.T) {
 
 	t.Run("Returns 400 when a bad request error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return errorResult{&appErrors.BadRequestError{Msg: fmt.Sprintf("%q is not a valid id", "id")}}
+			return results.ErrorResult{&appErrors.BadRequestError{Msg: fmt.Sprintf("%q is not a valid id", "id")}}
 		}
 
 		handler := Handler{
@@ -114,7 +115,7 @@ func TestHandler(t *testing.T) {
 
 	t.Run("Returns 401 when an unauthorized error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return errorResult{&appErrors.UnauthorizedError{Msg: "wadus"}}
+			return results.ErrorResult{&appErrors.UnauthorizedError{Msg: "wadus"}}
 		}
 
 		handler := Handler{
@@ -132,7 +133,7 @@ func TestHandler(t *testing.T) {
 
 	t.Run("Returns 500 when an unhandled error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return errorResult{errors.New("wadus")}
+			return results.ErrorResult{errors.New("wadus")}
 		}
 
 		handler := Handler{

@@ -20,51 +20,6 @@ var (
 	user    = "user"
 )
 
-func TestUsersRepositoryGetAll(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
-
-	repo := NewDefaultUsersRepository(db)
-
-	expectedGetUsersQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,is_admin FROM `users`"))
-	}
-
-	t.Run("should return an error if the query fails", func(t *testing.T) {
-		expectedGetUsersQuery().WillReturnError(fmt.Errorf("some error"))
-
-		res, err := repo.GetAll()
-
-		assert.Nil(t, res)
-		appErrors.CheckUnexpectedError(t, err, "Error getting users", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("should return the users", func(t *testing.T) {
-		expectedGetUsersQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
-
-		res, err := repo.GetAll()
-
-		assert.Nil(t, err)
-		require.Equal(t, 2, len(res))
-		assert.Equal(t, int32(11), res[0].ID)
-		assert.Equal(t, "user1", res[0].Name)
-		assert.Equal(t, "pass1", res[0].PasswordHash)
-		assert.True(t, res[0].IsAdmin)
-		assert.Equal(t, int32(12), res[1].ID)
-		assert.Equal(t, "user2", res[1].Name)
-		assert.Equal(t, "pass2", res[1].PasswordHash)
-		assert.False(t, res[1].IsAdmin)
-
-		checkMockExpectations(t, mock)
-	})
-}
-
 func TestUsersRepositoryFindByID(t *testing.T) {
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {

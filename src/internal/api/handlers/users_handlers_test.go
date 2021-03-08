@@ -65,49 +65,6 @@ func TestAddUserHandler(t *testing.T) {
 	})
 }
 
-func TestGetUsersHandler(t *testing.T) {
-	request := func() *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		return request
-	}
-
-	mockedUsersService := services.NewMockedUsersService()
-	h := handler.Handler{UsersSrv: mockedUsersService}
-
-	t.Run("Should return an errorResult if getting the users fails", func(t *testing.T) {
-		mockedUsersService.On("GetUsers").Return(nil, &appErrors.UnexpectedError{Msg: "Some error"}).Once()
-
-		result := GetUsersHandler(httptest.NewRecorder(), request(), h)
-
-		results.CheckUnexpectedErrorResult(t, result, "Some error")
-
-		mockedUsersService.AssertExpectations(t)
-	})
-
-	t.Run("Should return an ok result with the users if there is no errors", func(t *testing.T) {
-		res := []*dtos.UserResponseDto{
-			{
-				ID:      int32(1),
-				Name:    "user1",
-				IsAdmin: true,
-			},
-		}
-		mockedUsersService.On("GetUsers").Return(res, nil).Once()
-
-		result := GetUsersHandler(httptest.NewRecorder(), request(), h)
-
-		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		resDto, isOk := okRes.Content.([]*dtos.UserResponseDto)
-		require.Equal(t, true, isOk, "should be a user result dto")
-		require.Equal(t, len(res), len(resDto))
-		assert.Equal(t, res[0].ID, resDto[0].ID)
-		assert.Equal(t, res[0].Name, resDto[0].Name)
-		assert.Equal(t, res[0].IsAdmin, resDto[0].IsAdmin)
-
-		mockedUsersService.AssertExpectations(t)
-	})
-}
-
 func TestDeleteUserHandler(t *testing.T) {
 	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)

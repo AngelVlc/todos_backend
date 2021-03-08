@@ -36,45 +36,6 @@ var (
 	user        = "user"
 )
 
-func TestGetUsers(t *testing.T) {
-	mockedUsersRepo := repositories.MockedUsersRepository{}
-
-	svc := NewDefaultUsersService(nil, &mockedUsersRepo)
-
-	t.Run("should return an error if repository GetAll fails", func(t *testing.T) {
-		mockedUsersRepo.On("GetAll").Return(nil, fmt.Errorf("some error")).Once()
-
-		dto, err := svc.GetUsers()
-
-		assert.Nil(t, dto)
-		assert.Error(t, err)
-
-		mockedUsersRepo.AssertExpectations(t)
-	})
-
-	t.Run("should return the users", func(t *testing.T) {
-		found := []*models.User{
-			{ID: 2, Name: "user1", IsAdmin: true},
-			{ID: 5, Name: "user2", IsAdmin: false},
-		}
-
-		mockedUsersRepo.On("GetAll").Return(found, nil)
-
-		res, err := svc.GetUsers()
-
-		assert.Nil(t, err)
-		require.Equal(t, len(res), 2)
-		assert.Equal(t, int32(2), res[0].ID)
-		assert.Equal(t, "user1", res[0].Name)
-		assert.True(t, res[0].IsAdmin)
-		assert.Equal(t, int32(5), res[1].ID)
-		assert.Equal(t, "user2", res[1].Name)
-		assert.False(t, res[1].IsAdmin)
-
-		mockedUsersRepo.AssertExpectations(t)
-	})
-}
-
 func TestFindByID(t *testing.T) {
 	mockedUsersRepo := repositories.MockedUsersRepository{}
 

@@ -10,6 +10,7 @@ import (
 	"os"
 	"testing"
 
+	authRepo "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/services"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
@@ -45,7 +46,7 @@ var privateRoutes = []route{
 
 var adminRoutes = []route{
 	{"/users", http.MethodPost},
-	{"/users", http.MethodGet},
+	// {"/users", http.MethodGet},
 	{"/users/12", http.MethodDelete},
 	{"/users/12", http.MethodPut},
 	{"/users/12", http.MethodGet},
@@ -108,8 +109,9 @@ func TestServer(t *testing.T) {
 
 	t.Run("handles admin routes with auth and admin", func(t *testing.T) {
 		err := appErrors.BadRequestError{Msg: "Some error"}
+		mockedAuthRepo, _ := s.authRepo.(*authRepo.MockedAuthRepository)
+		mockedAuthRepo.On("GetAllUsers").Return(nil, fmt.Errorf("some error")).Once()
 		mockedUsersSrv, _ := s.usersSrv.(*services.MockedUsersService)
-		mockedUsersSrv.On("GetUsers").Return(nil, &err).Once()
 		mockedUsersSrv.On("FindUserByID", int32(12)).Return(nil, &err).Once()
 		mockedListsSrv, _ := s.listsSrv.(*services.MockedListsService)
 		mockedListsSrv.On("GetUserLists", int32(12)).Return(nil, &err).Once()

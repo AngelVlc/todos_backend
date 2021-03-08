@@ -123,6 +123,51 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 	})
 }
 
+func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewMySqlAuthRepository(db)
+
+	expectedGetUsersQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,is_admin FROM `users`"))
+	}
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		expectedGetUsersQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.GetAllUsers()
+
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return the users", func(t *testing.T) {
+		expectedGetUsersQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
+
+		res, err := repo.GetAllUsers()
+
+		assert.Nil(t, err)
+		require.Equal(t, 2, len(res))
+		assert.Equal(t, int32(11), res[0].ID)
+		assert.Equal(t, domain.AuthUserName("user1"), res[0].Name)
+		assert.Equal(t, "pass1", res[0].PasswordHash)
+		assert.True(t, res[0].IsAdmin)
+		assert.Equal(t, int32(12), res[1].ID)
+		assert.Equal(t, domain.AuthUserName("user2"), res[1].Name)
+		assert.Equal(t, "pass2", res[1].PasswordHash)
+		assert.False(t, res[1].IsAdmin)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

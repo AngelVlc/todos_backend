@@ -42,3 +42,11 @@ func (r *MySqlAuthRepository) FindUserByID(userID *int32) (*domain.AuthUser, err
 
 	return &foundUser, nil
 }
+
+func (r *MySqlAuthRepository) GetAllUsers() ([]*domain.AuthUser, error) {
+	res := []*domain.AuthUser{}
+	if err := r.db.Select("id,name,is_admin").Find(&res).Error; err != nil {
+		return nil, err
+	}
+	return res, nil
+}

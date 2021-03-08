@@ -28,3 +28,12 @@ func (m *MockedAuthRepository) FindUserByName(userName *domain.AuthUserName) (*d
 	}
 	return args.Get(0).(*domain.AuthUser), args.Error(1)
 }
+
+func (m *MockedAuthRepository) GetAllUsers() ([]*domain.AuthUser, error) {
+	args := m.Called()
+	got := args.Get(0)
+	if got == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]*domain.AuthUser), args.Error(1)
+}

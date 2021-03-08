@@ -24,14 +24,6 @@ func AddUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) h
 	return results.OkResult{id, http.StatusCreated}
 }
 
-func GetUsersHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	res, err := h.UsersSrv.GetUsers()
-	if err != nil {
-		return results.ErrorResult{err}
-	}
-	return results.OkResult{res, http.StatusOK}
-}
-
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	userID := helpers.ParseInt32UrlVar(r, "id")
 

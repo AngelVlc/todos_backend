@@ -8,7 +8,6 @@ import (
 )
 
 type UsersRepository interface {
-	GetAll() ([]*models.User, error)
 	FindByID(id int32) (*models.User, error)
 	FindByName(name string) (*models.User, error)
 	Create(user *models.User) (int32, error)
@@ -22,15 +21,6 @@ type MockedUsersRepository struct {
 
 func NewMockedUsersRepository() *MockedUsersRepository {
 	return &MockedUsersRepository{}
-}
-
-func (m *MockedUsersRepository) GetAll() ([]*models.User, error) {
-	args := m.Called()
-	got := args.Get(0)
-	if got == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).([]*models.User), args.Error(1)
 }
 
 func (m *MockedUsersRepository) FindByID(id int32) (*models.User, error) {
@@ -76,14 +66,6 @@ type DefaultUsersRepository struct {
 
 func NewDefaultUsersRepository(db *gorm.DB) *DefaultUsersRepository {
 	return &DefaultUsersRepository{db}
-}
-
-func (r *DefaultUsersRepository) GetAll() ([]*models.User, error) {
-	res := []*models.User{}
-	if err := r.db.Select("id,name,is_admin").Find(&res).Error; err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
-	}
-	return res, nil
 }
 
 // FindByID returns a single user from its id

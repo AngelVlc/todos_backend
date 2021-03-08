@@ -7,7 +7,8 @@ package wire
 
 import (
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	"github.com/AngelVlc/todos/internal/api/auth/infrastructure"
+	"github.com/AngelVlc/todos/internal/api/auth/infrastructure/middleware"
+	"github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/handlers"
 	"github.com/AngelVlc/todos/internal/api/repositories"
 	"github.com/AngelVlc/todos/internal/api/services"
@@ -25,15 +26,15 @@ func InitLogMiddleware() handlers.LogMiddleware {
 	return logMiddleware
 }
 
-func initDefaultAuthMiddleware() infrastructure.AuthMiddleware {
+func initDefaultAuthMiddleware() middleware.AuthMiddleware {
 	osEnvGetter := application.NewOsEnvGetter()
 	defaultConfigurationService := application.NewDefaultConfigurationService(osEnvGetter)
-	realAuthMiddleware := infrastructure.NewRealAuthMiddleware(defaultConfigurationService)
+	realAuthMiddleware := middleware.NewRealAuthMiddleware(defaultConfigurationService)
 	return realAuthMiddleware
 }
 
-func initFakeAuthMiddleware() infrastructure.AuthMiddleware {
-	fakeAuthMiddleware := infrastructure.NewFakeAuthMiddleware()
+func initFakeAuthMiddleware() middleware.AuthMiddleware {
+	fakeAuthMiddleware := middleware.NewFakeAuthMiddleware()
 	return fakeAuthMiddleware
 }
 
@@ -135,18 +136,18 @@ func InitConfigurationService() application.ConfigurationService {
 }
 
 func initMockedAuthRepositorySet() domain.AuthRepository {
-	mockedAuthRepository := infrastructure.NewMockedAuthRepository()
+	mockedAuthRepository := repository.NewMockedAuthRepository()
 	return mockedAuthRepository
 }
 
 func initMySqlAuthRepository(db *gorm.DB) domain.AuthRepository {
-	mySqlAuthRepository := infrastructure.NewMySqlAuthRepository(db)
+	mySqlAuthRepository := repository.NewMySqlAuthRepository(db)
 	return mySqlAuthRepository
 }
 
 // wire.go:
 
-func InitAuthMiddleware(db *gorm.DB) infrastructure.AuthMiddleware {
+func InitAuthMiddleware(db *gorm.DB) middleware.AuthMiddleware {
 	if inTestingMode() {
 		return initFakeAuthMiddleware()
 	} else {
@@ -261,9 +262,9 @@ var RequestCounterMiddlewareSet = wire.NewSet(
 var MockedRequestCounterMiddlewareSet = wire.NewSet(handlers.NewMockedRequestCounterMiddleware, wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.MockedRequestCounterMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	ConfigurationServiceSet, infrastructure.NewRealAuthMiddleware, wire.Bind(new(infrastructure.AuthMiddleware), new(*infrastructure.RealAuthMiddleware)))
+	ConfigurationServiceSet, middleware.NewRealAuthMiddleware, wire.Bind(new(middleware.AuthMiddleware), new(*middleware.RealAuthMiddleware)))
 
-var FakeAuthMiddlewareSet = wire.NewSet(infrastructure.NewFakeAuthMiddleware, wire.Bind(new(infrastructure.AuthMiddleware), new(*infrastructure.FakeAuthMiddleware)))
+var FakeAuthMiddlewareSet = wire.NewSet(middleware.NewFakeAuthMiddleware, wire.Bind(new(middleware.AuthMiddleware), new(*middleware.FakeAuthMiddleware)))
 
 var RequireAdminMiddlewareSet = wire.NewSet(handlers.NewDefaultRequireAdminMiddleware, wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
 
@@ -283,6 +284,6 @@ var ListItemsRepositorySet = wire.NewSet(repositories.NewDefaultListItemsReposit
 
 var MockedListItemsRepositorySet = wire.NewSet(repositories.NewMockedListItemsRepository, wire.Bind(new(repositories.ListItemsRepository), new(*repositories.MockedListItemsRepository)))
 
-var MySqlAuthRepositorySet = wire.NewSet(infrastructure.NewMySqlAuthRepository, wire.Bind(new(domain.AuthRepository), new(*infrastructure.MySqlAuthRepository)))
+var MySqlAuthRepositorySet = wire.NewSet(repository.NewMySqlAuthRepository, wire.Bind(new(domain.AuthRepository), new(*repository.MySqlAuthRepository)))
 
-var MockedAuthRepositorySet = wire.NewSet(infrastructure.NewMockedAuthRepository, wire.Bind(new(domain.AuthRepository), new(*infrastructure.MockedAuthRepository)))
+var MockedAuthRepositorySet = wire.NewSet(repository.NewMockedAuthRepository, wire.Bind(new(domain.AuthRepository), new(*repository.MockedAuthRepository)))

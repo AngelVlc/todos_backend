@@ -1,4 +1,4 @@
-package infrastructure
+package repository
 
 import (
 	"github.com/AngelVlc/todos/internal/api/auth/domain"

@@ -1,6 +1,6 @@
 //+build !e2e
 
-package infrastructure
+package middleware
 
 import (
 	"net/http"

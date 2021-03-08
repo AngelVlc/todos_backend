@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
@@ -30,7 +31,7 @@ func TestRefreshTokenHandlerValidations(t *testing.T) {
 }
 
 func TestRefreshTokenHandler(t *testing.T) {
-	mockedRepo := MockedAuthRepository{}
+	mockedRepo := authRepository.MockedAuthRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	h := handler.Handler{AuthRepository: &mockedRepo, CfgSrv: &mockedCfgSrv}
 

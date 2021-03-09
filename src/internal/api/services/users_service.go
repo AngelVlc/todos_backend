@@ -11,9 +11,7 @@ import (
 )
 
 type UsersService interface {
-	FindUserByName(name string) (*models.User, error)
 	FindUserByID(id int32) (*models.User, error)
-	RemoveUser(id int32) error
 	UpdateUser(id int32, dto *dtos.UserDto) error
 }
 
@@ -25,15 +23,6 @@ func NewMockedUsersService() *MockedUsersService {
 	return &MockedUsersService{}
 }
 
-func (m *MockedUsersService) FindUserByName(name string) (*models.User, error) {
-	args := m.Called(name)
-	got := args.Get(0)
-	if got == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.User), args.Error(1)
-}
-
 func (m *MockedUsersService) FindUserByID(id int32) (*models.User, error) {
 	args := m.Called(id)
 	got := args.Get(0)
@@ -41,11 +30,6 @@ func (m *MockedUsersService) FindUserByID(id int32) (*models.User, error) {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.User), args.Error(1)
-}
-
-func (m *MockedUsersService) RemoveUser(id int32) error {
-	args := m.Called(id)
-	return args.Error(0)
 }
 
 func (m *MockedUsersService) UpdateUser(id int32, dto *dtos.UserDto) error {
@@ -62,30 +46,9 @@ func NewDefaultUsersService(crypto CryptoHelper, usersRepo repositories.UsersRep
 	return &DefaultUsersService{crypto, usersRepo}
 }
 
-func (s *DefaultUsersService) FindUserByName(name string) (*models.User, error) {
-	return s.usersRepo.FindByName(name)
-}
-
 // FindUserByID returns a single user from its id
 func (s *DefaultUsersService) FindUserByID(id int32) (*models.User, error) {
 	return s.usersRepo.FindByID(id)
-}
-
-func (s *DefaultUsersService) RemoveUser(id int32) error {
-	foundUser, err := s.usersRepo.FindByID(id)
-	if err != nil {
-		return err
-	}
-
-	if foundUser == nil {
-		return &appErrors.BadRequestError{Msg: "The user does not exist"}
-	}
-
-	if strings.ToLower(foundUser.Name) == "admin" {
-		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
-	}
-
-	return s.usersRepo.Delete(id)
 }
 
 func (s *DefaultUsersService) UpdateUser(id int32, dto *dtos.UserDto) error {

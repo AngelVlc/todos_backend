@@ -9,8 +9,6 @@ import (
 
 type UsersRepository interface {
 	FindByID(id int32) (*models.User, error)
-	FindByName(name string) (*models.User, error)
-	Delete(id int32) error
 	Update(user *models.User) error
 }
 
@@ -29,20 +27,6 @@ func (m *MockedUsersRepository) FindByID(id int32) (*models.User, error) {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.User), args.Error(1)
-}
-
-func (m *MockedUsersRepository) FindByName(name string) (*models.User, error) {
-	args := m.Called(name)
-	got := args.Get(0)
-	if got == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*models.User), args.Error(1)
-}
-
-func (m *MockedUsersRepository) Delete(id int32) error {
-	args := m.Called(id)
-	return args.Error(0)
 }
 
 func (m *MockedUsersRepository) Update(user *models.User) error {
@@ -72,30 +56,6 @@ func (r *DefaultUsersRepository) FindByID(id int32) (*models.User, error) {
 	}
 
 	return &foundUser, nil
-}
-
-// FindByName returns a single user by its name
-func (r *DefaultUsersRepository) FindByName(name string) (*models.User, error) {
-	foundUser := models.User{}
-	err := r.db.Where(models.User{Name: name}).Table("users").First(&foundUser).Error
-
-	if gorm.IsRecordNotFoundError(err) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
-	}
-
-	return &foundUser, nil
-}
-
-// Delete removes a user
-func (r *DefaultUsersRepository) Delete(id int32) error {
-	if err := r.db.Where(models.User{ID: id}).Delete(models.User{}).Error; err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error deleting user", InternalError: err}
-	}
-	return nil
 }
 
 func (r *DefaultUsersRepository) Update(user *models.User) error {

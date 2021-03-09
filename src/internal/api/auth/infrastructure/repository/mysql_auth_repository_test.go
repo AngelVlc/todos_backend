@@ -214,6 +214,46 @@ func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
 	})
 }
 
+func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewMySqlAuthRepository(db)
+
+	expectedDeleteExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE (`users`.`id` = ?)")).
+			WithArgs(1)
+	}
+
+	userID := int32(1)
+
+	t.Run("should return an error if delete fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.DeleteUser(&userID)
+
+		assert.EqualError(t, err, "some error")
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should delete the user", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+
+		err := repo.DeleteUser(&userID)
+
+		assert.Nil(t, err)
+		checkMockExpectations(t, mock)
+	})
+}
+
 func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

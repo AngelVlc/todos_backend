@@ -31,8 +31,7 @@ func (m *MockedAuthRepository) FindUserByName(userName *domain.AuthUserName) (*d
 
 func (m *MockedAuthRepository) GetAllUsers() ([]*domain.AuthUser, error) {
 	args := m.Called()
-	got := args.Get(0)
-	if got == nil {
+	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]*domain.AuthUser), args.Error(1)
@@ -40,9 +39,13 @@ func (m *MockedAuthRepository) GetAllUsers() ([]*domain.AuthUser, error) {
 
 func (m *MockedAuthRepository) CreateUser(user *domain.AuthUser) (int32, error) {
 	args := m.Called(user)
-	got := args.Get(0)
-	if got == nil {
+	if args.Get(0) == nil {
 		return -1, args.Error(1)
 	}
 	return args.Get(0).(int32), args.Error(1)
+}
+
+func (m *MockedAuthRepository) DeleteUser(userID *int32) error {
+	args := m.Called(userID)
+	return args.Error(0)
 }

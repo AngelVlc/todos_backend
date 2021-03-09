@@ -47,7 +47,7 @@ var privateRoutes = []route{
 var adminRoutes = []route{
 	{"/users", http.MethodPost},
 	// {"/users", http.MethodGet},
-	{"/users/12", http.MethodDelete},
+	// {"/users/12", http.MethodDelete},
 	{"/users/12", http.MethodPut},
 	{"/users/12", http.MethodGet},
 }

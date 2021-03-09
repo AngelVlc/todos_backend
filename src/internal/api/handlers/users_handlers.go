@@ -24,20 +24,3 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 	return results.OkResult{nil, http.StatusNoContent}
 }
-
-func GetUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	userID := helpers.ParseInt32UrlVar(r, "id")
-
-	u, err := h.UsersSrv.FindUserByID(userID)
-	if err != nil {
-		return results.ErrorResult{err}
-	}
-
-	result := dtos.UserResponseDto{
-		Name:    u.Name,
-		IsAdmin: u.IsAdmin,
-		ID:      u.ID,
-	}
-
-	return results.OkResult{result, http.StatusOK}
-}

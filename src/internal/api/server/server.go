@@ -63,7 +63,7 @@ func NewServer(db *gorm.DB) *server {
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
 	usersSubRouter.Handle("", s.getHandler(authInfra.CreateUserHandler)).Methods(http.MethodPost)
 	usersSubRouter.Handle("", s.getHandler(authInfra.GetAllUsersHandler)).Methods(http.MethodGet)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(handlers.GetUserHandler)).Methods(http.MethodGet)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authInfra.GetUserHandler)).Methods(http.MethodGet)
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authInfra.DeleteUserHandler)).Methods(http.MethodDelete)
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(handlers.UpdateUserHandler)).Methods(http.MethodPut)
 	usersSubRouter.Use(authMdw.Middleware)

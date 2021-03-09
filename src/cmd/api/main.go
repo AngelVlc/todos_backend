@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/AngelVlc/todos/internal/api/dtos"
+	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/server"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/wire"
@@ -25,26 +25,7 @@ func main() {
 
 	//	db.LogMode(true)
 
-	usrSvc := wire.InitUsersService(db)
-
-	foundAdmin, err := usrSvc.FindUserByName("admin")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if foundAdmin == nil {
-		adminPass := cfg.GetAdminPassword()
-		dto := dtos.UserDto{
-			Name:               "admin",
-			NewPassword:        adminPass,
-			ConfirmNewPassword: adminPass,
-			IsAdmin:            true,
-		}
-		_, err = usrSvc.AddUser(&dto)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
+	createAdminUserIfNotExists(cfg, db)
 
 	countSvc := wire.InitCountersService(db)
 	err = countSvc.CreateCounterIfNotExists("requests")
@@ -81,4 +62,31 @@ func initDb(c sharedApp.ConfigurationService) (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, db *gorm.DB) {
+	repo := wire.InitAuthRepository(db)
+
+	userName := authDomain.AuthUserName("admin")
+	foundAdmin, err := repo.FindUserByName(&userName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if foundAdmin == nil {
+		adminPass := authDomain.AuthUserPassword(cfg.GetAdminPassword())
+
+		passGen := wire.InitPasswordGenerator()
+		hassedPass, err := passGen.GenerateFromPassword(&adminPass)
+
+		user := authDomain.AuthUser{
+			Name:         "admin",
+			PasswordHash: hassedPass,
+			IsAdmin:      true,
+		}
+		_, err = repo.CreateUser(&user)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 }

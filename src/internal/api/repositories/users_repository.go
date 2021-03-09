@@ -10,7 +10,6 @@ import (
 type UsersRepository interface {
 	FindByID(id int32) (*models.User, error)
 	FindByName(name string) (*models.User, error)
-	Create(user *models.User) (int32, error)
 	Delete(id int32) error
 	Update(user *models.User) error
 }
@@ -39,15 +38,6 @@ func (m *MockedUsersRepository) FindByName(name string) (*models.User, error) {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.User), args.Error(1)
-}
-
-func (m *MockedUsersRepository) Create(user *models.User) (int32, error) {
-	args := m.Called(user)
-	got := args.Get(0)
-	if got == nil {
-		return -1, args.Error(1)
-	}
-	return args.Get(0).(int32), args.Error(1)
 }
 
 func (m *MockedUsersRepository) Delete(id int32) error {
@@ -98,16 +88,6 @@ func (r *DefaultUsersRepository) FindByName(name string) (*models.User, error) {
 	}
 
 	return &foundUser, nil
-}
-
-// Create adds a new user
-func (r *DefaultUsersRepository) Create(user *models.User) (int32, error) {
-	err := r.db.Create(user).Error
-	if err != nil {
-		return -1, &appErrors.UnexpectedError{Msg: "Error creating in the database", InternalError: err}
-	}
-
-	return user.ID, nil
 }
 
 // Delete removes a user

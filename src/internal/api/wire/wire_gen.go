@@ -145,6 +145,16 @@ func initMySqlAuthRepository(db *gorm.DB) domain.AuthRepository {
 	return mySqlAuthRepository
 }
 
+func initBryptPasswordGenerator() domain.PasswordGenerator {
+	bcryptPasswordGenerator := domain.NewBcryptPasswordGenerator()
+	return bcryptPasswordGenerator
+}
+
+func initMockedPasswordGenerator() domain.PasswordGenerator {
+	mockedPasswordGenerator := domain.NewMockedPasswordGenerator()
+	return mockedPasswordGenerator
+}
+
 // wire.go:
 
 func InitAuthMiddleware(db *gorm.DB) middleware.AuthMiddleware {
@@ -227,6 +237,14 @@ func InitAuthRepository(db *gorm.DB) domain.AuthRepository {
 	}
 }
 
+func InitPasswordGenerator() domain.PasswordGenerator {
+	if inTestingMode() {
+		return initMockedPasswordGenerator()
+	} else {
+		return initBryptPasswordGenerator()
+	}
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -287,3 +305,7 @@ var MockedListItemsRepositorySet = wire.NewSet(repositories.NewMockedListItemsRe
 var MySqlAuthRepositorySet = wire.NewSet(repository.NewMySqlAuthRepository, wire.Bind(new(domain.AuthRepository), new(*repository.MySqlAuthRepository)))
 
 var MockedAuthRepositorySet = wire.NewSet(repository.NewMockedAuthRepository, wire.Bind(new(domain.AuthRepository), new(*repository.MockedAuthRepository)))
+
+var BcryptPasswordGeneratorSet = wire.NewSet(domain.NewBcryptPasswordGenerator, wire.Bind(new(domain.PasswordGenerator), new(*domain.BcryptPasswordGenerator)))
+
+var MockedPasswordGeneratorSet = wire.NewSet(domain.NewMockedPasswordGenerator, wire.Bind(new(domain.PasswordGenerator), new(*domain.MockedPasswordGenerator)))

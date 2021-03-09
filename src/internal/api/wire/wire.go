@@ -212,6 +212,24 @@ func initMySqlAuthRepository(db *gorm.DB) authDomain.AuthRepository {
 	return nil
 }
 
+func InitPasswordGenerator() authDomain.PasswordGenerator {
+	if inTestingMode() {
+		return initMockedPasswordGenerator()
+	} else {
+		return initBryptPasswordGenerator()
+	}
+}
+
+func initBryptPasswordGenerator() authDomain.PasswordGenerator {
+	wire.Build(BcryptPasswordGeneratorSet)
+	return nil
+}
+
+func initMockedPasswordGenerator() authDomain.PasswordGenerator {
+	wire.Build(MockedPasswordGeneratorSet)
+	return nil
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -326,3 +344,11 @@ var MySqlAuthRepositorySet = wire.NewSet(
 var MockedAuthRepositorySet = wire.NewSet(
 	authRepository.NewMockedAuthRepository,
 	wire.Bind(new(authDomain.AuthRepository), new(*authRepository.MockedAuthRepository)))
+
+var BcryptPasswordGeneratorSet = wire.NewSet(
+	authDomain.NewBcryptPasswordGenerator,
+	wire.Bind(new(authDomain.PasswordGenerator), new(*authDomain.BcryptPasswordGenerator)))
+
+var MockedPasswordGeneratorSet = wire.NewSet(
+	authDomain.NewMockedPasswordGenerator,
+	wire.Bind(new(authDomain.PasswordGenerator), new(*authDomain.MockedPasswordGenerator)))

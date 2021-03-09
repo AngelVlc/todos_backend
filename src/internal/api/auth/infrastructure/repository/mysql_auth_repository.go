@@ -50,3 +50,12 @@ func (r *MySqlAuthRepository) GetAllUsers() ([]*domain.AuthUser, error) {
 	}
 	return res, nil
 }
+
+func (r *MySqlAuthRepository) CreateUser(user *domain.AuthUser) (int32, error) {
+	err := r.db.Create(user).Error
+	if err != nil {
+		return -1, err
+	}
+
+	return user.ID, nil
+}

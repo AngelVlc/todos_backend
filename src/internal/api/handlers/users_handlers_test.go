@@ -8,7 +8,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/AngelVlc/todos/internal/api/dtos"
@@ -21,49 +20,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func TestAddUserHandler(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		return request
-	}
-
-	mockedUsersService := services.NewMockedUsersService()
-	h := handler.Handler{UsersSrv: mockedUsersService}
-
-	t.Run("Should return an errorResult with a BadRequestError if the body is not valid", func(t *testing.T) {
-		result := AddUserHandler(httptest.NewRecorder(), request(strings.NewReader("wadus")), h)
-
-		results.CheckBadRequestErrorResult(t, result, "Invalid body")
-	})
-
-	t.Run("Should return an errorResult if adding the user fails", func(t *testing.T) {
-		dto := dtos.UserDto{}
-		body, _ := json.Marshal(dto)
-
-		mockedUsersService.On("AddUser", &dto).Return(int32(-1), &appErrors.BadRequestError{Msg: "Some error"}).Once()
-
-		result := AddUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), h)
-
-		results.CheckBadRequestErrorResult(t, result, "Some error")
-
-		mockedUsersService.AssertExpectations(t)
-	})
-
-	t.Run("Should return an okResult when it adds the user", func(t *testing.T) {
-		dto := dtos.UserDto{}
-		body, _ := json.Marshal(dto)
-
-		mockedUsersService.On("AddUser", &dto).Return(int32(11), nil).Once()
-
-		result := AddUserHandler(httptest.NewRecorder(), request(bytes.NewBuffer(body)), h)
-
-		okRes := results.CheckOkResult(t, result, http.StatusCreated)
-		assert.Equal(t, int32(11), okRes.Content)
-
-		mockedUsersService.AssertExpectations(t)
-	})
-}
 
 func TestDeleteUserHandler(t *testing.T) {
 	request := func() *http.Request {

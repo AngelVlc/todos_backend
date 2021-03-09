@@ -122,53 +122,6 @@ func TestUsersRepositoryFindByName(t *testing.T) {
 	})
 }
 
-func TestUsersRepositoryInsert(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
-
-	user := models.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
-
-	repo := NewDefaultUsersRepository(db)
-
-	expectedInsertExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`password_hash`,`is_admin`) VALUES (?,?,?)")).
-			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
-	}
-
-	t.Run("should return an error if creating the new user fails", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		id, err := repo.Create(&user)
-
-		assert.Equal(t, int32(-1), id)
-		appErrors.CheckUnexpectedError(t, err, "Error creating in the database", "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("should create the new user", func(t *testing.T) {
-		var affected int64
-		result := sqlmock.NewResult(12, affected)
-
-		mock.ExpectBegin()
-		expectedInsertExec().WillReturnResult(result)
-		mock.ExpectCommit()
-
-		id, err := repo.Create(&user)
-
-		assert.Equal(t, int32(12), id)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
-}
-
 func TestUsersRepositoryRemove(t *testing.T) {
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {

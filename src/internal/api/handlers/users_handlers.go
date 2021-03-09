@@ -10,20 +10,6 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 )
 
-func AddUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	var dto dtos.UserDto
-	err := helpers.ParseBody(r, &dto)
-	if err != nil {
-		return results.ErrorResult{err}
-	}
-
-	id, err := h.UsersSrv.AddUser(&dto)
-	if err != nil {
-		return results.ErrorResult{err}
-	}
-	return results.OkResult{id, http.StatusCreated}
-}
-
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	userID := helpers.ParseInt32UrlVar(r, "id")
 

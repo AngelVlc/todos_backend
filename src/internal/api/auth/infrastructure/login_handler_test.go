@@ -96,7 +96,7 @@ func TestLoginHandler(t *testing.T) {
 	loginReq := loginRequest{&u, &p}
 	body, _ := json.Marshal(loginReq)
 
-	t.Run("Should return an errorResult with an UnexpectedError if the user does not exist", func(t *testing.T) {
+	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {
 		mockedRepo.On("FindUserByName", (*domain.AuthUserName)(&u)).Return(nil, fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 

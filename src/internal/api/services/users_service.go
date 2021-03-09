@@ -12,9 +12,7 @@ import (
 
 type UsersService interface {
 	FindUserByName(name string) (*models.User, error)
-	CheckIfUserPasswordIsOk(user *models.User, password string) error
 	FindUserByID(id int32) (*models.User, error)
-	AddUser(dto *dtos.UserDto) (int32, error)
 	RemoveUser(id int32) error
 	UpdateUser(id int32, dto *dtos.UserDto) error
 }
@@ -36,11 +34,6 @@ func (m *MockedUsersService) FindUserByName(name string) (*models.User, error) {
 	return args.Get(0).(*models.User), args.Error(1)
 }
 
-func (m *MockedUsersService) CheckIfUserPasswordIsOk(user *models.User, password string) error {
-	args := m.Called(user, password)
-	return args.Error(0)
-}
-
 func (m *MockedUsersService) FindUserByID(id int32) (*models.User, error) {
 	args := m.Called(id)
 	got := args.Get(0)
@@ -48,11 +41,6 @@ func (m *MockedUsersService) FindUserByID(id int32) (*models.User, error) {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*models.User), args.Error(1)
-}
-
-func (m *MockedUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
-	args := m.Called(dto)
-	return args.Get(0).(int32), args.Error(1)
 }
 
 func (m *MockedUsersService) RemoveUser(id int32) error {
@@ -78,47 +66,9 @@ func (s *DefaultUsersService) FindUserByName(name string) (*models.User, error) 
 	return s.usersRepo.FindByName(name)
 }
 
-// CheckIfUserPasswordIsOk returns nil if the password is correct or an error if it isn't
-func (s *DefaultUsersService) CheckIfUserPasswordIsOk(user *models.User, password string) error {
-	return s.crypto.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
-}
-
 // FindUserByID returns a single user from its id
 func (s *DefaultUsersService) FindUserByID(id int32) (*models.User, error) {
 	return s.usersRepo.FindByID(id)
-}
-
-// AddUser  adds a user
-func (s *DefaultUsersService) AddUser(dto *dtos.UserDto) (int32, error) {
-	if dto.NewPassword != dto.ConfirmNewPassword {
-		return -1, &appErrors.BadRequestError{Msg: "Passwords don't match", InternalError: nil}
-	}
-
-	foundUser, err := s.usersRepo.FindByName(dto.Name)
-	if err != nil {
-		return -1, err
-	}
-
-	if foundUser != nil {
-		return -1, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
-	}
-
-	user := models.User{}
-	user.FromDto(dto)
-
-	hasshedPass, err := s.getPasswordHash(dto.NewPassword)
-	if err != nil {
-		return -1, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
-	}
-
-	user.PasswordHash = hasshedPass
-
-	id, err := s.usersRepo.Create(&user)
-	if err != nil {
-		return -1, err
-	}
-
-	return id, nil
 }
 
 func (s *DefaultUsersService) RemoveUser(id int32) error {

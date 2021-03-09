@@ -168,6 +168,52 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 	})
 }
 
+func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	user := domain.AuthUser{Name: "userName", PasswordHash: "hash", IsAdmin: false}
+
+	repo := NewMySqlAuthRepository(db)
+
+	expectedInsertExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`password_hash`,`is_admin`) VALUES (?,?,?)")).
+			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
+	}
+
+	t.Run("should return an error if creating the new user fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		id, err := repo.CreateUser(&user)
+
+		assert.Equal(t, int32(-1), id)
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should create the new user", func(t *testing.T) {
+		result := sqlmock.NewResult(12, 1)
+
+		mock.ExpectBegin()
+		expectedInsertExec().WillReturnResult(result)
+		mock.ExpectCommit()
+
+		id, err := repo.CreateUser(&user)
+
+		assert.Equal(t, int32(12), id)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

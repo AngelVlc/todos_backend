@@ -37,3 +37,12 @@ func (m *MockedAuthRepository) GetAllUsers() ([]*domain.AuthUser, error) {
 	}
 	return args.Get(0).([]*domain.AuthUser), args.Error(1)
 }
+
+func (m *MockedAuthRepository) CreateUser(user *domain.AuthUser) (int32, error) {
+	args := m.Called(user)
+	got := args.Get(0)
+	if got == nil {
+		return -1, args.Error(1)
+	}
+	return args.Get(0).(int32), args.Error(1)
+}

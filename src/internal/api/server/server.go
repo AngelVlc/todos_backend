@@ -25,6 +25,7 @@ type server struct {
 	usersSrv      services.UsersService
 	authRepo      authDomain.AuthRepository
 	cfgSrv        sharedApp.ConfigurationService
+	passGen       authDomain.PasswordGenerator
 }
 
 func NewServer(db *gorm.DB) *server {
@@ -37,6 +38,7 @@ func NewServer(db *gorm.DB) *server {
 		usersSrv:      wire.InitUsersService(db),
 		authRepo:      wire.InitAuthRepository(db),
 		cfgSrv:        wire.InitConfigurationService(),
+		passGen:       wire.InitPasswordGenerator(),
 	}
 
 	router := mux.NewRouter()
@@ -59,7 +61,7 @@ func NewServer(db *gorm.DB) *server {
 	listsSubRouter.Use(authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
-	usersSubRouter.Handle("", s.getHandler(handlers.AddUserHandler)).Methods(http.MethodPost)
+	usersSubRouter.Handle("", s.getHandler(authInfra.CreateUserHandler)).Methods(http.MethodPost)
 	usersSubRouter.Handle("", s.getHandler(authInfra.GetAllUsersHandler)).Methods(http.MethodGet)
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(handlers.GetUserHandler)).Methods(http.MethodGet)
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(handlers.DeleteUserHandler)).Methods(http.MethodDelete)
@@ -80,5 +82,5 @@ func NewServer(db *gorm.DB) *server {
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.usersSrv, s.listsSrv, s.listItemsSrv, s.authRepo, s.cfgSrv)
+	return handler.NewHandler(handlerFunc, s.usersSrv, s.listsSrv, s.listItemsSrv, s.authRepo, s.cfgSrv, s.passGen)
 }

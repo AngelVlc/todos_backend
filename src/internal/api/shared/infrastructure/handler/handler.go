@@ -20,6 +20,7 @@ type Handler struct {
 	ListItemsSrv   services.ListItemsService
 	AuthRepository authDomain.AuthRepository
 	CfgSrv         sharedApp.ConfigurationService
+	PassGen        authDomain.PasswordGenerator
 }
 
 type HandlerResult interface {
@@ -28,7 +29,8 @@ type HandlerResult interface {
 
 func NewHandler(f HandlerFunc, usersSvc services.UsersService,
 	listsSvc services.ListsService, listItemsSvc services.ListItemsService,
-	authRepo authDomain.AuthRepository, cfgSrv sharedApp.ConfigurationService) Handler {
+	authRepo authDomain.AuthRepository, cfgSrv sharedApp.ConfigurationService,
+	passGen authDomain.PasswordGenerator) Handler {
 	return Handler{
 		HandlerFunc:    f,
 		UsersSrv:       usersSvc,
@@ -36,6 +38,7 @@ func NewHandler(f HandlerFunc, usersSvc services.UsersService,
 		ListItemsSrv:   listItemsSvc,
 		AuthRepository: authRepo,
 		CfgSrv:         cfgSrv,
+		PassGen:        passGen,
 	}
 }
 

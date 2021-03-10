@@ -2,7 +2,6 @@ package repository
 
 import (
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	"github.com/AngelVlc/todos/internal/api/models"
 	"github.com/jinzhu/gorm"
 )
 
@@ -62,5 +61,9 @@ func (r *MySqlAuthRepository) CreateUser(user *domain.AuthUser) (int32, error) {
 }
 
 func (r *MySqlAuthRepository) DeleteUser(userID *int32) error {
-	return r.db.Where(models.User{ID: *userID}).Delete(models.User{}).Error
+	return r.db.Delete(domain.AuthUser{ID: *userID}).Error
+}
+
+func (r *MySqlAuthRepository) UpdateUser(user *domain.AuthUser) error {
+	return r.db.Save(&user).Error
 }

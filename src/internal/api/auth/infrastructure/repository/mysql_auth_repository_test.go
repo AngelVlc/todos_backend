@@ -1,3 +1,5 @@
+//+build !e2e
+
 package repository
 
 import (
@@ -225,7 +227,7 @@ func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 	repo := NewMySqlAuthRepository(db)
 
 	expectedDeleteExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE (`users`.`id` = ?)")).
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE `users`.`id` = ?")).
 			WithArgs(1)
 	}
 
@@ -248,6 +250,49 @@ func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 		mock.ExpectCommit()
 
 		err := repo.DeleteUser(&userID)
+
+		assert.Nil(t, err)
+		checkMockExpectations(t, mock)
+	})
+}
+
+func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	user := domain.AuthUser{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
+
+	repo := NewMySqlAuthRepository(db)
+
+	expectedUpdateExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name` = ?, `password_hash` = ?, `is_admin` = ? WHERE `users`.`id` = ?")).
+			WithArgs("userName", "hash", false, 11)
+	}
+
+	t.Run("should return an error if update fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.UpdateUser(&user)
+
+		assert.EqualError(t, err, "some error")
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should update the user if the update doesn't fail", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`  WHERE `users`.`id` = ? ORDER BY `users`.`id` ASC LIMIT 1")).
+			WithArgs(11).
+			WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user", "", false))
+
+		err := repo.UpdateUser(&user)
 
 		assert.Nil(t, err)
 		checkMockExpectations(t, mock)

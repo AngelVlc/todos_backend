@@ -24,12 +24,12 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	userName, err := domain.NewAuthUserName(createReq.UserName)
+	userName, err := domain.NewAuthUserName(createReq.UserName, true)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	password, err := domain.NewAuthUserPassword(createReq.Password)
+	password, err := domain.NewAuthUserPassword(createReq.Password, true)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

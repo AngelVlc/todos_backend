@@ -6,13 +6,15 @@ import (
 
 type AuthUserPassword string
 
-func NewAuthUserPassword(userPassword *string) (*AuthUserPassword, error) {
-	if userPassword == nil {
-		return nil, &appErrors.BadRequestError{Msg: "Password is mandatory"}
-	}
+func NewAuthUserPassword(userPassword *string, isMandatory bool) (*AuthUserPassword, error) {
+	if isMandatory {
+		if userPassword == nil {
+			return nil, &appErrors.BadRequestError{Msg: "Password is mandatory"}
+		}
 
-	if len(*userPassword) == 0 {
-		return nil, &appErrors.BadRequestError{Msg: "Password can not be empty"}
+		if len(*userPassword) == 0 {
+			return nil, &appErrors.BadRequestError{Msg: "Password can not be empty"}
+		}
 	}
 
 	return (*AuthUserPassword)(userPassword), nil

@@ -15,6 +15,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	listItemsColumns = []string{"id", "listId", "title", "description"}
+)
+
 func TestListItemsRepositoryFindByID(t *testing.T) {
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {
@@ -46,7 +50,7 @@ func TestListItemsRepositoryFindByID(t *testing.T) {
 	})
 
 	t.Run("should not return an item if it does not exist", func(t *testing.T) {
-		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(columns))
+		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns))
 
 		res, err := repo.FindByID(itemID, listID, userID)
 

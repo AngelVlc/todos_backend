@@ -99,42 +99,6 @@ func initMockedListsService() services.ListsService {
 	return nil
 }
 
-func InitUsersService(db *gorm.DB) services.UsersService {
-	if inTestingMode() {
-		return initMockedUsersService()
-	} else {
-		return initDefaultUsersService(db)
-	}
-}
-
-func initDefaultUsersService(db *gorm.DB) services.UsersService {
-	wire.Build(CryptoHelperSet, UsersRepositorySet, UsersServiceSet)
-	return nil
-}
-
-func initMockedUsersService() services.UsersService {
-	wire.Build(MockedUsersServiceSet)
-	return nil
-}
-
-func InitUsersRepository(db *gorm.DB) repositories.UsersRepository {
-	if inTestingMode() {
-		return initMockedUsersRepository()
-	} else {
-		return initDefaultUsersRepository(db)
-	}
-}
-
-func initDefaultUsersRepository(db *gorm.DB) repositories.UsersRepository {
-	wire.Build(UsersRepositorySet)
-	return nil
-}
-
-func initMockedUsersRepository() repositories.UsersRepository {
-	wire.Build(MockedUsersRepositorySet)
-	return nil
-}
-
 func InitListsRepository(db *gorm.DB) repositories.ListsRepository {
 	if inTestingMode() {
 		return initMockedListsRepository()
@@ -246,10 +210,6 @@ var MockedTokenHelperSet = wire.NewSet(
 	helpers.NewMockedTokenHelper,
 	wire.Bind(new(helpers.TokenHelper), new(*helpers.MockedTokenHelper)))
 
-var CryptoHelperSet = wire.NewSet(
-	services.NewBcryptHelper,
-	wire.Bind(new(services.CryptoHelper), new(*services.BcryptHelper)))
-
 var ConfigurationServiceSet = wire.NewSet(
 	EnvGetterSet,
 	sharedApp.NewDefaultConfigurationService,
@@ -258,14 +218,6 @@ var ConfigurationServiceSet = wire.NewSet(
 var MockedConfigurationServiceSet = wire.NewSet(
 	sharedApp.NewMockedConfigurationService,
 	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.MockedConfigurationService)))
-
-var UsersServiceSet = wire.NewSet(
-	services.NewDefaultUsersService,
-	wire.Bind(new(services.UsersService), new(*services.DefaultUsersService)))
-
-var MockedUsersServiceSet = wire.NewSet(
-	services.NewMockedUsersService,
-	wire.Bind(new(services.UsersService), new(*services.MockedUsersService)))
 
 var ListsServiceSet = wire.NewSet(
 	services.NewDefaultListsService,
@@ -304,14 +256,6 @@ var FakeAuthMiddlewareSet = wire.NewSet(
 var RequireAdminMiddlewareSet = wire.NewSet(
 	handlers.NewDefaultRequireAdminMiddleware,
 	wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
-
-var UsersRepositorySet = wire.NewSet(
-	repositories.NewDefaultUsersRepository,
-	wire.Bind(new(repositories.UsersRepository), new(*repositories.DefaultUsersRepository)))
-
-var MockedUsersRepositorySet = wire.NewSet(
-	repositories.NewMockedUsersRepository,
-	wire.Bind(new(repositories.UsersRepository), new(*repositories.MockedUsersRepository)))
 
 var ListsRepositorySet = wire.NewSet(
 	repositories.NewDefaultListsRepository,

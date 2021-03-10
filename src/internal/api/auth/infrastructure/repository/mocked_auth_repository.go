@@ -49,3 +49,8 @@ func (m *MockedAuthRepository) DeleteUser(userID *int32) error {
 	args := m.Called(userID)
 	return args.Error(0)
 }
+
+func (m *MockedAuthRepository) UpdateUser(user *domain.AuthUser) error {
+	args := m.Called(user)
+	return args.Error(0)
+}

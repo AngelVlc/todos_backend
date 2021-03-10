@@ -14,6 +14,7 @@ import (
 	"time"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
+	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
 	"github.com/AngelVlc/todos/internal/api/dtos"
 	"github.com/stretchr/testify/require"
 )
@@ -44,7 +45,7 @@ func TestEndtoEnd(t *testing.T) {
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
-	userRes := dtos.UserResponseDto{}
+	userRes := authInfra.UserResponse{}
 	err = objFromRes(res.Body, &userRes)
 	require.Nil(t, err)
 	require.True(t, userRes.IsAdmin)

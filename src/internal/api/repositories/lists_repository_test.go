@@ -16,8 +16,7 @@ import (
 )
 
 var (
-	listColumns      = []string{"id", "name", "userId"}
-	listItemsColumns = []string{"id", "listId", "title", "description"}
+	listColumns = []string{"id", "name", "userId"}
 )
 
 func TestListsRepositoryInsert(t *testing.T) {
@@ -171,7 +170,7 @@ func TestListsRepositoryFindByID(t *testing.T) {
 	}
 
 	t.Run("should not return a list if it does not exist", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(columns))
+		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns))
 
 		res, err := repo.FindByID(listID, userID)
 
@@ -261,4 +260,10 @@ func TestListsRepositoryGetAll(t *testing.T) {
 		checkMockExpectations(t, mock)
 	})
 
+}
+
+func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
 }

@@ -6,13 +6,15 @@ import (
 
 type AuthUserName string
 
-func NewAuthUserName(userName *string) (*AuthUserName, error) {
-	if userName == nil {
-		return nil, &appErrors.BadRequestError{Msg: "UserName is mandatory"}
-	}
+func NewAuthUserName(userName *string, isMandatory bool) (*AuthUserName, error) {
+	if isMandatory {
+		if userName == nil {
+			return nil, &appErrors.BadRequestError{Msg: "UserName is mandatory"}
+		}
 
-	if len(*userName) == 0 {
-		return nil, &appErrors.BadRequestError{Msg: "UserName can not be empty"}
+		if len(*userName) == 0 {
+			return nil, &appErrors.BadRequestError{Msg: "UserName can not be empty"}
+		}
 	}
 
 	return (*AuthUserName)(userName), nil

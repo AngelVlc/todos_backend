@@ -1,3 +1,5 @@
+//+build !e2e
+
 package infrastructure
 
 import (
@@ -97,8 +99,8 @@ func TestCreateUserHandlerValidations(t *testing.T) {
 
 func TestCreateUserHandler(t *testing.T) {
 	mockedRepo := authRepository.MockedAuthRepository{}
-	mockedPassgen := authDomain.MockedPasswordGenerator{}
-	h := handler.Handler{AuthRepository: &mockedRepo, PassGen: &mockedPassgen}
+	mockedPassGen := authDomain.MockedPasswordGenerator{}
+	h := handler.Handler{AuthRepository: &mockedRepo, PassGen: &mockedPassGen}
 
 	u := "wadus"
 	p := "pass"
@@ -130,21 +132,21 @@ func TestCreateUserHandler(t *testing.T) {
 	t.Run("Should return an error result with an UnexpectedError if generate the password fails", func(t *testing.T) {
 		mockedRepo.On("FindUserByName", (*domain.AuthUserName)(&u)).Return(nil, nil).Once()
 		pass := domain.AuthUserPassword(p)
-		mockedPassgen.On("GenerateFromPassword", &pass).Return("", fmt.Errorf("some error")).Once()
+		mockedPassGen.On("GenerateFromPassword", &pass).Return("", fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error encrypting password")
 		mockedRepo.AssertExpectations(t)
-		mockedPassgen.AssertExpectations(t)
+		mockedPassGen.AssertExpectations(t)
 	})
 
 	t.Run("Should return an error result with an UnexpectedError if create user fails", func(t *testing.T) {
 		mockedRepo.On("FindUserByName", (*domain.AuthUserName)(&u)).Return(nil, nil).Once()
 		pass := domain.AuthUserPassword(p)
 		hassedPass := "hassed"
-		mockedPassgen.On("GenerateFromPassword", &pass).Return(hassedPass, nil).Once()
+		mockedPassGen.On("GenerateFromPassword", &pass).Return(hassedPass, nil).Once()
 		user := domain.AuthUser{Name: domain.AuthUserName(u), PasswordHash: hassedPass, IsAdmin: true}
 		mockedRepo.On("CreateUser", &user).Return(nil, fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
@@ -153,14 +155,14 @@ func TestCreateUserHandler(t *testing.T) {
 
 		results.CheckUnexpectedErrorResult(t, result, "Error creating the user")
 		mockedRepo.AssertExpectations(t)
-		mockedPassgen.AssertExpectations(t)
+		mockedPassGen.AssertExpectations(t)
 	})
 
 	t.Run("should create the new user", func(t *testing.T) {
 		mockedRepo.On("FindUserByName", (*domain.AuthUserName)(&u)).Return(nil, nil).Once()
 		pass := domain.AuthUserPassword(p)
 		hassedPass := "hassed"
-		mockedPassgen.On("GenerateFromPassword", &pass).Return(hassedPass, nil).Once()
+		mockedPassGen.On("GenerateFromPassword", &pass).Return(hassedPass, nil).Once()
 		user := domain.AuthUser{Name: domain.AuthUserName(u), PasswordHash: hassedPass, IsAdmin: true}
 		mockedRepo.On("CreateUser", &user).Return(int32(1), nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
@@ -169,10 +171,10 @@ func TestCreateUserHandler(t *testing.T) {
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		res, isOk := okRes.Content.(int32)
-		require.Equal(t, true, isOk, "should be a token response")
+		require.Equal(t, true, isOk, "should be an int32")
 		assert.Equal(t, int32(1), res)
 
 		mockedRepo.AssertExpectations(t)
-		mockedPassgen.AssertExpectations(t)
+		mockedPassGen.AssertExpectations(t)
 	})
 }

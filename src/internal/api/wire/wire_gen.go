@@ -75,28 +75,6 @@ func initMockedListsService() services.ListsService {
 	return mockedListsService
 }
 
-func initDefaultUsersService(db *gorm.DB) services.UsersService {
-	bcryptHelper := services.NewBcryptHelper()
-	defaultUsersRepository := repositories.NewDefaultUsersRepository(db)
-	defaultUsersService := services.NewDefaultUsersService(bcryptHelper, defaultUsersRepository)
-	return defaultUsersService
-}
-
-func initMockedUsersService() services.UsersService {
-	mockedUsersService := services.NewMockedUsersService()
-	return mockedUsersService
-}
-
-func initDefaultUsersRepository(db *gorm.DB) repositories.UsersRepository {
-	defaultUsersRepository := repositories.NewDefaultUsersRepository(db)
-	return defaultUsersRepository
-}
-
-func initMockedUsersRepository() repositories.UsersRepository {
-	mockedUsersRepository := repositories.NewMockedUsersRepository()
-	return mockedUsersRepository
-}
-
 func initDefaultListsRepository(db *gorm.DB) repositories.ListsRepository {
 	defaultListsRepository := repositories.NewDefaultListsRepository(db)
 	return defaultListsRepository
@@ -189,22 +167,6 @@ func InitListsService(db *gorm.DB) services.ListsService {
 	}
 }
 
-func InitUsersService(db *gorm.DB) services.UsersService {
-	if inTestingMode() {
-		return initMockedUsersService()
-	} else {
-		return initDefaultUsersService(db)
-	}
-}
-
-func InitUsersRepository(db *gorm.DB) repositories.UsersRepository {
-	if inTestingMode() {
-		return initMockedUsersRepository()
-	} else {
-		return initDefaultUsersRepository(db)
-	}
-}
-
 func InitListsRepository(db *gorm.DB) repositories.ListsRepository {
 	if inTestingMode() {
 		return initMockedListsRepository()
@@ -255,16 +217,10 @@ var TokenHelperSet = wire.NewSet(helpers.NewJwtTokenHelper, wire.Bind(new(helper
 
 var MockedTokenHelperSet = wire.NewSet(helpers.NewMockedTokenHelper, wire.Bind(new(helpers.TokenHelper), new(*helpers.MockedTokenHelper)))
 
-var CryptoHelperSet = wire.NewSet(services.NewBcryptHelper, wire.Bind(new(services.CryptoHelper), new(*services.BcryptHelper)))
-
 var ConfigurationServiceSet = wire.NewSet(
 	EnvGetterSet, application.NewDefaultConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.DefaultConfigurationService)))
 
 var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.MockedConfigurationService)))
-
-var UsersServiceSet = wire.NewSet(services.NewDefaultUsersService, wire.Bind(new(services.UsersService), new(*services.DefaultUsersService)))
-
-var MockedUsersServiceSet = wire.NewSet(services.NewMockedUsersService, wire.Bind(new(services.UsersService), new(*services.MockedUsersService)))
 
 var ListsServiceSet = wire.NewSet(services.NewDefaultListsService, wire.Bind(new(services.ListsService), new(*services.DefaultListsService)))
 
@@ -285,10 +241,6 @@ var AuthMiddlewareSet = wire.NewSet(
 var FakeAuthMiddlewareSet = wire.NewSet(middleware.NewFakeAuthMiddleware, wire.Bind(new(middleware.AuthMiddleware), new(*middleware.FakeAuthMiddleware)))
 
 var RequireAdminMiddlewareSet = wire.NewSet(handlers.NewDefaultRequireAdminMiddleware, wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
-
-var UsersRepositorySet = wire.NewSet(repositories.NewDefaultUsersRepository, wire.Bind(new(repositories.UsersRepository), new(*repositories.DefaultUsersRepository)))
-
-var MockedUsersRepositorySet = wire.NewSet(repositories.NewMockedUsersRepository, wire.Bind(new(repositories.UsersRepository), new(*repositories.MockedUsersRepository)))
 
 var ListsRepositorySet = wire.NewSet(repositories.NewDefaultListsRepository, wire.Bind(new(repositories.ListsRepository), new(*repositories.DefaultListsRepository)))
 

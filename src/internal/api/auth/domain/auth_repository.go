@@ -6,4 +6,5 @@ type AuthRepository interface {
 	GetAllUsers() ([]*AuthUser, error)
 	CreateUser(user *AuthUser) (int32, error)
 	DeleteUser(userID *int32) error
+	UpdateUser(user *AuthUser) error
 }

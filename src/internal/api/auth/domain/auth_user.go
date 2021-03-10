@@ -1,6 +1,10 @@
 package domain
 
-import "golang.org/x/crypto/bcrypt"
+import (
+	"strings"
+
+	"golang.org/x/crypto/bcrypt"
+)
 
 type AuthUser struct {
 	ID           int32        `gorm:"type:int(32);primary_key"`
@@ -15,4 +19,9 @@ func (AuthUser) TableName() string {
 
 func (u *AuthUser) HasPassword(value AuthUserPassword) error {
 	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(value))
+}
+
+func (u *AuthUser) IsTheAdminUser() bool {
+	userNameLowerCase := strings.ToLower(string(u.Name))
+	return userNameLowerCase == "admin"
 }

@@ -15,7 +15,6 @@ import (
 // Handler is the type used to handle the endpoints
 type Handler struct {
 	HandlerFunc
-	UsersSrv       services.UsersService
 	ListsSrv       services.ListsService
 	ListItemsSrv   services.ListItemsService
 	AuthRepository authDomain.AuthRepository
@@ -27,13 +26,12 @@ type HandlerResult interface {
 	IsError() bool
 }
 
-func NewHandler(f HandlerFunc, usersSvc services.UsersService,
+func NewHandler(f HandlerFunc,
 	listsSvc services.ListsService, listItemsSvc services.ListItemsService,
 	authRepo authDomain.AuthRepository, cfgSrv sharedApp.ConfigurationService,
 	passGen authDomain.PasswordGenerator) Handler {
 	return Handler{
 		HandlerFunc:    f,
-		UsersSrv:       usersSvc,
 		ListsSrv:       listsSvc,
 		ListItemsSrv:   listItemsSvc,
 		AuthRepository: authRepo,

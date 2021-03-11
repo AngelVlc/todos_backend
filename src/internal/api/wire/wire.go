@@ -12,7 +12,6 @@ import (
 	"github.com/AngelVlc/todos/internal/api/repositories"
 	"github.com/AngelVlc/todos/internal/api/services"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 )
@@ -201,14 +200,6 @@ func inTestingMode() bool {
 var EnvGetterSet = wire.NewSet(
 	sharedApp.NewOsEnvGetter,
 	wire.Bind(new(sharedApp.EnvGetter), new(*sharedApp.OsEnvGetter)))
-
-var TokenHelperSet = wire.NewSet(
-	helpers.NewJwtTokenHelper,
-	wire.Bind(new(helpers.TokenHelper), new(*helpers.JwtTokenHelper)))
-
-var MockedTokenHelperSet = wire.NewSet(
-	helpers.NewMockedTokenHelper,
-	wire.Bind(new(helpers.TokenHelper), new(*helpers.MockedTokenHelper)))
 
 var ConfigurationServiceSet = wire.NewSet(
 	EnvGetterSet,

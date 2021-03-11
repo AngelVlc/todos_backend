@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
 type DeleteUserService struct {

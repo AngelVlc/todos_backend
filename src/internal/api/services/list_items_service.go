@@ -4,7 +4,7 @@ import (
 	"github.com/AngelVlc/todos/internal/api/dtos"
 	"github.com/AngelVlc/todos/internal/api/models"
 	"github.com/AngelVlc/todos/internal/api/repositories"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 	"github.com/stretchr/testify/mock"
 )
 

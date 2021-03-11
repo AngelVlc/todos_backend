@@ -3,7 +3,7 @@ package application
 import (
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
 type LoginService struct {

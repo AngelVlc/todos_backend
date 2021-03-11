@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"github.com/AngelVlc/todos/internal/api/models"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/mock"
 )

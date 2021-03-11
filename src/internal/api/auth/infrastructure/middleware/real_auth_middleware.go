@@ -7,8 +7,8 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 )
 

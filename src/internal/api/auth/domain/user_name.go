@@ -1,7 +1,7 @@
 package domain
 
 import (
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
 type UserName string

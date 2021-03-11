@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
 func ParseBody(r *http.Request, dto interface{}) error {

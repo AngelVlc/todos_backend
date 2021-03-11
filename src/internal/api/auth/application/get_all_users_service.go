@@ -2,7 +2,7 @@ package application
 
 import (
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
+	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
 type GetAllUsersService struct {

@@ -53,7 +53,7 @@ func TestGetUserHandler(t *testing.T) {
 	})
 
 	t.Run("should return the user", func(t *testing.T) {
-		user := domain.AuthUser{ID: 2, Name: "user1", IsAdmin: true}
+		user := domain.User{ID: 2, Name: "user1", IsAdmin: true}
 		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&user, nil).Once()
 
 		result := GetUserHandler(httptest.NewRecorder(), request(), h)

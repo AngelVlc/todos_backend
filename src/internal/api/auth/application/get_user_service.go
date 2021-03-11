@@ -13,7 +13,7 @@ func NewGetUserService(repo domain.AuthRepository) *GetUserService {
 	return &GetUserService{repo}
 }
 
-func (s *GetUserService) GetUser(userID *int32) (*domain.AuthUser, error) {
+func (s *GetUserService) GetUser(userID *int32) (*domain.User, error) {
 	foundUser, err := s.repo.FindUserByID(userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by id", InternalError: err}

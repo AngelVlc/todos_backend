@@ -72,7 +72,7 @@ func TestRealAuthMiddleware(t *testing.T) {
 	t.Run("Should add the token info to the request context if the token is valid", func(t *testing.T) {
 		mockedCfgSrv.On("TokenExpirationInSeconds").Return(5 * time.Minute).Once()
 		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)
-		authUSer := domain.AuthUser{ID: int32(1), Name: "user", IsAdmin: true}
+		authUSer := domain.User{ID: int32(1), Name: "user", IsAdmin: true}
 		token, _ := domain.NewTokenService(mockedCfgSrv).GenerateToken(&authUSer)
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request.Header.Set("Authorization", "Bearer "+token)

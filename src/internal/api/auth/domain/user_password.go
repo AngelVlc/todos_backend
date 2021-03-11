@@ -4,9 +4,9 @@ import (
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 )
 
-type AuthUserPassword string
+type UserPassword string
 
-func NewAuthUserPassword(userPassword *string, isMandatory bool) (*AuthUserPassword, error) {
+func NewUserPassword(userPassword *string, isMandatory bool) (*UserPassword, error) {
 	if isMandatory {
 		if userPassword == nil {
 			return nil, &appErrors.BadRequestError{Msg: "Password is mandatory"}
@@ -17,5 +17,5 @@ func NewAuthUserPassword(userPassword *string, isMandatory bool) (*AuthUserPassw
 		}
 	}
 
-	return (*AuthUserPassword)(userPassword), nil
+	return (*UserPassword)(userPassword), nil
 }

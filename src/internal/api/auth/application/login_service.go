@@ -15,7 +15,7 @@ func NewLoginService(repo domain.AuthRepository, cfgSvc sharedApp.ConfigurationS
 	return &LoginService{repo, cfgSvc}
 }
 
-func (s *LoginService) Login(userName *domain.AuthUserName, password *domain.AuthUserPassword) (*domain.TokenResponse, error) {
+func (s *LoginService) Login(userName *domain.UserName, password *domain.UserPassword) (*domain.TokenResponse, error) {
 	foundUser, err := s.repo.FindUserByName(userName)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}

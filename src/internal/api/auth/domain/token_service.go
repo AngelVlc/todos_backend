@@ -16,18 +16,18 @@ func NewTokenService(cfgSvc sharedApp.ConfigurationService) *TokenService {
 	return &TokenService{cfgSvc}
 }
 
-func (s *TokenService) GenerateToken(user *AuthUser) (string, error) {
+func (s *TokenService) GenerateToken(user *User) (string, error) {
 	t := s.getNewToken(user.ID, user.Name, user.IsAdmin)
 	return s.signToken(t, s.cfgSvc.GetJwtSecret())
 
 }
 
-func (s *TokenService) GenerateRefreshToken(user *AuthUser) (string, error) {
+func (s *TokenService) GenerateRefreshToken(user *User) (string, error) {
 	rt := s.getNewRefreshToken(user.ID)
 	return s.signToken(rt, s.cfgSvc.GetJwtSecret())
 }
 
-func (s *TokenService) getNewToken(userID int32, userName AuthUserName, userIsAdmin bool) interface{} {
+func (s *TokenService) getNewToken(userID int32, userName UserName, userIsAdmin bool) interface{} {
 	t := s.newToken()
 
 	tc := s.getTokenClaims(t)

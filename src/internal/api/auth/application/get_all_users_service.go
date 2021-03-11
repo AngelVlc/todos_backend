@@ -13,7 +13,7 @@ func NewGetAllUsersService(repo domain.AuthRepository) *GetAllUsersService {
 	return &GetAllUsersService{repo}
 }
 
-func (s *GetAllUsersService) GetAllUsers() ([]*domain.AuthUser, error) {
+func (s *GetAllUsersService) GetAllUsers() ([]*domain.User, error) {
 	foundUsers, err := s.repo.GetAllUsers()
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}

@@ -31,7 +31,7 @@ func TestGetAllUsersHandler(t *testing.T) {
 	})
 
 	t.Run("Should return the users if the query does not fail", func(t *testing.T) {
-		found := []*domain.AuthUser{
+		found := []*domain.User{
 			{ID: 2, Name: "user1", IsAdmin: true},
 			{ID: 5, Name: "user2", IsAdmin: false},
 		}

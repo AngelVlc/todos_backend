@@ -4,9 +4,9 @@ import (
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/infrastructure/errors"
 )
 
-type AuthUserName string
+type UserName string
 
-func NewAuthUserName(userName *string, isMandatory bool) (*AuthUserName, error) {
+func NewUserName(userName *string, isMandatory bool) (*UserName, error) {
 	if isMandatory {
 		if userName == nil {
 			return nil, &appErrors.BadRequestError{Msg: "UserName is mandatory"}
@@ -17,5 +17,5 @@ func NewAuthUserName(userName *string, isMandatory bool) (*AuthUserName, error) 
 		}
 	}
 
-	return (*AuthUserName)(userName), nil
+	return (*UserName)(userName), nil
 }

@@ -14,7 +14,7 @@ func NewUpdateUserService(repo domain.AuthRepository, passGen domain.PasswordGen
 	return &UpdateUserService{repo, passGen}
 }
 
-func (s *UpdateUserService) UpdateUser(userID *int32, userName *domain.AuthUserName, password *domain.AuthUserPassword, isAdmin *bool) (*domain.AuthUser, error) {
+func (s *UpdateUserService) UpdateUser(userID *int32, userName *domain.UserName, password *domain.UserPassword, isAdmin *bool) (*domain.User, error) {
 	foundUser, err := s.repo.FindUserByID(userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by id", InternalError: err}
@@ -25,7 +25,7 @@ func (s *UpdateUserService) UpdateUser(userID *int32, userName *domain.AuthUserN
 	}
 
 	if foundUser.IsTheAdminUser() {
-		if *userName != domain.AuthUserName("admin") {
+		if *userName != domain.UserName("admin") {
 			return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
 		}
 

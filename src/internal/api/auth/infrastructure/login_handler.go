@@ -22,12 +22,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) han
 		return results.ErrorResult{Err: err}
 	}
 
-	userName, err := domain.NewAuthUserName(loginReq.UserName, true)
+	userName, err := domain.NewUserName(loginReq.UserName, true)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	password, err := domain.NewAuthUserPassword(loginReq.Password, true)
+	password, err := domain.NewUserPassword(loginReq.Password, true)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

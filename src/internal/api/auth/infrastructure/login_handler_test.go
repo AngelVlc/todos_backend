@@ -97,7 +97,7 @@ func TestLoginHandler(t *testing.T) {
 	body, _ := json.Marshal(loginReq)
 
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {
-		mockedRepo.On("FindUserByName", (*domain.AuthUserName)(&u)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindUserByName", (*domain.UserName)(&u)).Return(nil, fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -107,7 +107,7 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the user does not exist", func(t *testing.T) {
-		mockedRepo.On("FindUserByName", (*domain.AuthUserName)(&u)).Return(nil, nil).Once()
+		mockedRepo.On("FindUserByName", (*domain.UserName)(&u)).Return(nil, nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -117,8 +117,8 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the password does not match", func(t *testing.T) {
-		foundUser := domain.AuthUser{PasswordHash: "hash"}
-		mockedRepo.On("FindUserByName", (*domain.AuthUserName)(&u)).Return(&foundUser, nil).Once()
+		foundUser := domain.User{PasswordHash: "hash"}
+		mockedRepo.On("FindUserByName", (*domain.UserName)(&u)).Return(&foundUser, nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -130,8 +130,8 @@ func TestLoginHandler(t *testing.T) {
 	t.Run("Should return an okResult with the tokens and should create the cookie if the login is correct", func(t *testing.T) {
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
-		foundUser := domain.AuthUser{PasswordHash: hashedPass}
-		mockedRepo.On("FindUserByName", (*domain.AuthUserName)(&u)).Return(&foundUser, nil).Once()
+		foundUser := domain.User{PasswordHash: hashedPass}
+		mockedRepo.On("FindUserByName", (*domain.UserName)(&u)).Return(&foundUser, nil).Once()
 		mockedCfgSrv.On("TokenExpirationInSeconds").Return(time.Second * 30).Once()
 		mockedCfgSrv.On("RefreshTokenExpirationInSeconds").Return(time.Hour).Once()
 		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)

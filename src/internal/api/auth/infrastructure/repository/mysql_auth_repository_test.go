@@ -63,7 +63,7 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 		res, err := repo.FindUserByID(&userID)
 
 		require.NotNil(t, res)
-		assert.Equal(t, domain.AuthUserName("userName"), res.Name)
+		assert.Equal(t, domain.UserName("userName"), res.Name)
 		assert.True(t, res.IsAdmin)
 		assert.Equal(t, userID, res.ID)
 		assert.Nil(t, err)
@@ -82,7 +82,7 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 
 	repo := NewMySqlAuthRepository(db)
 
-	userName := domain.AuthUserName("userName")
+	userName := domain.UserName("userName")
 
 	expectedFindByNameQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE (`users`.`name` = ?) ORDER BY `users`.`id` ASC LIMIT 1")).
@@ -158,11 +158,11 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 		assert.Nil(t, err)
 		require.Equal(t, 2, len(res))
 		assert.Equal(t, int32(11), res[0].ID)
-		assert.Equal(t, domain.AuthUserName("user1"), res[0].Name)
+		assert.Equal(t, domain.UserName("user1"), res[0].Name)
 		assert.Equal(t, "pass1", res[0].PasswordHash)
 		assert.True(t, res[0].IsAdmin)
 		assert.Equal(t, int32(12), res[1].ID)
-		assert.Equal(t, domain.AuthUserName("user2"), res[1].Name)
+		assert.Equal(t, domain.UserName("user2"), res[1].Name)
 		assert.Equal(t, "pass2", res[1].PasswordHash)
 		assert.False(t, res[1].IsAdmin)
 
@@ -178,7 +178,7 @@ func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
 	db, err := gorm.Open("mysql", mockDb)
 	defer db.Close()
 
-	user := domain.AuthUser{Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlAuthRepository(db)
 
@@ -264,7 +264,7 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 	db, err := gorm.Open("mysql", mockDb)
 	defer db.Close()
 
-	user := domain.AuthUser{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlAuthRepository(db)
 

@@ -27,12 +27,12 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	userName, err := domain.NewAuthUserName(updateReq.UserName, false)
+	userName, err := domain.NewUserName(updateReq.UserName, false)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	password, err := domain.NewAuthUserPassword(updateReq.Password, false)
+	password, err := domain.NewUserPassword(updateReq.Password, false)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

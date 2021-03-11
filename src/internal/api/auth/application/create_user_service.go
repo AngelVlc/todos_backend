@@ -14,7 +14,7 @@ func NewCreateUserService(repo domain.AuthRepository, passGen domain.PasswordGen
 	return &CreateUserService{repo, passGen}
 }
 
-func (s *CreateUserService) CreateUser(userName *domain.AuthUserName, password *domain.AuthUserPassword, isAdmin *bool) (int32, error) {
+func (s *CreateUserService) CreateUser(userName *domain.UserName, password *domain.UserPassword, isAdmin *bool) (int32, error) {
 	foundUser, err := s.repo.FindUserByName(userName)
 	if err != nil {
 		return -1, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
@@ -29,7 +29,7 @@ func (s *CreateUserService) CreateUser(userName *domain.AuthUserName, password *
 		return -1, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 	}
 
-	user := domain.AuthUser{
+	user := domain.User{
 		Name:         *userName,
 		PasswordHash: hasshedPass,
 		IsAdmin:      *isAdmin,

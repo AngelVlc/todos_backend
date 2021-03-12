@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AngelVlc/todos/internal/api"
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
@@ -42,18 +41,8 @@ func TestLoginHandlerValidations(t *testing.T) {
 		results.CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
 
-	t.Run("Should return an errorResult with a BadRequestError if the login request does not have userName", func(t *testing.T) {
-		loginReq := loginRequest{}
-		body, _ := json.Marshal(loginReq)
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-
-		result := LoginHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckBadRequestErrorResult(t, result, "UserName is mandatory")
-	})
-
 	t.Run("Should return an errorResult with a BadRequestError if the login request has an empty userName", func(t *testing.T) {
-		loginReq := loginRequest{UserName: api.String("")}
+		loginReq := loginRequest{UserName: ""}
 		body, _ := json.Marshal(loginReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -63,17 +52,7 @@ func TestLoginHandlerValidations(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the login request does not have password", func(t *testing.T) {
-		loginReq := loginRequest{UserName: api.String("wadus")}
-		body, _ := json.Marshal(loginReq)
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-
-		result := LoginHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckBadRequestErrorResult(t, result, "Password is mandatory")
-	})
-
-	t.Run("Should return an errorResult with a BadRequestError if the login request does not have password", func(t *testing.T) {
-		loginReq := loginRequest{UserName: api.String("wadus"), Password: api.String("")}
+		loginReq := loginRequest{UserName: "wadus", Password: ""}
 		body, _ := json.Marshal(loginReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -88,13 +67,11 @@ func TestLoginHandler(t *testing.T) {
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	h := handler.Handler{AuthRepository: &mockedRepo, CfgSrv: &mockedCfgSrv}
 
-	u := "wadus"
-	p := "pass"
-	loginReq := loginRequest{&u, &p}
+	loginReq := loginRequest{UserName: "wadus", Password: "pass"}
 	body, _ := json.Marshal(loginReq)
 
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {
-		mockedRepo.On("FindUserByName", (*domain.UserName)(&u)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(nil, fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -104,7 +81,7 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the user does not exist", func(t *testing.T) {
-		mockedRepo.On("FindUserByName", (*domain.UserName)(&u)).Return(nil, nil).Once()
+		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(nil, nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -115,7 +92,7 @@ func TestLoginHandler(t *testing.T) {
 
 	t.Run("Should return an errorResult with a BadRequestError if the password does not match", func(t *testing.T) {
 		foundUser := domain.User{PasswordHash: "hash"}
-		mockedRepo.On("FindUserByName", (*domain.UserName)(&u)).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -128,7 +105,7 @@ func TestLoginHandler(t *testing.T) {
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
 		foundUser := domain.User{PasswordHash: hashedPass}
-		mockedRepo.On("FindUserByName", (*domain.UserName)(&u)).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		mockedCfgSrv.On("TokenExpirationInSeconds").Return(time.Second * 30).Once()
 		mockedCfgSrv.On("RefreshTokenExpirationInSeconds").Return(time.Hour).Once()
 		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)

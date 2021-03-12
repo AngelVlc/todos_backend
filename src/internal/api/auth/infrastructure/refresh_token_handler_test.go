@@ -58,7 +58,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		authUser := domain.User{ID: 1}
 		rt, _ := domain.NewTokenService(&mockedCfgSrv).GenerateRefreshToken(&authUser)
 		request.AddCookie(getRefreshTokenCookie(rt))
-		mockedRepo.On("FindUserByID", &authUser.ID).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindUserByID", authUser.ID).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
@@ -74,7 +74,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		authUser := domain.User{ID: 1}
 		rt, _ := domain.NewTokenService(&mockedCfgSrv).GenerateRefreshToken(&authUser)
 		request.AddCookie(getRefreshTokenCookie(rt))
-		mockedRepo.On("FindUserByID", &authUser.ID).Return(nil, nil).Once()
+		mockedRepo.On("FindUserByID", authUser.ID).Return(nil, nil).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
@@ -92,7 +92,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		rt, _ := domain.NewTokenService(&mockedCfgSrv).GenerateRefreshToken(&authUser)
 		request.AddCookie(getRefreshTokenCookie(rt))
 		foundUser := domain.User{}
-		mockedRepo.On("FindUserByID", &authUser.ID).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByID", authUser.ID).Return(&foundUser, nil).Once()
 
 		recorder := httptest.NewRecorder()
 		result := RefreshTokenHandler(recorder, request, h)

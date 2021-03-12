@@ -10,8 +10,8 @@ import (
 )
 
 type loginRequest struct {
-	UserName *string `json:"userName"`
-	Password *string `json:"password"`
+	UserName string `json:"userName"`
+	Password string `json:"password"`
 }
 
 // LoginHandler is the handler for the /auth/login endpoint
@@ -27,7 +27,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) han
 		return results.ErrorResult{Err: err}
 	}
 
-	password, err := domain.NewUserPassword(loginReq.Password, true)
+	password, err := domain.NewUserPassword(loginReq.Password)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

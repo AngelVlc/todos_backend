@@ -14,7 +14,6 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 	"github.com/gorilla/mux"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestDeleteUserHandler(t *testing.T) {
@@ -29,12 +28,8 @@ func TestDeleteUserHandler(t *testing.T) {
 	mockedRepo := authRepository.MockedAuthRepository{}
 	h := handler.Handler{AuthRepository: &mockedRepo}
 
-	matchFn := func(i *int32) bool {
-		return *i == 1
-	}
-
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {
-		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindUserByID", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -43,7 +38,7 @@ func TestDeleteUserHandler(t *testing.T) {
 	})
 
 	t.Run("should return an errorResult with a BadRequestError if the user does not exits", func(t *testing.T) {
-		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(nil, nil).Once()
+		mockedRepo.On("FindUserByID", int32(1)).Return(nil, nil).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -53,7 +48,7 @@ func TestDeleteUserHandler(t *testing.T) {
 
 	t.Run("should return an errorResult with a BadRequestError when deleting the admin user", func(t *testing.T) {
 		foundUser := domain.User{Name: domain.UserName("admin")}
-		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -63,8 +58,8 @@ func TestDeleteUserHandler(t *testing.T) {
 
 	t.Run("Should return an errorResult with an UnexpectedError if the delete fails", func(t *testing.T) {
 		foundUser := domain.User{Name: domain.UserName("wadus")}
-		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
-		mockedRepo.On("DeleteUser", mock.MatchedBy(matchFn)).Return(fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
+		mockedRepo.On("DeleteUser", int32(1)).Return(fmt.Errorf("some error")).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -74,8 +69,8 @@ func TestDeleteUserHandler(t *testing.T) {
 
 	t.Run("Should delete the user", func(t *testing.T) {
 		foundUser := domain.User{Name: domain.UserName("wadus")}
-		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
-		mockedRepo.On("DeleteUser", mock.MatchedBy(matchFn)).Return(nil).Once()
+		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
+		mockedRepo.On("DeleteUser", int32(1)).Return(nil).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 

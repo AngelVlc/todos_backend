@@ -12,10 +12,10 @@ import (
 )
 
 type updateUserRequest struct {
-	UserName        *string `json:"userName"`
-	Password        *string `json:"password"`
-	ConfirmPassword *string `json:"confirmPassword"`
-	IsAdmin         *bool   `json:"isAdmin"`
+	UserName        string `json:"userName"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
+	IsAdmin         bool   `json:"isAdmin"`
 }
 
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
@@ -32,17 +32,14 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	password, err := domain.NewUserPassword(updateReq.Password, false)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
+	password := domain.UserPassword(updateReq.Password)
 
-	if updateReq.Password != nil && *updateReq.Password != *updateReq.ConfirmPassword {
+	if len(updateReq.Password) > 0 && updateReq.Password != updateReq.ConfirmPassword {
 		return results.ErrorResult{Err: &appErrors.BadRequestError{Msg: "Passwords don't match"}}
 	}
 
 	srv := application.NewUpdateUserService(h.AuthRepository, h.PassGen)
-	user, err := srv.UpdateUser(&userID, userName, password, updateReq.IsAdmin)
+	user, err := srv.UpdateUser(userID, userName, password, updateReq.IsAdmin)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

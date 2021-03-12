@@ -14,7 +14,7 @@ func NewUpdateUserService(repo domain.AuthRepository, passGen domain.PasswordGen
 	return &UpdateUserService{repo, passGen}
 }
 
-func (s *UpdateUserService) UpdateUser(userID *int32, userName *domain.UserName, password *domain.UserPassword, isAdmin *bool) (*domain.User, error) {
+func (s *UpdateUserService) UpdateUser(userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
 	foundUser, err := s.repo.FindUserByID(userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by id", InternalError: err}
@@ -25,16 +25,16 @@ func (s *UpdateUserService) UpdateUser(userID *int32, userName *domain.UserName,
 	}
 
 	if foundUser.IsTheAdminUser() {
-		if *userName != domain.UserName("admin") {
+		if userName != domain.UserName("admin") {
 			return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
 		}
 
-		if !*isAdmin {
+		if !isAdmin {
 			return nil, &appErrors.BadRequestError{Msg: "The admin user must be an admin"}
 		}
 	}
 
-	if password != nil {
+	if len(password) > 0 {
 		hasshedPass, err := s.passGen.GenerateFromPassword(password)
 		if err != nil {
 			return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
@@ -43,13 +43,8 @@ func (s *UpdateUserService) UpdateUser(userID *int32, userName *domain.UserName,
 		foundUser.PasswordHash = hasshedPass
 	}
 
-	if userName != nil {
-		foundUser.Name = *userName
-	}
-
-	if isAdmin != nil {
-		foundUser.IsAdmin = *isAdmin
-	}
+	foundUser.Name = userName
+	foundUser.IsAdmin = isAdmin
 
 	err = s.repo.UpdateUser(foundUser)
 	if err != nil {

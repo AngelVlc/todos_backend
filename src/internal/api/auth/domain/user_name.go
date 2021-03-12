@@ -6,14 +6,10 @@ import (
 
 type UserName string
 
-func NewUserName(userName *string) (*UserName, error) {
-	if userName == nil {
-		return nil, &appErrors.BadRequestError{Msg: "UserName is mandatory"}
+func NewUserName(userName string) (UserName, error) {
+	if len(userName) == 0 {
+		return "", &appErrors.BadRequestError{Msg: "UserName can not be empty"}
 	}
 
-	if len(*userName) == 0 {
-		return nil, &appErrors.BadRequestError{Msg: "UserName can not be empty"}
-	}
-
-	return (*UserName)(userName), nil
+	return UserName(userName), nil
 }

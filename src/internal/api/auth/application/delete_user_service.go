@@ -15,7 +15,7 @@ func NewDeleteUserService(repo domain.AuthRepository) *DeleteUserService {
 	return &DeleteUserService{repo}
 }
 
-func (s *DeleteUserService) DeleteUser(userID *int32) error {
+func (s *DeleteUserService) DeleteUser(userID int32) error {
 	foundUser, err := s.repo.FindUserByID(userID)
 	if err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error getting user by id", InternalError: err}

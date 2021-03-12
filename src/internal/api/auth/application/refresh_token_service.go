@@ -29,7 +29,7 @@ func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
 
 	rtInfo := tokenSvc.GetRefreshTokenInfo(parsedRt)
 
-	foundUser, err := s.repo.FindUserByID(&rtInfo.UserID)
+	foundUser, err := s.repo.FindUserByID(rtInfo.UserID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user id", InternalError: err}
 	}

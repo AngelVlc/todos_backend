@@ -11,10 +11,10 @@ import (
 )
 
 type createUserRequest struct {
-	UserName        *string `json:"userName"`
-	Password        *string `json:"password"`
-	ConfirmPassword *string `json:"confirmPassword"`
-	IsAdmin         *bool   `json:"isAdmin"`
+	UserName        string `json:"userName"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirmPassword"`
+	IsAdmin         bool   `json:"isAdmin"`
 }
 
 func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
@@ -29,20 +29,20 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	password, err := domain.NewUserPassword(createReq.Password, true)
+	password, err := domain.NewUserPassword(createReq.Password)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	if *createReq.Password != *createReq.ConfirmPassword {
+	if createReq.Password != createReq.ConfirmPassword {
 		return results.ErrorResult{Err: &appErrors.BadRequestError{Msg: "Passwords don't match"}}
 	}
 
 	srv := application.NewCreateUserService(h.AuthRepository, h.PassGen)
-	id, err := srv.CreateUser(userName, password, createReq.IsAdmin)
+	newUser, err := srv.CreateUser(userName, password, createReq.IsAdmin)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{Content: id, StatusCode: http.StatusOK}
+	return results.OkResult{Content: newUser, StatusCode: http.StatusOK}
 }

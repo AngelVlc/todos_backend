@@ -1,5 +1,5 @@
 package domain
 
 type PasswordGenerator interface {
-	GenerateFromPassword(password *UserPassword) (string, error)
+	GenerateFromPassword(password UserPassword) (string, error)
 }

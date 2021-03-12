@@ -14,31 +14,31 @@ func NewCreateUserService(repo domain.AuthRepository, passGen domain.PasswordGen
 	return &CreateUserService{repo, passGen}
 }
 
-func (s *CreateUserService) CreateUser(userName *domain.UserName, password *domain.UserPassword, isAdmin *bool) (int32, error) {
+func (s *CreateUserService) CreateUser(userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
 	foundUser, err := s.repo.FindUserByName(userName)
 	if err != nil {
-		return -1, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
 	}
 
 	if foundUser != nil {
-		return -1, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
+		return nil, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
 	}
 
 	hasshedPass, err := s.passGen.GenerateFromPassword(password)
 	if err != nil {
-		return -1, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
+		return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 	}
 
 	user := domain.User{
-		Name:         *userName,
+		Name:         userName,
 		PasswordHash: hasshedPass,
-		IsAdmin:      *isAdmin,
+		IsAdmin:      isAdmin,
 	}
 
-	id, err := s.repo.CreateUser(&user)
+	err = s.repo.CreateUser(&user)
 	if err != nil {
-		return -1, &appErrors.UnexpectedError{Msg: "Error creating the user", InternalError: err}
+		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user", InternalError: err}
 	}
 
-	return id, nil
+	return &user, nil
 }

@@ -13,7 +13,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) h
 	userID := helpers.ParseInt32UrlVar(r, "id")
 
 	srv := application.NewGetUserService(h.AuthRepository)
-	user, err := srv.GetUser(&userID)
+	user, err := srv.GetUser(userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

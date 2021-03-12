@@ -22,7 +22,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) han
 		return results.ErrorResult{Err: err}
 	}
 
-	userName, err := domain.NewUserName(loginReq.UserName, true)
+	userName, err := domain.NewUserName(loginReq.UserName)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

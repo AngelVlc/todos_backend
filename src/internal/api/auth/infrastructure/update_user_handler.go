@@ -27,7 +27,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	userName, err := domain.NewUserName(updateReq.UserName, false)
+	userName, err := domain.NewUserName(updateReq.UserName)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

@@ -11,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/AngelVlc/todos/internal/api"
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
@@ -42,9 +43,7 @@ func TestUpdateUserHandlerValidations(t *testing.T) {
 	})
 
 	t.Run("Should return an error with a BadRequestError if the request include the passwords and they don't match", func(t *testing.T) {
-		pass := "one"
-		confirmPass := "another"
-		updateReq := updateUserRequest{Password: &pass, ConfirmPassword: &confirmPass}
+		updateReq := updateUserRequest{UserName: api.String("wadus"), Password: api.String("one"), ConfirmPassword: api.String("another")}
 		body, _ := json.Marshal(updateReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -72,7 +71,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {
-		updateReq := updateUserRequest{}
+		updateReq := updateUserRequest{UserName: api.String("wadus")}
 		body, _ := json.Marshal(updateReq)
 		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(nil, fmt.Errorf("some error")).Once()
 
@@ -83,7 +82,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the user does not exist", func(t *testing.T) {
-		updateReq := updateUserRequest{}
+		updateReq := updateUserRequest{UserName: api.String("wadus")}
 		body, _ := json.Marshal(updateReq)
 		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(nil, nil).Once()
 
@@ -94,8 +93,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if tries to update the name of the admin user", func(t *testing.T) {
-		name := "newAdmin"
-		updateReq := updateUserRequest{UserName: &name}
+		updateReq := updateUserRequest{UserName: api.String("newAdmin")}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{Name: domain.UserName("admin")}
 		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
@@ -107,9 +105,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if tries to update the name of the admin user", func(t *testing.T) {
-		name := "admin"
-		isAdmin := false
-		updateReq := updateUserRequest{UserName: &name, IsAdmin: &isAdmin}
+		updateReq := updateUserRequest{UserName: api.String("admin"), IsAdmin: api.Bool(false)}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{Name: domain.UserName("admin")}
 		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
@@ -121,9 +117,8 @@ func TestUpdateUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an error result with an UnexpectedError if generate the password fails", func(t *testing.T) {
-		name := "wadus"
 		pass := "newPass"
-		updateReq := updateUserRequest{UserName: &name, Password: &pass, ConfirmPassword: &pass}
+		updateReq := updateUserRequest{UserName: api.String("wadus"), Password: &pass, ConfirmPassword: &pass}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{Name: domain.UserName("wadus")}
 		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
@@ -178,7 +173,7 @@ func TestUpdateUserHandler(t *testing.T) {
 
 	t.Run("Should update the password", func(t *testing.T) {
 		newPass := "newPass"
-		updateReq := updateUserRequest{Password: &newPass, ConfirmPassword: &newPass}
+		updateReq := updateUserRequest{UserName: api.String("wadus"), Password: &newPass, ConfirmPassword: &newPass}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
@@ -201,8 +196,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	})
 
 	t.Run("Should update the is admin value", func(t *testing.T) {
-		isAdmin := true
-		updateReq := updateUserRequest{IsAdmin: &isAdmin}
+		updateReq := updateUserRequest{UserName: api.String("wadus"), IsAdmin: api.Bool(true)}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()

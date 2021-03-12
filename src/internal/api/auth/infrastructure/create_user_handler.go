@@ -24,7 +24,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	userName, err := domain.NewUserName(createReq.UserName, true)
+	userName, err := domain.NewUserName(createReq.UserName)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
@@ -41,8 +41,8 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	srv := application.NewCreateUserService(h.AuthRepository, h.PassGen)
 	id, err := srv.CreateUser(userName, password, createReq.IsAdmin)
 	if err != nil {
-		return results.ErrorResult{err}
+		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{id, http.StatusOK}
+	return results.OkResult{Content: id, StatusCode: http.StatusOK}
 }

@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/AngelVlc/todos/internal/api"
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
@@ -52,8 +53,7 @@ func TestLoginHandlerValidations(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the login request has an empty userName", func(t *testing.T) {
-		s := ""
-		loginReq := loginRequest{UserName: &s}
+		loginReq := loginRequest{UserName: api.String("")}
 		body, _ := json.Marshal(loginReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -63,8 +63,7 @@ func TestLoginHandlerValidations(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the login request does not have password", func(t *testing.T) {
-		u := "Wadus"
-		loginReq := loginRequest{UserName: &u}
+		loginReq := loginRequest{UserName: api.String("wadus")}
 		body, _ := json.Marshal(loginReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -74,9 +73,7 @@ func TestLoginHandlerValidations(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the login request does not have password", func(t *testing.T) {
-		u := "Wadus"
-		p := ""
-		loginReq := loginRequest{UserName: &u, Password: &p}
+		loginReq := loginRequest{UserName: api.String("wadus"), Password: api.String("")}
 		body, _ := json.Marshal(loginReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 

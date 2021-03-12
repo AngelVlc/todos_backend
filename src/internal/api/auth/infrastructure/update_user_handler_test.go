@@ -158,7 +158,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		updateReq := updateUserRequest{UserName: &name}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
-		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Times(2)
+		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
 		foundUser.Name = authDomain.UserName(name)
 		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()
 
@@ -181,7 +181,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		updateReq := updateUserRequest{Password: &newPass, ConfirmPassword: &newPass}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
-		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Times(2)
+		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
 		authPass := domain.UserPassword(newPass)
 		mockedPassGen.On("GenerateFromPassword", &authPass).Return("hassedPass", nil).Once()
 		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()
@@ -205,7 +205,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		updateReq := updateUserRequest{IsAdmin: &isAdmin}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
-		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Times(2)
+		mockedRepo.On("FindUserByID", mock.MatchedBy(matchFn)).Return(&foundUser, nil).Once()
 		foundUser.IsAdmin = true
 		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()
 

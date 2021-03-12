@@ -56,5 +56,5 @@ func (s *UpdateUserService) UpdateUser(userID *int32, userName *domain.UserName,
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user", InternalError: err}
 	}
 
-	return s.repo.FindUserByID(userID)
+	return foundUser, nil
 }

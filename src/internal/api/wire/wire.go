@@ -6,10 +6,10 @@ import (
 	"os"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
-	authMiddleware "github.com/AngelVlc/todos/internal/api/auth/infrastructure/middleware"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/handlers"
 	"github.com/AngelVlc/todos/internal/api/repositories"
+	authMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
 	"github.com/AngelVlc/todos/internal/api/services"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/google/wire"

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
+	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/AngelVlc/todos/internal/api/services"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
@@ -15,11 +16,12 @@ import (
 // Handler is the type used to handle the endpoints
 type Handler struct {
 	HandlerFunc
-	ListsSrv       services.ListsService
-	ListItemsSrv   services.ListItemsService
-	AuthRepository authDomain.AuthRepository
-	CfgSrv         sharedApp.ConfigurationService
-	PassGen        authDomain.PasswordGenerator
+	ListsSrv        services.ListsService
+	ListItemsSrv    services.ListItemsService
+	AuthRepository  authDomain.AuthRepository
+	ListsRepository listsDomain.ListsRepository
+	CfgSrv          sharedApp.ConfigurationService
+	PassGen         authDomain.PasswordGenerator
 }
 
 type HandlerResult interface {
@@ -28,15 +30,16 @@ type HandlerResult interface {
 
 func NewHandler(f HandlerFunc,
 	listsSvc services.ListsService, listItemsSvc services.ListItemsService,
-	authRepo authDomain.AuthRepository, cfgSrv sharedApp.ConfigurationService,
+	authRepo authDomain.AuthRepository, listsRepo listsDomain.ListsRepository, cfgSrv sharedApp.ConfigurationService,
 	passGen authDomain.PasswordGenerator) Handler {
 	return Handler{
-		HandlerFunc:    f,
-		ListsSrv:       listsSvc,
-		ListItemsSrv:   listItemsSvc,
-		AuthRepository: authRepo,
-		CfgSrv:         cfgSrv,
-		PassGen:        passGen,
+		HandlerFunc:     f,
+		ListsSrv:        listsSvc,
+		ListItemsSrv:    listItemsSvc,
+		AuthRepository:  authRepo,
+		ListsRepository: listsRepo,
+		CfgSrv:          cfgSrv,
+		PassGen:         passGen,
 	}
 }
 

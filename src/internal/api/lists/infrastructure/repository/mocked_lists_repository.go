@@ -1,0 +1,76 @@
+package repository
+
+import (
+	"github.com/AngelVlc/todos/internal/api/lists/domain"
+	"github.com/stretchr/testify/mock"
+)
+
+type MockedListsRepository struct {
+	mock.Mock
+}
+
+func NewMockedListsRepository() *MockedListsRepository {
+	return &MockedListsRepository{}
+}
+
+func (m *MockedListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
+	args := m.Called(listID, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.List), args.Error(1)
+}
+
+func (m *MockedListsRepository) GetAllLists(userID int32) ([]domain.List, error) {
+	args := m.Called(userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domain.List), args.Error(1)
+}
+
+func (m *MockedListsRepository) CreateList(list *domain.List) error {
+	args := m.Called(list)
+	return args.Error(0)
+}
+
+func (m *MockedListsRepository) DeleteList(listID int32, userID int32) error {
+	args := m.Called(listID, userID)
+	return args.Error(0)
+}
+
+func (m *MockedListsRepository) UpdateList(list *domain.List) error {
+	args := m.Called(list)
+	return args.Error(0)
+}
+
+func (m *MockedListsRepository) GetAllItems(listID int32, userID int32) ([]domain.ListItem, error) {
+	args := m.Called(userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domain.ListItem), args.Error(1)
+}
+
+func (m *MockedListsRepository) FindListItemByID(itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
+	args := m.Called(itemID, listID, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.ListItem), args.Error(1)
+}
+
+func (m *MockedListsRepository) CreateListItem(listItem *domain.ListItem) error {
+	args := m.Called(listItem)
+	return args.Error(0)
+}
+
+func (m *MockedListsRepository) DeleteListItem(itemID int32, listID int32, userID int32) error {
+	args := m.Called(itemID, listID, userID)
+	return args.Error(0)
+}
+
+func (m *MockedListsRepository) UpdateListItem(listItem *domain.ListItem) error {
+	args := m.Called(listItem)
+	return args.Error(0)
+}

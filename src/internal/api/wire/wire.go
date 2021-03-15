@@ -8,6 +8,8 @@ import (
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/handlers"
+	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
+	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/repositories"
 	authMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
 	"github.com/AngelVlc/todos/internal/api/services"
@@ -193,6 +195,24 @@ func initMockedPasswordGenerator() authDomain.PasswordGenerator {
 	return nil
 }
 
+func InitListsRepositoryOK(db *gorm.DB) listsDomain.ListsRepository {
+	if inTestingMode() {
+		return initMockedListsRepositorySetOK()
+	} else {
+		return initMySqlListsRepository(db)
+	}
+}
+
+func initMockedListsRepositorySetOK() listsDomain.ListsRepository {
+	wire.Build(MockedListsRepositorySetOK)
+	return nil
+}
+
+func initMySqlListsRepository(db *gorm.DB) listsDomain.ListsRepository {
+	wire.Build(MySqlListsRepositorySet)
+	return nil
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -287,3 +307,11 @@ var BcryptPasswordGeneratorSet = wire.NewSet(
 var MockedPasswordGeneratorSet = wire.NewSet(
 	authDomain.NewMockedPasswordGenerator,
 	wire.Bind(new(authDomain.PasswordGenerator), new(*authDomain.MockedPasswordGenerator)))
+
+var MySqlListsRepositorySet = wire.NewSet(
+	listsRepository.NewMySqlListsRepository,
+	wire.Bind(new(listsDomain.ListsRepository), new(*listsRepository.MySqlListsRepository)))
+
+var MockedListsRepositorySetOK = wire.NewSet(
+	listsRepository.NewMockedListsRepository,
+	wire.Bind(new(listsDomain.ListsRepository), new(*listsRepository.MockedListsRepository)))

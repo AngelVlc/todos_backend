@@ -9,6 +9,8 @@ import (
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/handlers"
+	domain2 "github.com/AngelVlc/todos/internal/api/lists/domain"
+	repository2 "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/repositories"
 	"github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
 	"github.com/AngelVlc/todos/internal/api/services"
@@ -132,6 +134,16 @@ func initMockedPasswordGenerator() domain.PasswordGenerator {
 	return mockedPasswordGenerator
 }
 
+func initMockedListsRepositorySetOK() domain2.ListsRepository {
+	mockedListsRepository := repository2.NewMockedListsRepository()
+	return mockedListsRepository
+}
+
+func initMySqlListsRepository(db *gorm.DB) domain2.ListsRepository {
+	mySqlListsRepository := repository2.NewMySqlListsRepository(db)
+	return mySqlListsRepository
+}
+
 // wire.go:
 
 func InitAuthMiddleware(db *gorm.DB) middleware.AuthMiddleware {
@@ -206,6 +218,14 @@ func InitPasswordGenerator() domain.PasswordGenerator {
 	}
 }
 
+func InitListsRepositoryOK(db *gorm.DB) domain2.ListsRepository {
+	if inTestingMode() {
+		return initMockedListsRepositorySetOK()
+	} else {
+		return initMySqlListsRepository(db)
+	}
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -256,3 +276,7 @@ var MockedAuthRepositorySet = wire.NewSet(repository.NewMockedAuthRepository, wi
 var BcryptPasswordGeneratorSet = wire.NewSet(domain.NewBcryptPasswordGenerator, wire.Bind(new(domain.PasswordGenerator), new(*domain.BcryptPasswordGenerator)))
 
 var MockedPasswordGeneratorSet = wire.NewSet(domain.NewMockedPasswordGenerator, wire.Bind(new(domain.PasswordGenerator), new(*domain.MockedPasswordGenerator)))
+
+var MySqlListsRepositorySet = wire.NewSet(repository2.NewMySqlListsRepository, wire.Bind(new(domain2.ListsRepository), new(*repository2.MySqlListsRepository)))
+
+var MockedListsRepositorySetOK = wire.NewSet(repository2.NewMockedListsRepository, wire.Bind(new(domain2.ListsRepository), new(*repository2.MockedListsRepository)))

@@ -6,6 +6,7 @@ import (
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
 	"github.com/AngelVlc/todos/internal/api/handlers"
+	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/AngelVlc/todos/internal/api/repositories"
 	"github.com/AngelVlc/todos/internal/api/services"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
@@ -22,6 +23,7 @@ type server struct {
 	listsSrv      services.ListsService
 	listItemsSrv  services.ListItemsService
 	authRepo      authDomain.AuthRepository
+	listsRepoOK   listsDomain.ListsRepository
 	cfgSrv        sharedApp.ConfigurationService
 	passGen       authDomain.PasswordGenerator
 }
@@ -33,6 +35,7 @@ func NewServer(db *gorm.DB) *server {
 		listsSrv:      wire.InitListsService(db),
 		listItemsSrv:  wire.InitListItemsService(db),
 		authRepo:      wire.InitAuthRepository(db),
+		listsRepoOK:   wire.InitListsRepositoryOK(db),
 		cfgSrv:        wire.InitConfigurationService(),
 		passGen:       wire.InitPasswordGenerator(),
 	}
@@ -78,5 +81,5 @@ func NewServer(db *gorm.DB) *server {
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.listsSrv, s.listItemsSrv, s.authRepo, s.cfgSrv, s.passGen)
+	return handler.NewHandler(handlerFunc, s.listsSrv, s.listItemsSrv, s.authRepo, s.listsRepoOK, s.cfgSrv, s.passGen)
 }

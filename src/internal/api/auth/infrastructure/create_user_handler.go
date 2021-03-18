@@ -44,5 +44,11 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{Content: newUser, StatusCode: http.StatusOK}
+	res := UserResponse{
+		ID:      newUser.ID,
+		Name:    string(newUser.Name),
+		IsAdmin: newUser.IsAdmin,
+	}
+
+	return results.OkResult{Content: res, StatusCode: http.StatusOK}
 }

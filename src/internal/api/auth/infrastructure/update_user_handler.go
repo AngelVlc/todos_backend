@@ -50,5 +50,5 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		IsAdmin: user.IsAdmin,
 	}
 
-	return results.OkResult{Content: &res, StatusCode: http.StatusOK}
+	return results.OkResult{Content: res, StatusCode: http.StatusOK}
 }

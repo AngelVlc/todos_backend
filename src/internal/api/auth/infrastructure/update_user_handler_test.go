@@ -151,7 +151,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		userRes, isOk := okRes.Content.(*UserResponse)
+		userRes, isOk := okRes.Content.(UserResponse)
 		require.Equal(t, true, isOk, "should be a user response")
 
 		assert.Equal(t, int32(1), userRes.ID)
@@ -174,7 +174,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		userRes, isOk := okRes.Content.(*UserResponse)
+		userRes, isOk := okRes.Content.(UserResponse)
 		require.Equal(t, true, isOk, "should be a user response")
 
 		assert.Equal(t, int32(1), userRes.ID)
@@ -196,7 +196,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		userRes, isOk := okRes.Content.(*UserResponse)
+		userRes, isOk := okRes.Content.(UserResponse)
 		require.Equal(t, true, isOk, "should be a user response")
 
 		assert.Equal(t, int32(1), userRes.ID)

@@ -299,7 +299,7 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 		res, err := repo.FindListItemByID(itemID, listID, userID)
 
 		require.NotNil(t, res)
-		assert.Equal(t, domain.ListTitle("title"), res.Title)
+		assert.Equal(t, domain.ItemTitle("title"), res.Title)
 		assert.Equal(t, "description", res.Description)
 		assert.Nil(t, err)
 
@@ -328,7 +328,7 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetAllItemsQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllItems(listID, userID)
+		res, err := repo.GetAllListItems(listID, userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -339,13 +339,13 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	t.Run("should get all the items", func(t *testing.T) {
 		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), listID, "title1", "desc1").AddRow(int32(112), listID, "title2", "desc2"))
 
-		res, err := repo.GetAllItems(listID, userID)
+		res, err := repo.GetAllListItems(listID, userID)
 
 		require.NotNil(t, res)
 		require.Equal(t, 2, len(res))
-		assert.Equal(t, domain.ListTitle("title1"), res[0].Title)
+		assert.Equal(t, domain.ItemTitle("title1"), res[0].Title)
 		assert.Equal(t, "desc1", res[0].Description)
-		assert.Equal(t, domain.ListTitle("title2"), res[1].Title)
+		assert.Equal(t, domain.ItemTitle("title2"), res[1].Title)
 		assert.Equal(t, "desc2", res[1].Description)
 		assert.Nil(t, err)
 

@@ -6,16 +6,10 @@ import (
 
 type ListName string
 
-func NewListName(listName *string, isMandatory bool) (*ListName, error) {
-	if isMandatory {
-		if listName == nil {
-			return nil, &appErrors.BadRequestError{Msg: "ListName is mandatory"}
-		}
-
-		if len(*listName) == 0 {
-			return nil, &appErrors.BadRequestError{Msg: "ListName can not be empty"}
-		}
+func NewListName(name string) (ListName, error) {
+	if len(name) == 0 {
+		return "", &appErrors.BadRequestError{Msg: "The list name can not be empty"}
 	}
 
-	return (*ListName)(listName), nil
+	return ListName(name), nil
 }

@@ -143,8 +143,8 @@ func TestCreateUserHandler(t *testing.T) {
 		result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		res, isOk := okRes.Content.(*domain.User)
-		require.Equal(t, true, isOk, "should be pointer to a User")
+		res, isOk := okRes.Content.(UserResponse)
+		require.Equal(t, true, isOk, "should be a UserResponse")
 		assert.Equal(t, int32(1), res.ID)
 
 		mockedRepo.AssertExpectations(t)

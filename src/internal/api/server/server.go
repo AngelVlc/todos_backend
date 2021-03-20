@@ -7,7 +7,6 @@ import (
 	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos/internal/api/lists/infrastructure"
-	"github.com/AngelVlc/todos/internal/api/repositories"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/wire"
@@ -17,22 +16,18 @@ import (
 
 type server struct {
 	http.Handler
-	listsRepo     repositories.ListsRepository
-	listItemsRepo repositories.ListItemsRepository
-	authRepo      authDomain.AuthRepository
-	listsRepoOK   listsDomain.ListsRepository
-	cfgSrv        sharedApp.ConfigurationService
-	passGen       authDomain.PasswordGenerator
+	authRepo  authDomain.AuthRepository
+	listsRepo listsDomain.ListsRepository
+	cfgSrv    sharedApp.ConfigurationService
+	passGen   authDomain.PasswordGenerator
 }
 
 func NewServer(db *gorm.DB) *server {
 	s := server{
-		listsRepo:     wire.InitListsRepository(db),
-		listItemsRepo: wire.InitListItemsRepository(db),
-		authRepo:      wire.InitAuthRepository(db),
-		listsRepoOK:   wire.InitListsRepositoryOK(db),
-		cfgSrv:        wire.InitConfigurationService(),
-		passGen:       wire.InitPasswordGenerator(),
+		authRepo:  wire.InitAuthRepository(db),
+		listsRepo: wire.InitListsRepositoryOK(db),
+		cfgSrv:    wire.InitConfigurationService(),
+		passGen:   wire.InitPasswordGenerator(),
 	}
 
 	router := mux.NewRouter()
@@ -77,5 +72,5 @@ func NewServer(db *gorm.DB) *server {
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepoOK, s.cfgSrv, s.passGen)
+	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.passGen)
 }

@@ -11,7 +11,6 @@ import (
 	"github.com/AngelVlc/todos/internal/api/handlers"
 	domain2 "github.com/AngelVlc/todos/internal/api/lists/domain"
 	repository2 "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
-	"github.com/AngelVlc/todos/internal/api/repositories"
 	"github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
 	"github.com/AngelVlc/todos/internal/api/services"
 	"github.com/AngelVlc/todos/internal/api/shared/application"
@@ -63,26 +62,6 @@ func initDefaultCountersService(db *gorm.DB) services.CountersService {
 func initMockedCountersService() services.CountersService {
 	mockedCountersService := services.NewMockedCountersService()
 	return mockedCountersService
-}
-
-func initDefaultListsRepository(db *gorm.DB) repositories.ListsRepository {
-	defaultListsRepository := repositories.NewDefaultListsRepository(db)
-	return defaultListsRepository
-}
-
-func initMockedListsRepository() repositories.ListsRepository {
-	mockedListsRepository := repositories.NewMockedListsRepository()
-	return mockedListsRepository
-}
-
-func initDefaultListItemsRepository(db *gorm.DB) repositories.ListItemsRepository {
-	defaultListItemsRepository := repositories.NewDefaultListItemsRepository(db)
-	return defaultListItemsRepository
-}
-
-func initMockedListItemsRepository() repositories.ListItemsRepository {
-	mockedListItemsRepository := repositories.NewMockedListItemsRepository()
-	return mockedListItemsRepository
 }
 
 func InitConfigurationService() application.ConfigurationService {
@@ -147,22 +126,6 @@ func InitCountersService(db *gorm.DB) services.CountersService {
 	}
 }
 
-func InitListsRepository(db *gorm.DB) repositories.ListsRepository {
-	if inTestingMode() {
-		return initMockedListsRepository()
-	} else {
-		return initDefaultListsRepository(db)
-	}
-}
-
-func InitListItemsRepository(db *gorm.DB) repositories.ListItemsRepository {
-	if inTestingMode() {
-		return initMockedListItemsRepository()
-	} else {
-		return initDefaultListItemsRepository(db)
-	}
-}
-
 func InitAuthRepository(db *gorm.DB) domain.AuthRepository {
 	if inTestingMode() {
 		return initMockedAuthRepositorySet()
@@ -213,14 +176,6 @@ var AuthMiddlewareSet = wire.NewSet(
 var FakeAuthMiddlewareSet = wire.NewSet(middleware.NewFakeAuthMiddleware, wire.Bind(new(middleware.AuthMiddleware), new(*middleware.FakeAuthMiddleware)))
 
 var RequireAdminMiddlewareSet = wire.NewSet(handlers.NewDefaultRequireAdminMiddleware, wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
-
-var ListsRepositorySet = wire.NewSet(repositories.NewDefaultListsRepository, wire.Bind(new(repositories.ListsRepository), new(*repositories.DefaultListsRepository)))
-
-var MockedListsRepositorySet = wire.NewSet(repositories.NewMockedListsRepository, wire.Bind(new(repositories.ListsRepository), new(*repositories.MockedListsRepository)))
-
-var ListItemsRepositorySet = wire.NewSet(repositories.NewDefaultListItemsRepository, wire.Bind(new(repositories.ListItemsRepository), new(*repositories.DefaultListItemsRepository)))
-
-var MockedListItemsRepositorySet = wire.NewSet(repositories.NewMockedListItemsRepository, wire.Bind(new(repositories.ListItemsRepository), new(*repositories.MockedListItemsRepository)))
 
 var MySqlAuthRepositorySet = wire.NewSet(repository.NewMySqlAuthRepository, wire.Bind(new(domain.AuthRepository), new(*repository.MySqlAuthRepository)))
 

@@ -82,24 +82,6 @@ func initMockedCountersService() services.CountersService {
 	return nil
 }
 
-func InitListsService(db *gorm.DB) services.ListsService {
-	if inTestingMode() {
-		return initMockedListsService()
-	} else {
-		return initDefaultListsService(db)
-	}
-}
-
-func initDefaultListsService(db *gorm.DB) services.ListsService {
-	wire.Build(ListsRepositorySet, ListsServiceSet)
-	return nil
-}
-
-func initMockedListsService() services.ListsService {
-	wire.Build(MockedListsServiceSet)
-	return nil
-}
-
 func InitListsRepository(db *gorm.DB) repositories.ListsRepository {
 	if inTestingMode() {
 		return initMockedListsRepository()
@@ -133,24 +115,6 @@ func initDefaultListItemsRepository(db *gorm.DB) repositories.ListItemsRepositor
 
 func initMockedListItemsRepository() repositories.ListItemsRepository {
 	wire.Build(MockedListItemsRepositorySet)
-	return nil
-}
-
-func InitListItemsService(db *gorm.DB) services.ListItemsService {
-	if inTestingMode() {
-		return initMockedListItemsService()
-	} else {
-		return initDefaultListItemsService(db)
-	}
-}
-
-func initDefaultListItemsService(db *gorm.DB) services.ListItemsService {
-	wire.Build(ListItemsRepositorySet, ListsRepositorySet, ListItemsServiceSet)
-	return nil
-}
-
-func initMockedListItemsService() services.ListItemsService {
-	wire.Build(MockedListItemsServiceSet)
 	return nil
 }
 
@@ -230,14 +194,6 @@ var MockedConfigurationServiceSet = wire.NewSet(
 	sharedApp.NewMockedConfigurationService,
 	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.MockedConfigurationService)))
 
-var ListsServiceSet = wire.NewSet(
-	services.NewDefaultListsService,
-	wire.Bind(new(services.ListsService), new(*services.DefaultListsService)))
-
-var MockedListsServiceSet = wire.NewSet(
-	services.NewMockedListsService,
-	wire.Bind(new(services.ListsService), new(*services.MockedListsService)))
-
 var CountersServiceSet = wire.NewSet(
 	services.NewDefaultCountersService,
 	wire.Bind(new(services.CountersService), new(*services.DefaultCountersService)))
@@ -275,14 +231,6 @@ var ListsRepositorySet = wire.NewSet(
 var MockedListsRepositorySet = wire.NewSet(
 	repositories.NewMockedListsRepository,
 	wire.Bind(new(repositories.ListsRepository), new(*repositories.MockedListsRepository)))
-
-var ListItemsServiceSet = wire.NewSet(
-	services.NewDefaultListItemsService,
-	wire.Bind(new(services.ListItemsService), new(*services.DefaultListItemsService)))
-
-var MockedListItemsServiceSet = wire.NewSet(
-	services.NewMockedListItemsService,
-	wire.Bind(new(services.ListItemsService), new(*services.MockedListItemsService)))
 
 var ListItemsRepositorySet = wire.NewSet(
 	repositories.NewDefaultListItemsRepository,

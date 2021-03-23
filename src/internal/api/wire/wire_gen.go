@@ -12,7 +12,6 @@ import (
 	domain2 "github.com/AngelVlc/todos/internal/api/lists/domain"
 	repository2 "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
-	"github.com/AngelVlc/todos/internal/api/services"
 	"github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
@@ -44,7 +43,7 @@ func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
 }
 
 func initDefaultRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware {
-	defaultCountersService := services.NewDefaultCountersService(db)
+	defaultCountersService := application.NewDefaultCountersService(db)
 	defaultRequestCounterMiddleware := handlers.NewDefaultRequestCounterMiddleware(defaultCountersService)
 	return defaultRequestCounterMiddleware
 }
@@ -54,13 +53,13 @@ func initMockedRequestCounterMiddleware() handlers.RequestCounterMiddleware {
 	return mockedRequestCounterMiddleware
 }
 
-func initDefaultCountersService(db *gorm.DB) services.CountersService {
-	defaultCountersService := services.NewDefaultCountersService(db)
+func initDefaultCountersService(db *gorm.DB) application.CountersService {
+	defaultCountersService := application.NewDefaultCountersService(db)
 	return defaultCountersService
 }
 
-func initMockedCountersService() services.CountersService {
-	mockedCountersService := services.NewMockedCountersService()
+func initMockedCountersService() application.CountersService {
+	mockedCountersService := application.NewMockedCountersService()
 	return mockedCountersService
 }
 
@@ -118,7 +117,7 @@ func InitRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware
 	}
 }
 
-func InitCountersService(db *gorm.DB) services.CountersService {
+func InitCountersService(db *gorm.DB) application.CountersService {
 	if inTestingMode() {
 		return initMockedCountersService()
 	} else {
@@ -161,9 +160,9 @@ var ConfigurationServiceSet = wire.NewSet(
 
 var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.MockedConfigurationService)))
 
-var CountersServiceSet = wire.NewSet(services.NewDefaultCountersService, wire.Bind(new(services.CountersService), new(*services.DefaultCountersService)))
+var CountersServiceSet = wire.NewSet(application.NewDefaultCountersService, wire.Bind(new(application.CountersService), new(*application.DefaultCountersService)))
 
-var MockedCountersServiceSet = wire.NewSet(services.NewMockedCountersService, wire.Bind(new(services.CountersService), new(*services.MockedCountersService)))
+var MockedCountersServiceSet = wire.NewSet(application.NewMockedCountersService, wire.Bind(new(application.CountersService), new(*application.MockedCountersService)))
 
 var RequestCounterMiddlewareSet = wire.NewSet(
 	CountersServiceSet, handlers.NewDefaultRequestCounterMiddleware, wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.DefaultRequestCounterMiddleware)))

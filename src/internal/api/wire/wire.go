@@ -11,7 +11,6 @@ import (
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	authMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
-	"github.com/AngelVlc/todos/internal/api/services"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
@@ -63,7 +62,7 @@ func initMockedRequestCounterMiddleware() handlers.RequestCounterMiddleware {
 	return nil
 }
 
-func InitCountersService(db *gorm.DB) services.CountersService {
+func InitCountersService(db *gorm.DB) sharedApp.CountersService {
 	if inTestingMode() {
 		return initMockedCountersService()
 	} else {
@@ -71,12 +70,12 @@ func InitCountersService(db *gorm.DB) services.CountersService {
 	}
 }
 
-func initDefaultCountersService(db *gorm.DB) services.CountersService {
+func initDefaultCountersService(db *gorm.DB) sharedApp.CountersService {
 	wire.Build(CountersServiceSet)
 	return nil
 }
 
-func initMockedCountersService() services.CountersService {
+func initMockedCountersService() sharedApp.CountersService {
 	wire.Build(MockedCountersServiceSet)
 	return nil
 }
@@ -158,12 +157,12 @@ var MockedConfigurationServiceSet = wire.NewSet(
 	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.MockedConfigurationService)))
 
 var CountersServiceSet = wire.NewSet(
-	services.NewDefaultCountersService,
-	wire.Bind(new(services.CountersService), new(*services.DefaultCountersService)))
+	sharedApp.NewDefaultCountersService,
+	wire.Bind(new(sharedApp.CountersService), new(*sharedApp.DefaultCountersService)))
 
 var MockedCountersServiceSet = wire.NewSet(
-	services.NewMockedCountersService,
-	wire.Bind(new(services.CountersService), new(*services.MockedCountersService)))
+	sharedApp.NewMockedCountersService,
+	wire.Bind(new(sharedApp.CountersService), new(*sharedApp.MockedCountersService)))
 
 var RequestCounterMiddlewareSet = wire.NewSet(
 	CountersServiceSet,

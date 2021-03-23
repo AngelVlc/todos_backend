@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/AngelVlc/todos/internal/api/services"
+	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/stretchr/testify/mock"
@@ -31,10 +31,10 @@ func (m *MockedRequestCounterMiddleware) Middleware(next http.Handler) http.Hand
 }
 
 type DefaultRequestCounterMiddleware struct {
-	CountersSrv services.CountersService
+	CountersSrv sharedApp.CountersService
 }
 
-func NewDefaultRequestCounterMiddleware(CountersSrv services.CountersService) *DefaultRequestCounterMiddleware {
+func NewDefaultRequestCounterMiddleware(CountersSrv sharedApp.CountersService) *DefaultRequestCounterMiddleware {
 	return &DefaultRequestCounterMiddleware{CountersSrv}
 }
 

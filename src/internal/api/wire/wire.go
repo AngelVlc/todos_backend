@@ -12,6 +12,9 @@ import (
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	authMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
+	sharedInfra "github.com/AngelVlc/todos/internal/api/shared/infrastructure"
+	sharedMiddlewares "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 )
@@ -44,7 +47,7 @@ func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
 	return nil
 }
 
-func InitRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware {
+func InitRequestCounterMiddleware(db *gorm.DB) sharedMiddlewares.RequestCounterMiddleware {
 	if inTestingMode() {
 		return initMockedRequestCounterMiddleware()
 	} else {
@@ -52,31 +55,13 @@ func InitRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware
 	}
 }
 
-func initDefaultRequestCounterMiddleware(db *gorm.DB) handlers.RequestCounterMiddleware {
+func initDefaultRequestCounterMiddleware(db *gorm.DB) sharedMiddlewares.RequestCounterMiddleware {
 	wire.Build(RequestCounterMiddlewareSet)
 	return nil
 }
 
-func initMockedRequestCounterMiddleware() handlers.RequestCounterMiddleware {
+func initMockedRequestCounterMiddleware() sharedMiddlewares.RequestCounterMiddleware {
 	wire.Build(MockedRequestCounterMiddlewareSet)
-	return nil
-}
-
-func InitCountersService(db *gorm.DB) sharedApp.CountersService {
-	if inTestingMode() {
-		return initMockedCountersService()
-	} else {
-		return initDefaultCountersService(db)
-	}
-}
-
-func initDefaultCountersService(db *gorm.DB) sharedApp.CountersService {
-	wire.Build(CountersServiceSet)
-	return nil
-}
-
-func initMockedCountersService() sharedApp.CountersService {
-	wire.Build(MockedCountersServiceSet)
 	return nil
 }
 
@@ -121,21 +106,39 @@ func initMockedPasswordGenerator() authDomain.PasswordGenerator {
 	return nil
 }
 
-func InitListsRepositoryOK(db *gorm.DB) listsDomain.ListsRepository {
+func InitListsRepository(db *gorm.DB) listsDomain.ListsRepository {
 	if inTestingMode() {
-		return initMockedListsRepositorySetOK()
+		return initMockedListsRepositorySet()
 	} else {
 		return initMySqlListsRepository(db)
 	}
 }
 
-func initMockedListsRepositorySetOK() listsDomain.ListsRepository {
-	wire.Build(MockedListsRepositorySetOK)
+func initMockedListsRepositorySet() listsDomain.ListsRepository {
+	wire.Build(MockedListsRepositorySet)
 	return nil
 }
 
 func initMySqlListsRepository(db *gorm.DB) listsDomain.ListsRepository {
 	wire.Build(MySqlListsRepositorySet)
+	return nil
+}
+
+func InitCountersRepository(db *gorm.DB) sharedDomain.CountersRepository {
+	if inTestingMode() {
+		return initMockedCountersRepositorySet()
+	} else {
+		return initMySqlCountersRepository(db)
+	}
+}
+
+func initMockedCountersRepositorySet() sharedDomain.CountersRepository {
+	wire.Build(MockedCountersRepositorySet)
+	return nil
+}
+
+func initMySqlCountersRepository(db *gorm.DB) sharedDomain.CountersRepository {
+	wire.Build(MySqlCountersRepositorySet)
 	return nil
 }
 
@@ -156,22 +159,14 @@ var MockedConfigurationServiceSet = wire.NewSet(
 	sharedApp.NewMockedConfigurationService,
 	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.MockedConfigurationService)))
 
-var CountersServiceSet = wire.NewSet(
-	sharedApp.NewDefaultCountersService,
-	wire.Bind(new(sharedApp.CountersService), new(*sharedApp.DefaultCountersService)))
-
-var MockedCountersServiceSet = wire.NewSet(
-	sharedApp.NewMockedCountersService,
-	wire.Bind(new(sharedApp.CountersService), new(*sharedApp.MockedCountersService)))
-
 var RequestCounterMiddlewareSet = wire.NewSet(
-	CountersServiceSet,
-	handlers.NewDefaultRequestCounterMiddleware,
-	wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.DefaultRequestCounterMiddleware)))
+	MySqlCountersRepositorySet,
+	sharedMiddlewares.NewDefaultRequestCounterMiddleware,
+	wire.Bind(new(sharedMiddlewares.RequestCounterMiddleware), new(*sharedMiddlewares.DefaultRequestCounterMiddleware)))
 
 var MockedRequestCounterMiddlewareSet = wire.NewSet(
-	handlers.NewMockedRequestCounterMiddleware,
-	wire.Bind(new(handlers.RequestCounterMiddleware), new(*handlers.MockedRequestCounterMiddleware)))
+	sharedMiddlewares.NewMockedRequestCounterMiddleware,
+	wire.Bind(new(sharedMiddlewares.RequestCounterMiddleware), new(*sharedMiddlewares.MockedRequestCounterMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
 	ConfigurationServiceSet,
@@ -206,6 +201,14 @@ var MySqlListsRepositorySet = wire.NewSet(
 	listsRepository.NewMySqlListsRepository,
 	wire.Bind(new(listsDomain.ListsRepository), new(*listsRepository.MySqlListsRepository)))
 
-var MockedListsRepositorySetOK = wire.NewSet(
+var MockedListsRepositorySet = wire.NewSet(
 	listsRepository.NewMockedListsRepository,
 	wire.Bind(new(listsDomain.ListsRepository), new(*listsRepository.MockedListsRepository)))
+
+var MySqlCountersRepositorySet = wire.NewSet(
+	sharedInfra.NewMySqlCountersRepository,
+	wire.Bind(new(sharedDomain.CountersRepository), new(*sharedInfra.MySqlCountersRepository)))
+
+var MockedCountersRepositorySet = wire.NewSet(
+	sharedInfra.NewMockedCountersRepository,
+	wire.Bind(new(sharedDomain.CountersRepository), new(*sharedInfra.MockedCountersRepository)))

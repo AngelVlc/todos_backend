@@ -1,4 +1,4 @@
-package models
+package domain
 
 type Counter struct {
 	ID    int32  `gorm:"type:int(32);primary_key"`

@@ -25,7 +25,7 @@ type server struct {
 func NewServer(db *gorm.DB) *server {
 	s := server{
 		authRepo:  wire.InitAuthRepository(db),
-		listsRepo: wire.InitListsRepositoryOK(db),
+		listsRepo: wire.InitListsRepository(db),
 		cfgSrv:    wire.InitConfigurationService(),
 		passGen:   wire.InitPasswordGenerator(),
 	}

@@ -1,4 +1,4 @@
-package handlers
+package middlewares
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/stretchr/testify/mock"
@@ -31,16 +32,17 @@ func (m *MockedRequestCounterMiddleware) Middleware(next http.Handler) http.Hand
 }
 
 type DefaultRequestCounterMiddleware struct {
-	CountersSrv sharedApp.CountersService
+	countersRepo sharedDomain.CountersRepository
 }
 
-func NewDefaultRequestCounterMiddleware(CountersSrv sharedApp.CountersService) *DefaultRequestCounterMiddleware {
-	return &DefaultRequestCounterMiddleware{CountersSrv}
+func NewDefaultRequestCounterMiddleware(countersRepo sharedDomain.CountersRepository) *DefaultRequestCounterMiddleware {
+	return &DefaultRequestCounterMiddleware{countersRepo}
 }
 
 func (m *DefaultRequestCounterMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		v, err := m.CountersSrv.IncrementCounter("requests")
+		svc := sharedApp.NewIncrementRequestsCounterService(m.countersRepo)
+		v, err := svc.IncrementRequestsCounter()
 		if err != nil {
 			log.Printf("[] %v %q", r.Method, r.URL)
 			helpers.WriteErrorResponse(r, w, http.StatusInternalServerError, "Error incrementing requests counter", err)

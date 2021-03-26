@@ -27,8 +27,9 @@ func main() {
 
 	createAdminUserIfNotExists(cfg, db)
 
-	countSvc := wire.InitCountersService(db)
-	err = countSvc.CreateCounterIfNotExists("requests")
+	countersRepo := wire.InitCountersRepository(db)
+	countSvc := sharedApp.NewInitRequestsCounterService(countersRepo)
+	err = countSvc.InitRequestsCounter()
 	if err != nil {
 		log.Fatal("error checking requests counter: ", err)
 	}

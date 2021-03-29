@@ -12,6 +12,7 @@ import (
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	authMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
 	fakeMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/fake"
+	logMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/log"
 	requestCounterMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/requests_counter"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
@@ -20,9 +21,22 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func InitLogMiddleware() handlers.LogMiddleware {
-	wire.Build(handlers.NewLogMiddleware)
-	return handlers.LogMiddleware{}
+func initFakeMiddleware() sharedDomain.Middleware {
+	wire.Build(FakeMiddlewareSet)
+	return nil
+}
+
+func InitLogMiddleware() sharedDomain.Middleware {
+	if inTestingMode() {
+		return initFakeMiddleware()
+	} else {
+		return initLogMiddleware()
+	}
+}
+
+func initLogMiddleware() sharedDomain.Middleware {
+	wire.Build(LogMiddlewareSet)
+	return nil
 }
 
 func InitAuthMiddleware(db *gorm.DB) authMiddleware.AuthMiddleware {
@@ -45,11 +59,6 @@ func initFakeAuthMiddleware() authMiddleware.AuthMiddleware {
 
 func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
 	wire.Build(RequireAdminMiddlewareSet)
-	return nil
-}
-
-func initFakeMiddleware() sharedDomain.Middleware {
-	wire.Build(FakeMiddlewareSet)
 	return nil
 }
 
@@ -168,6 +177,10 @@ var RequestCounterMiddlewareSet = wire.NewSet(
 	MySqlCountersRepositorySet,
 	requestCounterMiddleware.NewRequestCounterMiddleware,
 	wire.Bind(new(sharedDomain.Middleware), new(*requestCounterMiddleware.RequestCounterMiddleware)))
+
+var LogMiddlewareSet = wire.NewSet(
+	logMiddleware.NewLogMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*logMiddleware.LogMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
 	ConfigurationServiceSet,

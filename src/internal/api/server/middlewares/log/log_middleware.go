@@ -8,11 +8,10 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 )
 
-type LogMiddleware struct {
-}
+type LogMiddleware struct{}
 
-func NewLogMiddleware() LogMiddleware {
-	return LogMiddleware{}
+func NewLogMiddleware() *LogMiddleware {
+	return &LogMiddleware{}
 }
 
 func (m *LogMiddleware) Middleware(next http.Handler) http.Handler {

@@ -7,16 +7,16 @@ import (
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
-	"github.com/AngelVlc/todos/internal/api/handlers"
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
-	authMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
-	fakeMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/fake"
-	logMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/log"
-	requestCounterMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/requests_counter"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	sharedInfra "github.com/AngelVlc/todos/internal/api/shared/infrastructure"
+	authMiddleware "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/auth"
+	fakemdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/fake"
+	logMdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/log"
+	reqadminmdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqadmin"
+	reqcountermdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqcounter"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 )
@@ -57,7 +57,7 @@ func initFakeAuthMiddleware() authMiddleware.AuthMiddleware {
 	return nil
 }
 
-func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
+func InitRequireAdminMiddleware() sharedDomain.Middleware {
 	wire.Build(RequireAdminMiddlewareSet)
 	return nil
 }
@@ -170,17 +170,17 @@ var MockedConfigurationServiceSet = wire.NewSet(
 	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.MockedConfigurationService)))
 
 var FakeMiddlewareSet = wire.NewSet(
-	fakeMiddleware.NewFakeMiddleware,
-	wire.Bind(new(sharedDomain.Middleware), new(*fakeMiddleware.FakeMiddleware)))
+	fakemdw.NewFakeMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*fakemdw.FakeMiddleware)))
 
 var RequestCounterMiddlewareSet = wire.NewSet(
 	MySqlCountersRepositorySet,
-	requestCounterMiddleware.NewRequestCounterMiddleware,
-	wire.Bind(new(sharedDomain.Middleware), new(*requestCounterMiddleware.RequestCounterMiddleware)))
+	reqcountermdw.NewRequestCounterMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*reqcountermdw.RequestCounterMiddleware)))
 
 var LogMiddlewareSet = wire.NewSet(
-	logMiddleware.NewLogMiddleware,
-	wire.Bind(new(sharedDomain.Middleware), new(*logMiddleware.LogMiddleware)))
+	logMdw.NewLogMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*logMdw.LogMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
 	ConfigurationServiceSet,
@@ -192,8 +192,8 @@ var FakeAuthMiddlewareSet = wire.NewSet(
 	wire.Bind(new(authMiddleware.AuthMiddleware), new(*authMiddleware.FakeAuthMiddleware)))
 
 var RequireAdminMiddlewareSet = wire.NewSet(
-	handlers.NewDefaultRequireAdminMiddleware,
-	wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
+	reqadminmdw.NewRequireAdminMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*reqadminmdw.RequireAdminMiddleware)))
 
 var MySqlAuthRepositorySet = wire.NewSet(
 	authRepository.NewMySqlAuthRepository,

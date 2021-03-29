@@ -8,16 +8,16 @@ package wire
 import (
 	domain2 "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
-	handlers2 "github.com/AngelVlc/todos/internal/api/handlers"
 	domain3 "github.com/AngelVlc/todos/internal/api/lists/domain"
 	repository2 "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
-	"github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
-	"github.com/AngelVlc/todos/internal/api/server/middlewares/fake"
-	"github.com/AngelVlc/todos/internal/api/server/middlewares/log"
-	"github.com/AngelVlc/todos/internal/api/server/middlewares/requests_counter"
 	"github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/auth"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/fake"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/log"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqadmin"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqcounter"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 	"os"
@@ -26,35 +26,35 @@ import (
 // Injectors from wire.go:
 
 func initFakeMiddleware() domain.Middleware {
-	fakeMiddleware := fake.NewFakeMiddleware()
+	fakeMiddleware := fakemdw.NewFakeMiddleware()
 	return fakeMiddleware
 }
 
 func initLogMiddleware() domain.Middleware {
-	logMiddleware := handlers.NewLogMiddleware()
+	logMiddleware := logmdw.NewLogMiddleware()
 	return logMiddleware
 }
 
-func initDefaultAuthMiddleware() middleware.AuthMiddleware {
+func initDefaultAuthMiddleware() authmdw.AuthMiddleware {
 	osEnvGetter := application.NewOsEnvGetter()
 	defaultConfigurationService := application.NewDefaultConfigurationService(osEnvGetter)
-	realAuthMiddleware := middleware.NewRealAuthMiddleware(defaultConfigurationService)
+	realAuthMiddleware := authmdw.NewRealAuthMiddleware(defaultConfigurationService)
 	return realAuthMiddleware
 }
 
-func initFakeAuthMiddleware() middleware.AuthMiddleware {
-	fakeAuthMiddleware := middleware.NewFakeAuthMiddleware()
+func initFakeAuthMiddleware() authmdw.AuthMiddleware {
+	fakeAuthMiddleware := authmdw.NewFakeAuthMiddleware()
 	return fakeAuthMiddleware
 }
 
-func InitRequireAdminMiddleware() handlers2.RequireAdminMiddleware {
-	defaultRequireAdminMiddleware := handlers2.NewDefaultRequireAdminMiddleware()
-	return defaultRequireAdminMiddleware
+func InitRequireAdminMiddleware() domain.Middleware {
+	requireAdminMiddleware := reqadminmdw.NewRequireAdminMiddleware()
+	return requireAdminMiddleware
 }
 
 func initRequestCounterMiddleware(db *gorm.DB) domain.Middleware {
 	mySqlCountersRepository := infrastructure.NewMySqlCountersRepository(db)
-	requestCounterMiddleware := middlewares.NewRequestCounterMiddleware(mySqlCountersRepository)
+	requestCounterMiddleware := reqcountermdw.NewRequestCounterMiddleware(mySqlCountersRepository)
 	return requestCounterMiddleware
 }
 
@@ -114,7 +114,7 @@ func InitLogMiddleware() domain.Middleware {
 	}
 }
 
-func InitAuthMiddleware(db *gorm.DB) middleware.AuthMiddleware {
+func InitAuthMiddleware(db *gorm.DB) authmdw.AuthMiddleware {
 	if inTestingMode() {
 		return initFakeAuthMiddleware()
 	} else {
@@ -173,19 +173,19 @@ var ConfigurationServiceSet = wire.NewSet(
 
 var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.MockedConfigurationService)))
 
-var FakeMiddlewareSet = wire.NewSet(fake.NewFakeMiddleware, wire.Bind(new(domain.Middleware), new(*fake.FakeMiddleware)))
+var FakeMiddlewareSet = wire.NewSet(fakemdw.NewFakeMiddleware, wire.Bind(new(domain.Middleware), new(*fakemdw.FakeMiddleware)))
 
 var RequestCounterMiddlewareSet = wire.NewSet(
-	MySqlCountersRepositorySet, middlewares.NewRequestCounterMiddleware, wire.Bind(new(domain.Middleware), new(*middlewares.RequestCounterMiddleware)))
+	MySqlCountersRepositorySet, reqcountermdw.NewRequestCounterMiddleware, wire.Bind(new(domain.Middleware), new(*reqcountermdw.RequestCounterMiddleware)))
 
-var LogMiddlewareSet = wire.NewSet(handlers.NewLogMiddleware, wire.Bind(new(domain.Middleware), new(*handlers.LogMiddleware)))
+var LogMiddlewareSet = wire.NewSet(logmdw.NewLogMiddleware, wire.Bind(new(domain.Middleware), new(*logmdw.LogMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	ConfigurationServiceSet, middleware.NewRealAuthMiddleware, wire.Bind(new(middleware.AuthMiddleware), new(*middleware.RealAuthMiddleware)))
+	ConfigurationServiceSet, authmdw.NewRealAuthMiddleware, wire.Bind(new(authmdw.AuthMiddleware), new(*authmdw.RealAuthMiddleware)))
 
-var FakeAuthMiddlewareSet = wire.NewSet(middleware.NewFakeAuthMiddleware, wire.Bind(new(middleware.AuthMiddleware), new(*middleware.FakeAuthMiddleware)))
+var FakeAuthMiddlewareSet = wire.NewSet(authmdw.NewFakeAuthMiddleware, wire.Bind(new(authmdw.AuthMiddleware), new(*authmdw.FakeAuthMiddleware)))
 
-var RequireAdminMiddlewareSet = wire.NewSet(handlers2.NewDefaultRequireAdminMiddleware, wire.Bind(new(handlers2.RequireAdminMiddleware), new(*handlers2.DefaultRequireAdminMiddleware)))
+var RequireAdminMiddlewareSet = wire.NewSet(reqadminmdw.NewRequireAdminMiddleware, wire.Bind(new(domain.Middleware), new(*reqadminmdw.RequireAdminMiddleware)))
 
 var MySqlAuthRepositorySet = wire.NewSet(repository.NewMySqlAuthRepository, wire.Bind(new(domain2.AuthRepository), new(*repository.MySqlAuthRepository)))
 

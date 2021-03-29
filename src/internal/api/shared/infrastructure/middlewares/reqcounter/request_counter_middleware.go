@@ -1,4 +1,4 @@
-package middlewares
+package reqcountermdw
 
 import (
 	"context"

@@ -1,6 +1,6 @@
 //+build !e2e
 
-package middlewares
+package reqcountermdw
 
 import (
 	"fmt"

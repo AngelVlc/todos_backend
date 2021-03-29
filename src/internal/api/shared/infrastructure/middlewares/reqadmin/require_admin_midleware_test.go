@@ -1,6 +1,6 @@
 //+build !e2e
 
-package handlers
+package reqadminmdw
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 )
 
 func TestRequireAdminMiddleware(t *testing.T) {
-	md := NewDefaultRequireAdminMiddleware()
+	md := NewRequireAdminMiddleware()
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 

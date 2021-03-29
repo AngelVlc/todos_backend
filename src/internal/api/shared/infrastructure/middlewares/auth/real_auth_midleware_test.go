@@ -1,6 +1,6 @@
 //+build !e2e
 
-package middleware
+package authmdw
 
 import (
 	"net/http"

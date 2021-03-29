@@ -15,7 +15,7 @@ import (
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
-	"github.com/AngelVlc/todos/internal/api/dtos"
+	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/stretchr/testify/require"
 )
 
@@ -51,17 +51,17 @@ func TestEndtoEnd(t *testing.T) {
 	require.True(t, userRes.IsAdmin)
 
 	listName := fmt.Sprintf("test %v", time.Now().Format("2006-01-02T15:04:05-0700"))
-	listDtoBody, _ := bufferFromBody(dtos.ListDto{Name: listName})
-	req = createRequest(t, "POST", baseURL+"/lists", listDtoBody)
+	listBody := fmt.Sprintf("{\"name\": \"%v\"}", listName)
+	req = createRequest(t, "POST", baseURL+"/lists", strings.NewReader(listBody))
 	req.Header.Set("Authorization", authHeaderContent)
 	req.Header.Set("Content-type", "application/json")
 	res, err = client.Do(req)
 	require.Nil(t, err)
-	require.Equal(t, 201, res.StatusCode)
-	createdRes := int32(0)
+	require.Equal(t, 200, res.StatusCode)
+	createdRes := listsDomain.List{}
 	err = objFromRes(res.Body, &createdRes)
 	require.Nil(t, err)
-	listID := fmt.Sprint(createdRes)
+	listID := fmt.Sprint(createdRes.ID)
 
 	req = createRequest(t, "DELETE", baseURL+"/lists/"+string(listID), nil)
 	req.Header.Set("Authorization", authHeaderContent)

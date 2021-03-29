@@ -41,7 +41,7 @@ func TestCreateUserHandlerValidations(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the create user request has an empty userName", func(t *testing.T) {
-		createReq := createUserRequest{UserName: ""}
+		createReq := createUserRequest{Name: ""}
 		body, _ := json.Marshal(createReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -51,7 +51,7 @@ func TestCreateUserHandlerValidations(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the create user request does not have password", func(t *testing.T) {
-		createReq := createUserRequest{UserName: "Wadus", Password: ""}
+		createReq := createUserRequest{Name: "Wadus", Password: ""}
 		body, _ := json.Marshal(createReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -61,7 +61,7 @@ func TestCreateUserHandlerValidations(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the create user request passwords don't match", func(t *testing.T) {
-		createReq := createUserRequest{UserName: "Wadus", Password: "pass", ConfirmPassword: "othePass"}
+		createReq := createUserRequest{Name: "Wadus", Password: "pass", ConfirmPassword: "othePass"}
 		body, _ := json.Marshal(createReq)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -76,7 +76,7 @@ func TestCreateUserHandler(t *testing.T) {
 	mockedPassGen := authDomain.MockedPasswordGenerator{}
 	h := handler.Handler{AuthRepository: &mockedRepo, PassGen: &mockedPassGen}
 
-	createReq := createUserRequest{UserName: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
+	createReq := createUserRequest{Name: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
 	body, _ := json.Marshal(createReq)
 
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {

@@ -11,7 +11,7 @@ import (
 )
 
 type createUserRequest struct {
-	UserName        string `json:"userName"`
+	Name            string `json:"name"`
 	Password        string `json:"password"`
 	ConfirmPassword string `json:"confirmPassword"`
 	IsAdmin         bool   `json:"isAdmin"`
@@ -24,7 +24,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	userName, err := domain.NewUserName(createReq.UserName)
+	userName, err := domain.NewUserName(createReq.Name)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

@@ -4,12 +4,9 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
-	"github.com/stretchr/testify/mock"
 )
 
-type FakeAuthMiddleware struct {
-	mock.Mock
-}
+type FakeAuthMiddleware struct{}
 
 func NewFakeAuthMiddleware() *FakeAuthMiddleware {
 	return &FakeAuthMiddleware{}

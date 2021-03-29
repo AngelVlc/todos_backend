@@ -8,6 +8,7 @@ import (
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos/internal/api/lists/infrastructure"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/mux"
@@ -16,21 +17,24 @@ import (
 
 type server struct {
 	http.Handler
-	authRepo  authDomain.AuthRepository
-	listsRepo listsDomain.ListsRepository
-	cfgSrv    sharedApp.ConfigurationService
-	passGen   authDomain.PasswordGenerator
+	authRepo     authDomain.AuthRepository
+	listsRepo    listsDomain.ListsRepository
+	cfgSrv       sharedApp.ConfigurationService
+	passGen      authDomain.PasswordGenerator
+	countersRepo sharedDomain.CountersRepository
 }
 
 func NewServer(db *gorm.DB) *server {
 	s := server{
-		authRepo:  wire.InitAuthRepository(db),
-		listsRepo: wire.InitListsRepository(db),
-		cfgSrv:    wire.InitConfigurationService(),
-		passGen:   wire.InitPasswordGenerator(),
+		authRepo:     wire.InitAuthRepository(db),
+		listsRepo:    wire.InitListsRepository(db),
+		cfgSrv:       wire.InitConfigurationService(),
+		passGen:      wire.InitPasswordGenerator(),
+		countersRepo: wire.InitCountersRepository(db),
 	}
 
 	router := mux.NewRouter()
+
 	countersMdw := wire.InitRequestCounterMiddleware(db)
 	router.Use(countersMdw.Middleware)
 

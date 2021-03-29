@@ -11,10 +11,11 @@ import (
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	authMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
+	fakeMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/fake"
+	requestCounterMiddleware "github.com/AngelVlc/todos/internal/api/server/middlewares/requests_counter"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	sharedInfra "github.com/AngelVlc/todos/internal/api/shared/infrastructure"
-	sharedMiddlewares "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 )
@@ -47,21 +48,21 @@ func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
 	return nil
 }
 
-func InitRequestCounterMiddleware(db *gorm.DB) sharedMiddlewares.RequestCounterMiddleware {
-	if inTestingMode() {
-		return initMockedRequestCounterMiddleware()
-	} else {
-		return initDefaultRequestCounterMiddleware(db)
-	}
-}
-
-func initDefaultRequestCounterMiddleware(db *gorm.DB) sharedMiddlewares.RequestCounterMiddleware {
-	wire.Build(RequestCounterMiddlewareSet)
+func initFakeMiddleware() sharedDomain.Middleware {
+	wire.Build(FakeMiddlewareSet)
 	return nil
 }
 
-func initMockedRequestCounterMiddleware() sharedMiddlewares.RequestCounterMiddleware {
-	wire.Build(MockedRequestCounterMiddlewareSet)
+func InitRequestCounterMiddleware(db *gorm.DB) sharedDomain.Middleware {
+	if inTestingMode() {
+		return initFakeMiddleware()
+	} else {
+		return initRequestCounterMiddleware(db)
+	}
+}
+
+func initRequestCounterMiddleware(db *gorm.DB) sharedDomain.Middleware {
+	wire.Build(RequestCounterMiddlewareSet)
 	return nil
 }
 
@@ -159,14 +160,14 @@ var MockedConfigurationServiceSet = wire.NewSet(
 	sharedApp.NewMockedConfigurationService,
 	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.MockedConfigurationService)))
 
+var FakeMiddlewareSet = wire.NewSet(
+	fakeMiddleware.NewFakeMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*fakeMiddleware.FakeMiddleware)))
+
 var RequestCounterMiddlewareSet = wire.NewSet(
 	MySqlCountersRepositorySet,
-	sharedMiddlewares.NewDefaultRequestCounterMiddleware,
-	wire.Bind(new(sharedMiddlewares.RequestCounterMiddleware), new(*sharedMiddlewares.DefaultRequestCounterMiddleware)))
-
-var MockedRequestCounterMiddlewareSet = wire.NewSet(
-	sharedMiddlewares.NewMockedRequestCounterMiddleware,
-	wire.Bind(new(sharedMiddlewares.RequestCounterMiddleware), new(*sharedMiddlewares.MockedRequestCounterMiddleware)))
+	requestCounterMiddleware.NewRequestCounterMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*requestCounterMiddleware.RequestCounterMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
 	ConfigurationServiceSet,

@@ -6,16 +6,17 @@
 package wire
 
 import (
-	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	domain2 "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/handlers"
-	domain2 "github.com/AngelVlc/todos/internal/api/lists/domain"
+	domain3 "github.com/AngelVlc/todos/internal/api/lists/domain"
 	repository2 "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/server/middlewares/auth"
+	"github.com/AngelVlc/todos/internal/api/server/middlewares/fake"
+	"github.com/AngelVlc/todos/internal/api/server/middlewares/requests_counter"
 	"github.com/AngelVlc/todos/internal/api/shared/application"
-	domain3 "github.com/AngelVlc/todos/internal/api/shared/domain"
+	"github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares"
 	"github.com/google/wire"
 	"github.com/jinzhu/gorm"
 	"os"
@@ -45,15 +46,15 @@ func InitRequireAdminMiddleware() handlers.RequireAdminMiddleware {
 	return defaultRequireAdminMiddleware
 }
 
-func initDefaultRequestCounterMiddleware(db *gorm.DB) middlewares.RequestCounterMiddleware {
-	mySqlCountersRepository := infrastructure.NewMySqlCountersRepository(db)
-	defaultRequestCounterMiddleware := middlewares.NewDefaultRequestCounterMiddleware(mySqlCountersRepository)
-	return defaultRequestCounterMiddleware
+func initFakeMiddleware() domain.Middleware {
+	fakeMiddleware := fake.NewFakeMiddleware()
+	return fakeMiddleware
 }
 
-func initMockedRequestCounterMiddleware() middlewares.RequestCounterMiddleware {
-	mockedRequestCounterMiddleware := middlewares.NewMockedRequestCounterMiddleware()
-	return mockedRequestCounterMiddleware
+func initRequestCounterMiddleware(db *gorm.DB) domain.Middleware {
+	mySqlCountersRepository := infrastructure.NewMySqlCountersRepository(db)
+	requestCounterMiddleware := middlewares.NewRequestCounterMiddleware(mySqlCountersRepository)
+	return requestCounterMiddleware
 }
 
 func InitConfigurationService() application.ConfigurationService {
@@ -62,42 +63,42 @@ func InitConfigurationService() application.ConfigurationService {
 	return defaultConfigurationService
 }
 
-func initMockedAuthRepositorySet() domain.AuthRepository {
+func initMockedAuthRepositorySet() domain2.AuthRepository {
 	mockedAuthRepository := repository.NewMockedAuthRepository()
 	return mockedAuthRepository
 }
 
-func initMySqlAuthRepository(db *gorm.DB) domain.AuthRepository {
+func initMySqlAuthRepository(db *gorm.DB) domain2.AuthRepository {
 	mySqlAuthRepository := repository.NewMySqlAuthRepository(db)
 	return mySqlAuthRepository
 }
 
-func initBryptPasswordGenerator() domain.PasswordGenerator {
-	bcryptPasswordGenerator := domain.NewBcryptPasswordGenerator()
+func initBryptPasswordGenerator() domain2.PasswordGenerator {
+	bcryptPasswordGenerator := domain2.NewBcryptPasswordGenerator()
 	return bcryptPasswordGenerator
 }
 
-func initMockedPasswordGenerator() domain.PasswordGenerator {
-	mockedPasswordGenerator := domain.NewMockedPasswordGenerator()
+func initMockedPasswordGenerator() domain2.PasswordGenerator {
+	mockedPasswordGenerator := domain2.NewMockedPasswordGenerator()
 	return mockedPasswordGenerator
 }
 
-func initMockedListsRepositorySet() domain2.ListsRepository {
+func initMockedListsRepositorySet() domain3.ListsRepository {
 	mockedListsRepository := repository2.NewMockedListsRepository()
 	return mockedListsRepository
 }
 
-func initMySqlListsRepository(db *gorm.DB) domain2.ListsRepository {
+func initMySqlListsRepository(db *gorm.DB) domain3.ListsRepository {
 	mySqlListsRepository := repository2.NewMySqlListsRepository(db)
 	return mySqlListsRepository
 }
 
-func initMockedCountersRepositorySet() domain3.CountersRepository {
+func initMockedCountersRepositorySet() domain.CountersRepository {
 	mockedCountersRepository := infrastructure.NewMockedCountersRepository()
 	return mockedCountersRepository
 }
 
-func initMySqlCountersRepository(db *gorm.DB) domain3.CountersRepository {
+func initMySqlCountersRepository(db *gorm.DB) domain.CountersRepository {
 	mySqlCountersRepository := infrastructure.NewMySqlCountersRepository(db)
 	return mySqlCountersRepository
 }
@@ -112,15 +113,15 @@ func InitAuthMiddleware(db *gorm.DB) middleware.AuthMiddleware {
 	}
 }
 
-func InitRequestCounterMiddleware(db *gorm.DB) middlewares.RequestCounterMiddleware {
+func InitRequestCounterMiddleware(db *gorm.DB) domain.Middleware {
 	if inTestingMode() {
-		return initMockedRequestCounterMiddleware()
+		return initFakeMiddleware()
 	} else {
-		return initDefaultRequestCounterMiddleware(db)
+		return initRequestCounterMiddleware(db)
 	}
 }
 
-func InitAuthRepository(db *gorm.DB) domain.AuthRepository {
+func InitAuthRepository(db *gorm.DB) domain2.AuthRepository {
 	if inTestingMode() {
 		return initMockedAuthRepositorySet()
 	} else {
@@ -128,7 +129,7 @@ func InitAuthRepository(db *gorm.DB) domain.AuthRepository {
 	}
 }
 
-func InitPasswordGenerator() domain.PasswordGenerator {
+func InitPasswordGenerator() domain2.PasswordGenerator {
 	if inTestingMode() {
 		return initMockedPasswordGenerator()
 	} else {
@@ -136,7 +137,7 @@ func InitPasswordGenerator() domain.PasswordGenerator {
 	}
 }
 
-func InitListsRepository(db *gorm.DB) domain2.ListsRepository {
+func InitListsRepository(db *gorm.DB) domain3.ListsRepository {
 	if inTestingMode() {
 		return initMockedListsRepositorySet()
 	} else {
@@ -144,7 +145,7 @@ func InitListsRepository(db *gorm.DB) domain2.ListsRepository {
 	}
 }
 
-func InitCountersRepository(db *gorm.DB) domain3.CountersRepository {
+func InitCountersRepository(db *gorm.DB) domain.CountersRepository {
 	if inTestingMode() {
 		return initMockedCountersRepositorySet()
 	} else {
@@ -163,10 +164,10 @@ var ConfigurationServiceSet = wire.NewSet(
 
 var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.MockedConfigurationService)))
 
-var RequestCounterMiddlewareSet = wire.NewSet(
-	MySqlCountersRepositorySet, middlewares.NewDefaultRequestCounterMiddleware, wire.Bind(new(middlewares.RequestCounterMiddleware), new(*middlewares.DefaultRequestCounterMiddleware)))
+var FakeMiddlewareSet = wire.NewSet(fake.NewFakeMiddleware, wire.Bind(new(domain.Middleware), new(*fake.FakeMiddleware)))
 
-var MockedRequestCounterMiddlewareSet = wire.NewSet(middlewares.NewMockedRequestCounterMiddleware, wire.Bind(new(middlewares.RequestCounterMiddleware), new(*middlewares.MockedRequestCounterMiddleware)))
+var RequestCounterMiddlewareSet = wire.NewSet(
+	MySqlCountersRepositorySet, middlewares.NewRequestCounterMiddleware, wire.Bind(new(domain.Middleware), new(*middlewares.RequestCounterMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
 	ConfigurationServiceSet, middleware.NewRealAuthMiddleware, wire.Bind(new(middleware.AuthMiddleware), new(*middleware.RealAuthMiddleware)))
@@ -175,18 +176,18 @@ var FakeAuthMiddlewareSet = wire.NewSet(middleware.NewFakeAuthMiddleware, wire.B
 
 var RequireAdminMiddlewareSet = wire.NewSet(handlers.NewDefaultRequireAdminMiddleware, wire.Bind(new(handlers.RequireAdminMiddleware), new(*handlers.DefaultRequireAdminMiddleware)))
 
-var MySqlAuthRepositorySet = wire.NewSet(repository.NewMySqlAuthRepository, wire.Bind(new(domain.AuthRepository), new(*repository.MySqlAuthRepository)))
+var MySqlAuthRepositorySet = wire.NewSet(repository.NewMySqlAuthRepository, wire.Bind(new(domain2.AuthRepository), new(*repository.MySqlAuthRepository)))
 
-var MockedAuthRepositorySet = wire.NewSet(repository.NewMockedAuthRepository, wire.Bind(new(domain.AuthRepository), new(*repository.MockedAuthRepository)))
+var MockedAuthRepositorySet = wire.NewSet(repository.NewMockedAuthRepository, wire.Bind(new(domain2.AuthRepository), new(*repository.MockedAuthRepository)))
 
-var BcryptPasswordGeneratorSet = wire.NewSet(domain.NewBcryptPasswordGenerator, wire.Bind(new(domain.PasswordGenerator), new(*domain.BcryptPasswordGenerator)))
+var BcryptPasswordGeneratorSet = wire.NewSet(domain2.NewBcryptPasswordGenerator, wire.Bind(new(domain2.PasswordGenerator), new(*domain2.BcryptPasswordGenerator)))
 
-var MockedPasswordGeneratorSet = wire.NewSet(domain.NewMockedPasswordGenerator, wire.Bind(new(domain.PasswordGenerator), new(*domain.MockedPasswordGenerator)))
+var MockedPasswordGeneratorSet = wire.NewSet(domain2.NewMockedPasswordGenerator, wire.Bind(new(domain2.PasswordGenerator), new(*domain2.MockedPasswordGenerator)))
 
-var MySqlListsRepositorySet = wire.NewSet(repository2.NewMySqlListsRepository, wire.Bind(new(domain2.ListsRepository), new(*repository2.MySqlListsRepository)))
+var MySqlListsRepositorySet = wire.NewSet(repository2.NewMySqlListsRepository, wire.Bind(new(domain3.ListsRepository), new(*repository2.MySqlListsRepository)))
 
-var MockedListsRepositorySet = wire.NewSet(repository2.NewMockedListsRepository, wire.Bind(new(domain2.ListsRepository), new(*repository2.MockedListsRepository)))
+var MockedListsRepositorySet = wire.NewSet(repository2.NewMockedListsRepository, wire.Bind(new(domain3.ListsRepository), new(*repository2.MockedListsRepository)))
 
-var MySqlCountersRepositorySet = wire.NewSet(infrastructure.NewMySqlCountersRepository, wire.Bind(new(domain3.CountersRepository), new(*infrastructure.MySqlCountersRepository)))
+var MySqlCountersRepositorySet = wire.NewSet(infrastructure.NewMySqlCountersRepository, wire.Bind(new(domain.CountersRepository), new(*infrastructure.MySqlCountersRepository)))
 
-var MockedCountersRepositorySet = wire.NewSet(infrastructure.NewMockedCountersRepository, wire.Bind(new(domain3.CountersRepository), new(*infrastructure.MockedCountersRepository)))
+var MockedCountersRepositorySet = wire.NewSet(infrastructure.NewMockedCountersRepository, wire.Bind(new(domain.CountersRepository), new(*infrastructure.MockedCountersRepository)))

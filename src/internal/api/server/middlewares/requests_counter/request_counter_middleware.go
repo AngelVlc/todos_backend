@@ -10,36 +10,17 @@ import (
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
-	"github.com/stretchr/testify/mock"
 )
 
-type RequestCounterMiddleware interface {
-	Middleware(next http.Handler) http.Handler
-}
-
-type MockedRequestCounterMiddleware struct {
-	mock.Mock
-}
-
-func NewMockedRequestCounterMiddleware() *MockedRequestCounterMiddleware {
-	return &MockedRequestCounterMiddleware{}
-}
-
-func (m *MockedRequestCounterMiddleware) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
-}
-
-type DefaultRequestCounterMiddleware struct {
+type RequestCounterMiddleware struct {
 	countersRepo sharedDomain.CountersRepository
 }
 
-func NewDefaultRequestCounterMiddleware(countersRepo sharedDomain.CountersRepository) *DefaultRequestCounterMiddleware {
-	return &DefaultRequestCounterMiddleware{countersRepo}
+func NewRequestCounterMiddleware(countersRepo sharedDomain.CountersRepository) *RequestCounterMiddleware {
+	return &RequestCounterMiddleware{countersRepo}
 }
 
-func (m *DefaultRequestCounterMiddleware) Middleware(next http.Handler) http.Handler {
+func (m *RequestCounterMiddleware) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		svc := sharedApp.NewIncrementRequestsCounterService(m.countersRepo)
 		v, err := svc.IncrementRequestsCounter()

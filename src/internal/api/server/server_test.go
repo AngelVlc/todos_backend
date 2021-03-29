@@ -20,6 +20,7 @@ func TestMain(m *testing.M) {
 }
 
 func TestServerPublicRoutes(t *testing.T) {
+
 	s := NewServer(nil)
 
 	var publicRoutes = []struct {

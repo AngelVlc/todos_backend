@@ -51,3 +51,16 @@ func (m *MockedAuthRepository) UpdateUser(user *domain.User) error {
 	args := m.Called(user)
 	return args.Error(0)
 }
+
+func (m *MockedAuthRepository) FindRefreshTokenForUser(refreshToken string, userID int32) (*domain.RefreshToken, error) {
+	args := m.Called(refreshToken, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.RefreshToken), args.Error(1)
+}
+
+func (m *MockedAuthRepository) CreateRefreshToken(refreshToken *domain.RefreshToken) error {
+	args := m.Called(refreshToken)
+	return args.Error(0)
+}

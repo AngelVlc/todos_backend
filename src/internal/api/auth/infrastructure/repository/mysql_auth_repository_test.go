@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/DATA-DOG/go-sqlmock"
@@ -15,7 +16,8 @@ import (
 )
 
 var (
-	userColumns = []string{"id", "name", "password_hash", "is_admin"}
+	userColumns         = []string{"id", "name", "password_hash", "is_admin"}
+	refreshTokenColumns = []string{"id", "userId", "refreshToken", "expirationDate"}
 )
 
 func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
@@ -293,6 +295,105 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 		err := repo.UpdateUser(&user)
 
 		assert.Nil(t, err)
+		checkMockExpectations(t, mock)
+	})
+}
+
+func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewMySqlAuthRepository(db)
+
+	rt := "rt"
+	userID := int32(1)
+
+	expectedFindByIDQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `refresh_tokens` WHERE (`refresh_tokens`.`userId` = ?) AND (`refresh_tokens`.`refreshToken` = ?) ORDER BY `refresh_tokens`.`id` ASC LIMIT 1")).
+			WithArgs(userID, rt)
+	}
+
+	t.Run("should not return a refresh token if it does not exist", func(t *testing.T) {
+		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(refreshTokenColumns))
+
+		res, err := repo.FindRefreshTokenForUser(rt, userID)
+
+		assert.Nil(t, res)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.FindRefreshTokenForUser(rt, userID)
+
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return the refresh token if it exists", func(t *testing.T) {
+		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(refreshTokenColumns).AddRow(int32(111), userID, rt, time.Now()))
+
+		res, err := repo.FindRefreshTokenForUser(rt, userID)
+
+		require.NotNil(t, res)
+		assert.Equal(t, userID, res.UserID)
+		assert.Equal(t, int32(111), res.ID)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
+func TestMySqlAuthRepositoryCreateRefreshToken(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
+	rt := domain.RefreshToken{UserID: 1, RefreshToken: "rt", ExpirtionDate: expDate}
+
+	repo := NewMySqlAuthRepository(db)
+
+	expectedInsertExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?)")).
+			WithArgs(rt.UserID, rt.RefreshToken, rt.ExpirtionDate)
+	}
+
+	t.Run("should return an error if creating the new refresh token fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.CreateRefreshToken(&rt)
+
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should create the new refresh token", func(t *testing.T) {
+		result := sqlmock.NewResult(12, 1)
+
+		mock.ExpectBegin()
+		expectedInsertExec().WillReturnResult(result)
+		mock.ExpectCommit()
+
+		err := repo.CreateRefreshToken(&rt)
+
+		assert.Nil(t, err)
+
 		checkMockExpectations(t, mock)
 	})
 }

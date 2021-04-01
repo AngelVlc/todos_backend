@@ -38,12 +38,12 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) han
 		return results.ErrorResult{Err: err}
 	}
 
-	addRefreshTokenCookieKK(w, res.RefreshToken)
+	addRefreshTokenCookie(w, res.RefreshToken)
 
 	return results.OkResult{Content: res, StatusCode: http.StatusOK}
 }
 
-func addRefreshTokenCookieKK(w http.ResponseWriter, refreshToken string) {
+func addRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {
 	rfCookie := http.Cookie{
 		Name:     refreshTokenCookieName,
 		Value:    refreshToken,

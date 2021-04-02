@@ -89,10 +89,10 @@ func (s *TokenService) ParseToken(tokenString string) (interface{}, error) {
 }
 
 // GetTokenInfo returns a JwtClaimsInfo got from the token claims
-func (s *TokenService) GetTokenInfo(token interface{}) *JwtClaimsInfo {
+func (s *TokenService) GetTokenInfo(token interface{}) *TokenClaimsInfo {
 	claims := s.getTokenClaims(token)
 
-	info := JwtClaimsInfo{
+	info := TokenClaimsInfo{
 		UserName: s.parseStringClaim(claims["userName"]),
 		UserID:   s.parseInt32Claim(claims["userId"]),
 		IsAdmin:  s.parseBoolClaim(claims["isAdmin"]),

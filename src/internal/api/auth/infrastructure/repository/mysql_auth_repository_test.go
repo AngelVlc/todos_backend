@@ -362,13 +362,13 @@ func TestMySqlAuthRepositoryCreateRefreshToken(t *testing.T) {
 	defer db.Close()
 
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
-	rt := domain.RefreshToken{UserID: 1, RefreshToken: "rt", ExpirtionDate: expDate}
+	rt := domain.RefreshToken{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
 
 	repo := NewMySqlAuthRepository(db)
 
 	expectedInsertExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?)")).
-			WithArgs(rt.UserID, rt.RefreshToken, rt.ExpirtionDate)
+			WithArgs(rt.UserID, rt.RefreshToken, rt.ExpirationDate)
 	}
 
 	t.Run("should return an error if creating the new refresh token fails", func(t *testing.T) {

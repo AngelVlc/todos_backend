@@ -77,7 +77,7 @@ func initRequestCounterMiddleware(db *gorm.DB) sharedDomain.Middleware {
 }
 
 func InitConfigurationService() sharedApp.ConfigurationService {
-	wire.Build(ConfigurationServiceSet)
+	wire.Build(RealConfigurationServiceSet)
 	return nil
 }
 
@@ -161,10 +161,10 @@ var EnvGetterSet = wire.NewSet(
 	sharedApp.NewOsEnvGetter,
 	wire.Bind(new(sharedApp.EnvGetter), new(*sharedApp.OsEnvGetter)))
 
-var ConfigurationServiceSet = wire.NewSet(
+var RealConfigurationServiceSet = wire.NewSet(
 	EnvGetterSet,
-	sharedApp.NewDefaultConfigurationService,
-	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.DefaultConfigurationService)))
+	sharedApp.NewRealConfigurationService,
+	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.RealConfigurationService)))
 
 var MockedConfigurationServiceSet = wire.NewSet(
 	sharedApp.NewMockedConfigurationService,
@@ -184,7 +184,7 @@ var LogMiddlewareSet = wire.NewSet(
 	wire.Bind(new(sharedDomain.Middleware), new(*logMdw.LogMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	ConfigurationServiceSet,
+	RealConfigurationServiceSet,
 	authMiddleware.NewRealAuthMiddleware,
 	wire.Bind(new(authMiddleware.AuthMiddleware), new(*authMiddleware.RealAuthMiddleware)))
 

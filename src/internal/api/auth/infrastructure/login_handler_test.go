@@ -106,8 +106,9 @@ func TestLoginHandler(t *testing.T) {
 		hashedPass := string(hashedBytes)
 		foundUser := domain.User{PasswordHash: hashedPass}
 		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
-		mockedCfgSrv.On("TokenExpirationInSeconds").Return(time.Second * 30).Once()
-		mockedCfgSrv.On("RefreshTokenExpirationInSeconds").Return(time.Hour).Once()
+		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
+		mockedCfgSrv.On("GetTokenExpirationDate").Return(expDate).Once()
+		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
@@ -117,8 +118,8 @@ func TestLoginHandler(t *testing.T) {
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.Content.(*domain.TokenResponse)
 		require.Equal(t, true, isOk, "should be a token response")
-		assert.Equal(t, 160, len(resDto.Token))
-		assert.Equal(t, 120, len(resDto.RefreshToken))
+		assert.Equal(t, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTc0NzY0MDAsImlzQWRtaW4iOmZhbHNlLCJ1c2VySWQiOjAsInVzZXJOYW1lIjoiIn0.vZjb1EWpNfdjeR1roJHhRnFKsPXIKMPZlgxigdupIHo", resDto.Token)
+		assert.Equal(t, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTc0NzY0MDAsInVzZXJJZCI6MH0.9E8npy60pAIzzvv7V0The5457bVcrMAxzbdYPo63kMo", resDto.RefreshToken)
 
 		require.Equal(t, 1, len(recorder.Result().Cookies()))
 		assert.Equal(t, "refreshToken", recorder.Result().Cookies()[0].Name)

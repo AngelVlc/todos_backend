@@ -23,7 +23,7 @@ func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
 		return nil, &appErrors.UnauthorizedError{Msg: "Error parsing the refresh token", InternalError: err}
 	}
 
-	if !tokenSvc.IsTokenValid(parsedRt) {
+	if !parsedRt.Valid {
 		return nil, &appErrors.UnauthorizedError{Msg: "Invalid refresh token"}
 	}
 

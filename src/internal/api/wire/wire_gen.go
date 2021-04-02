@@ -38,8 +38,8 @@ func initLogMiddleware() domain.Middleware {
 
 func initDefaultAuthMiddleware() authmdw.AuthMiddleware {
 	osEnvGetter := application.NewOsEnvGetter()
-	defaultConfigurationService := application.NewDefaultConfigurationService(osEnvGetter)
-	realAuthMiddleware := authmdw.NewRealAuthMiddleware(defaultConfigurationService)
+	realConfigurationService := application.NewRealConfigurationService(osEnvGetter)
+	realAuthMiddleware := authmdw.NewRealAuthMiddleware(realConfigurationService)
 	return realAuthMiddleware
 }
 
@@ -61,8 +61,8 @@ func initRequestCounterMiddleware(db *gorm.DB) domain.Middleware {
 
 func InitConfigurationService() application.ConfigurationService {
 	osEnvGetter := application.NewOsEnvGetter()
-	defaultConfigurationService := application.NewDefaultConfigurationService(osEnvGetter)
-	return defaultConfigurationService
+	realConfigurationService := application.NewRealConfigurationService(osEnvGetter)
+	return realConfigurationService
 }
 
 func initMockedAuthRepositorySet() domain2.AuthRepository {
@@ -169,8 +169,8 @@ func inTestingMode() bool {
 
 var EnvGetterSet = wire.NewSet(application.NewOsEnvGetter, wire.Bind(new(application.EnvGetter), new(*application.OsEnvGetter)))
 
-var ConfigurationServiceSet = wire.NewSet(
-	EnvGetterSet, application.NewDefaultConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.DefaultConfigurationService)))
+var RealConfigurationServiceSet = wire.NewSet(
+	EnvGetterSet, application.NewRealConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.RealConfigurationService)))
 
 var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.MockedConfigurationService)))
 
@@ -182,7 +182,7 @@ var RequestCounterMiddlewareSet = wire.NewSet(
 var LogMiddlewareSet = wire.NewSet(logmdw.NewLogMiddleware, wire.Bind(new(domain.Middleware), new(*logmdw.LogMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	ConfigurationServiceSet, authmdw.NewRealAuthMiddleware, wire.Bind(new(authmdw.AuthMiddleware), new(*authmdw.RealAuthMiddleware)))
+	RealConfigurationServiceSet, authmdw.NewRealAuthMiddleware, wire.Bind(new(authmdw.AuthMiddleware), new(*authmdw.RealAuthMiddleware)))
 
 var FakeAuthMiddlewareSet = wire.NewSet(authmdw.NewFakeAuthMiddleware, wire.Bind(new(authmdw.AuthMiddleware), new(*authmdw.FakeAuthMiddleware)))
 

@@ -14,8 +14,8 @@ type ConfigurationService interface {
 	GetPort() string
 	GetJwtSecret() string
 	GetCorsAllowedOrigins() []string
-	TokenExpirationInSeconds() time.Duration
-	RefreshTokenExpirationInSeconds() time.Duration
+	GetTokenExpirationDate() time.Time
+	GetRefreshTokenExpirationDate() time.Time
 }
 
 type MockedConfigurationService struct {
@@ -51,25 +51,25 @@ func (m *MockedConfigurationService) GetCorsAllowedOrigins() []string {
 	return args.Get(0).([]string)
 }
 
-func (m *MockedConfigurationService) TokenExpirationInSeconds() time.Duration {
+func (m *MockedConfigurationService) GetTokenExpirationDate() time.Time {
 	args := m.Called()
-	return args.Get(0).(time.Duration)
+	return args.Get(0).(time.Time)
 }
 
-func (m *MockedConfigurationService) RefreshTokenExpirationInSeconds() time.Duration {
+func (m *MockedConfigurationService) GetRefreshTokenExpirationDate() time.Time {
 	args := m.Called()
-	return args.Get(0).(time.Duration)
+	return args.Get(0).(time.Time)
 }
 
-type DefaultConfigurationService struct {
+type RealConfigurationService struct {
 	eg EnvGetter
 }
 
-func NewDefaultConfigurationService(eg EnvGetter) *DefaultConfigurationService {
-	return &DefaultConfigurationService{eg}
+func NewRealConfigurationService(eg EnvGetter) *RealConfigurationService {
+	return &RealConfigurationService{eg}
 }
 
-func (c *DefaultConfigurationService) GetDatasource() string {
+func (c *RealConfigurationService) GetDatasource() string {
 	host := c.eg.Getenv("MYSQL_HOST")
 	port := c.eg.Getenv("MYSQL_PORT")
 	user := c.eg.Getenv("MYSQL_USER")
@@ -93,28 +93,31 @@ func (c *DefaultConfigurationService) GetDatasource() string {
 	return fmt.Sprintf("%v:%v@(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, dbname)
 }
 
-func (c *DefaultConfigurationService) GetAdminPassword() string {
+func (c *RealConfigurationService) GetAdminPassword() string {
 	return c.eg.Getenv("ADMIN_PASSWORD")
 }
 
-func (c *DefaultConfigurationService) GetPort() string {
+func (c *RealConfigurationService) GetPort() string {
 	return c.eg.Getenv("PORT")
 }
 
-func (c *DefaultConfigurationService) GetJwtSecret() string {
+func (c *RealConfigurationService) GetJwtSecret() string {
 	return c.eg.Getenv("JWT_SECRET")
 }
 
-func (c *DefaultConfigurationService) GetCorsAllowedOrigins() []string {
+func (c *RealConfigurationService) GetCorsAllowedOrigins() []string {
 	return strings.Split(c.eg.Getenv("CORS_ALLOWED_ORIGINS"), ",")
 }
 
-func (c *DefaultConfigurationService) TokenExpirationInSeconds() time.Duration {
-	d, _ := time.ParseDuration(c.eg.Getenv("TOKEN_EXPIRATION_IN_SECONDS"))
-	return d
+func (c *RealConfigurationService) GetTokenExpirationDate() time.Time {
+	return time.Now().Add(c.getDurationEnvVar("TOKEN_EXPIRATION_IN_SECONDS"))
 }
 
-func (c *DefaultConfigurationService) RefreshTokenExpirationInSeconds() time.Duration {
-	d, _ := time.ParseDuration(c.eg.Getenv("REFRESH_TOKEN_EXPIRATION_IN_SECONDS"))
+func (c *RealConfigurationService) GetRefreshTokenExpirationDate() time.Time {
+	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_IN_SECONDS"))
+}
+
+func (c *RealConfigurationService) getDurationEnvVar(envVarName string) time.Duration {
+	d, _ := time.ParseDuration(c.eg.Getenv(envVarName))
 	return d
 }

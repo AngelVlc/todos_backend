@@ -30,18 +30,18 @@ func (m *RealAuthMiddleware) Middleware(next http.Handler) http.Handler {
 
 		tokenSvc := domain.NewTokenService(m.cfgSrv)
 
-		parsed, err := tokenSvc.ParseToken(token)
+		parsedToken, err := tokenSvc.ParseToken(token)
 		if err != nil {
 			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Error parsing the authorization token", err)
 			return
 		}
 
-		if !tokenSvc.IsTokenValid(parsed) {
+		if !parsedToken.Valid {
 			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", nil)
 			return
 		}
 
-		tokenInfo := tokenSvc.GetTokenInfo(parsed)
+		tokenInfo := tokenSvc.GetTokenInfo(parsedToken)
 
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, tokenInfo.UserID)

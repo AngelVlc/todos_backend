@@ -60,17 +60,14 @@ func TestRealAuthMiddleware(t *testing.T) {
 		response := httptest.NewRecorder()
 		handlerToTest := md.Middleware(nextHandler)
 
-		mockedCfgSrv.On("GetJwtSecret").Return("secret").Once()
-
 		handlerToTest.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
 		assert.Equal(t, "Error parsing the authorization token\n", string(response.Body.String()))
-		mockedCfgSrv.AssertExpectations(t)
 	})
 
 	t.Run("Should add the token info to the request context if the token is valid", func(t *testing.T) {
-		mockedCfgSrv.On("TokenExpirationInSeconds").Return(5 * time.Minute).Once()
+		mockedCfgSrv.On("GetTokenExpirationDate").Return(time.Now()).Once()
 		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)
 		authUSer := domain.User{ID: int32(1), Name: "user", IsAdmin: true}
 		token, _ := domain.NewTokenService(mockedCfgSrv).GenerateToken(&authUSer)

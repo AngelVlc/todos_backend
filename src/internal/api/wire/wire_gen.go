@@ -7,6 +7,7 @@ package wire
 
 import (
 	domain2 "github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	"github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	domain3 "github.com/AngelVlc/todos/internal/api/lists/domain"
 	repository2 "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
@@ -74,13 +75,13 @@ func initMySqlAuthRepository(db *gorm.DB) domain2.AuthRepository {
 	return mySqlAuthRepository
 }
 
-func initBryptPasswordGenerator() domain2.PasswordGenerator {
-	bcryptPasswordGenerator := domain2.NewBcryptPasswordGenerator()
+func initBryptPasswordGenerator() passgen.PasswordGenerator {
+	bcryptPasswordGenerator := passgen.NewBcryptPasswordGenerator()
 	return bcryptPasswordGenerator
 }
 
-func initMockedPasswordGenerator() domain2.PasswordGenerator {
-	mockedPasswordGenerator := domain2.NewMockedPasswordGenerator()
+func initMockedPasswordGenerator() passgen.PasswordGenerator {
+	mockedPasswordGenerator := passgen.NewMockedPasswordGenerator()
 	return mockedPasswordGenerator
 }
 
@@ -138,7 +139,7 @@ func InitAuthRepository(db *gorm.DB) domain2.AuthRepository {
 	}
 }
 
-func InitPasswordGenerator() domain2.PasswordGenerator {
+func InitPasswordGenerator() passgen.PasswordGenerator {
 	if inTestingMode() {
 		return initMockedPasswordGenerator()
 	} else {
@@ -191,9 +192,9 @@ var MySqlAuthRepositorySet = wire.NewSet(repository.NewMySqlAuthRepository, wire
 
 var MockedAuthRepositorySet = wire.NewSet(repository.NewMockedAuthRepository, wire.Bind(new(domain2.AuthRepository), new(*repository.MockedAuthRepository)))
 
-var BcryptPasswordGeneratorSet = wire.NewSet(domain2.NewBcryptPasswordGenerator, wire.Bind(new(domain2.PasswordGenerator), new(*domain2.BcryptPasswordGenerator)))
+var BcryptPasswordGeneratorSet = wire.NewSet(passgen.NewBcryptPasswordGenerator, wire.Bind(new(passgen.PasswordGenerator), new(*passgen.BcryptPasswordGenerator)))
 
-var MockedPasswordGeneratorSet = wire.NewSet(domain2.NewMockedPasswordGenerator, wire.Bind(new(domain2.PasswordGenerator), new(*domain2.MockedPasswordGenerator)))
+var MockedPasswordGeneratorSet = wire.NewSet(passgen.NewMockedPasswordGenerator, wire.Bind(new(passgen.PasswordGenerator), new(*passgen.MockedPasswordGenerator)))
 
 var MySqlListsRepositorySet = wire.NewSet(repository2.NewMySqlListsRepository, wire.Bind(new(domain3.ListsRepository), new(*repository2.MySqlListsRepository)))
 

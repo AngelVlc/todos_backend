@@ -1,4 +1,4 @@
-package domain
+package passgen
 
 import "golang.org/x/crypto/bcrypt"
 
@@ -8,7 +8,7 @@ func NewBcryptPasswordGenerator() *BcryptPasswordGenerator {
 	return &BcryptPasswordGenerator{}
 }
 
-func (g *BcryptPasswordGenerator) GenerateFromPassword(password UserPassword) (string, error) {
+func (g *BcryptPasswordGenerator) GenerateFromPassword(password string) (string, error) {
 	hasshedPass, err := bcrypt.GenerateFromPassword([]byte(password), 10)
 	if err != nil {
 		return "", err

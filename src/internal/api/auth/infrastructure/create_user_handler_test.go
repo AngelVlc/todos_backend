@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
@@ -73,7 +73,7 @@ func TestCreateUserHandlerValidations(t *testing.T) {
 
 func TestCreateUserHandler(t *testing.T) {
 	mockedRepo := authRepository.MockedAuthRepository{}
-	mockedPassGen := authDomain.MockedPasswordGenerator{}
+	mockedPassGen := passgen.MockedPasswordGenerator{}
 	h := handler.Handler{AuthRepository: &mockedRepo, PassGen: &mockedPassGen}
 
 	createReq := createUserRequest{Name: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
@@ -101,8 +101,7 @@ func TestCreateUserHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an UnexpectedError if generate the password fails", func(t *testing.T) {
 		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(nil, nil).Once()
-		pass := domain.UserPassword("pass")
-		mockedPassGen.On("GenerateFromPassword", pass).Return("", fmt.Errorf("some error")).Once()
+		mockedPassGen.On("GenerateFromPassword", "pass").Return("", fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		result := CreateUserHandler(httptest.NewRecorder(), request, h)
@@ -114,9 +113,8 @@ func TestCreateUserHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an UnexpectedError if create user fails", func(t *testing.T) {
 		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(nil, nil).Once()
-		pass := domain.UserPassword("pass")
 		hassedPass := "hassed"
-		mockedPassGen.On("GenerateFromPassword", pass).Return(hassedPass, nil).Once()
+		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
 		mockedRepo.On("CreateUser", &user).Return(fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
@@ -130,9 +128,8 @@ func TestCreateUserHandler(t *testing.T) {
 
 	t.Run("should create the new user", func(t *testing.T) {
 		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(nil, nil).Once()
-		pass := domain.UserPassword("pass")
 		hassedPass := "hassed"
-		mockedPassGen.On("GenerateFromPassword", pass).Return(hassedPass, nil).Once()
+		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
 		mockedRepo.On("CreateUser", &user).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(0).(*domain.User)

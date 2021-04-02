@@ -2,15 +2,16 @@ package application
 
 import (
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
 type UpdateUserService struct {
 	repo    domain.AuthRepository
-	passGen domain.PasswordGenerator
+	passGen passgen.PasswordGenerator
 }
 
-func NewUpdateUserService(repo domain.AuthRepository, passGen domain.PasswordGenerator) *UpdateUserService {
+func NewUpdateUserService(repo domain.AuthRepository, passGen passgen.PasswordGenerator) *UpdateUserService {
 	return &UpdateUserService{repo, passGen}
 }
 
@@ -35,7 +36,7 @@ func (s *UpdateUserService) UpdateUser(userID int32, userName domain.UserName, p
 	}
 
 	if len(password) > 0 {
-		hasshedPass, err := s.passGen.GenerateFromPassword(password)
+		hasshedPass, err := s.passGen.GenerateFromPassword(string(password))
 		if err != nil {
 			return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 		}

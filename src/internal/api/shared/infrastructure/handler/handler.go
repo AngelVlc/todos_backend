@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
@@ -18,7 +19,7 @@ type Handler struct {
 	AuthRepository  authDomain.AuthRepository
 	ListsRepository listsDomain.ListsRepository
 	CfgSrv          sharedApp.ConfigurationService
-	PassGen         authDomain.PasswordGenerator
+	PassGen         passgen.PasswordGenerator
 }
 
 type HandlerResult interface {
@@ -27,7 +28,7 @@ type HandlerResult interface {
 
 func NewHandler(f HandlerFunc, authRepo authDomain.AuthRepository,
 	listsRepo listsDomain.ListsRepository, cfgSrv sharedApp.ConfigurationService,
-	passGen authDomain.PasswordGenerator) Handler {
+	passGen passgen.PasswordGenerator) Handler {
 	return Handler{
 		HandlerFunc:     f,
 		AuthRepository:  authRepo,

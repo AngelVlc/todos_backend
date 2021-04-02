@@ -1,4 +1,4 @@
-package domain
+package passgen
 
 import "github.com/stretchr/testify/mock"
 
@@ -10,7 +10,7 @@ func NewMockedPasswordGenerator() *MockedPasswordGenerator {
 	return &MockedPasswordGenerator{}
 }
 
-func (m *MockedPasswordGenerator) GenerateFromPassword(password UserPassword) (string, error) {
+func (m *MockedPasswordGenerator) GenerateFromPassword(password string) (string, error) {
 	args := m.Called(password)
 	return args.String(0), args.Error(1)
 }

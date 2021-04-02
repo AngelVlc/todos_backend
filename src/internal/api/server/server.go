@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos/internal/api/lists/infrastructure"
@@ -20,7 +21,7 @@ type server struct {
 	authRepo     authDomain.AuthRepository
 	listsRepo    listsDomain.ListsRepository
 	cfgSrv       sharedApp.ConfigurationService
-	passGen      authDomain.PasswordGenerator
+	passGen      passgen.PasswordGenerator
 	countersRepo sharedDomain.CountersRepository
 }
 

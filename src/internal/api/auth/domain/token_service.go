@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"time"
 
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/dgrijalva/jwt-go"
@@ -21,8 +22,8 @@ func (s *TokenService) GenerateToken(user *User) (string, error) {
 
 }
 
-func (s *TokenService) GenerateRefreshToken(user *User) (string, error) {
-	rt := s.getNewRefreshToken(user.ID)
+func (s *TokenService) GenerateRefreshToken(user *User, expirationDate time.Time) (string, error) {
+	rt := s.getNewRefreshToken(user.ID, expirationDate)
 	return s.signToken(rt, s.cfgSvc.GetJwtSecret())
 }
 
@@ -72,11 +73,11 @@ func (s *TokenService) getNewToken(userID int32, userName UserName, userIsAdmin 
 	return t
 }
 
-func (s *TokenService) getNewRefreshToken(userID int32) *jwt.Token {
+func (s *TokenService) getNewRefreshToken(userID int32, expirationDate time.Time) *jwt.Token {
 	rt := s.newToken()
 	rtc := s.getTokenClaims(rt)
 	rtc["userId"] = userID
-	rtc["exp"] = s.cfgSvc.GetRefreshTokenExpirationDate().Unix()
+	rtc["exp"] = expirationDate.Unix()
 
 	return rt
 }

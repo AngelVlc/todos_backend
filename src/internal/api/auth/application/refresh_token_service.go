@@ -43,7 +43,8 @@ func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	refreshToken, err := tokenSvc.GenerateRefreshToken(foundUser)
+	refreshTokenExpDate := s.cfgSvc.GetRefreshTokenExpirationDate()
+	refreshToken, err := tokenSvc.GenerateRefreshToken(foundUser, refreshTokenExpDate)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
 	}

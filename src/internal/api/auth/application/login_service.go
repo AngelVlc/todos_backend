@@ -37,9 +37,16 @@ func (s *LoginService) Login(userName domain.UserName, password domain.UserPassw
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	refreshToken, err := tokenSvc.GenerateRefreshToken(foundUser)
+	refreshTokenExpDate := s.cfgSvc.GetRefreshTokenExpirationDate()
+
+	refreshToken, err := tokenSvc.GenerateRefreshToken(foundUser, refreshTokenExpDate)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
+	}
+
+	err = s.repo.CreateRefreshToken(&domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error saving the refresh token", InternalError: err}
 	}
 
 	res := domain.TokenResponse{Token: token, RefreshToken: refreshToken}

@@ -101,12 +101,32 @@ func TestLoginHandler(t *testing.T) {
 		mockedRepo.AssertExpectations(t)
 	})
 
-	t.Run("Should return an okResult with the tokens and should create the cookie if the login is correct", func(t *testing.T) {
+	t.Run("Should return an errorResult with an UnexpectedError if saving the refresh token fails", func(t *testing.T) {
+		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
+		hashedPass := string(hashedBytes)
+		foundUser := domain.User{ID: 1, PasswordHash: hashedPass}
+		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
+		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
+		mockedRepo.On("CreateRefreshToken", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTc0NzY0MDAsInVzZXJJZCI6MX0.k6l5hl8VxUwTuBGfA2Fx3sz2-nn6bToHaOoIczMkaD8", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
+		mockedCfgSrv.On("GetTokenExpirationDate").Return(expDate).Once()
+		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
+		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)
+		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+
+		result := LoginHandler(httptest.NewRecorder(), request, h)
+
+		results.CheckUnexpectedErrorResult(t, result, "Error saving the refresh token")
+		mockedRepo.AssertExpectations(t)
+		mockedCfgSrv.AssertExpectations(t)
+	})
+
+	t.Run("Should return an okResult with the tokens, should create the cookie and should save the refresh token if the login is correct", func(t *testing.T) {
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
 		foundUser := domain.User{PasswordHash: hashedPass}
 		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
+		mockedRepo.On("CreateRefreshToken", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTc0NzY0MDAsInVzZXJJZCI6MH0.9E8npy60pAIzzvv7V0The5457bVcrMAxzbdYPo63kMo", ExpirationDate: expDate}).Return(nil).Once()
 		mockedCfgSrv.On("GetTokenExpirationDate").Return(expDate).Once()
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)

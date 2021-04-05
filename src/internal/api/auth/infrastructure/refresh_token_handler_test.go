@@ -38,7 +38,8 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 	cfgSvc := sharedApp.NewRealConfigurationService(sharedApp.NewOsEnvGetter())
 	tokenSvc := domain.NewTokenService(cfgSvc)
-	refreshToken, _ := tokenSvc.GenerateRefreshToken(&domain.User{ID: 1})
+	refreshTokenExpDate := cfgSvc.GetRefreshTokenExpirationDate()
+	refreshToken, _ := tokenSvc.GenerateRefreshToken(&domain.User{ID: 1}, refreshTokenExpDate)
 
 	getRefreshTokenCookie := func(rt string) *http.Cookie {
 		return &http.Cookie{Name: refreshTokenCookieName, Value: rt}
@@ -55,11 +56,9 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 	t.Run("Should return an errorResult with an UnexpectedError if getting the user by id fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)
-		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(time.Now()).Once()
+		mockedCfgSrv.On("GetJwtSecret").Return(cfgSvc.GetJwtSecret()).Once()
 		authUser := domain.User{ID: 1}
-		rt, _ := domain.NewTokenService(&mockedCfgSrv).GenerateRefreshToken(&authUser)
-		request.AddCookie(getRefreshTokenCookie(rt))
+		request.AddCookie(getRefreshTokenCookie(refreshToken))
 		mockedRepo.On("FindUserByID", authUser.ID).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
@@ -71,11 +70,9 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 	t.Run("Should return an errorResult with an UnauthorizedError if the user no longer exists", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)
-		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(time.Now()).Once()
+		mockedCfgSrv.On("GetJwtSecret").Return(cfgSvc.GetJwtSecret()).Once()
 		authUser := domain.User{ID: 1}
-		rt, _ := domain.NewTokenService(&mockedCfgSrv).GenerateRefreshToken(&authUser)
-		request.AddCookie(getRefreshTokenCookie(rt))
+		request.AddCookie(getRefreshTokenCookie(refreshToken))
 		mockedRepo.On("FindUserByID", authUser.ID).Return(nil, nil).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
@@ -90,7 +87,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedCfgSrv.On("GetJwtSecret").Return(os.Getenv("JWT_SECRET")).Times(3)
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetTokenExpirationDate").Return(expDate).Once()
-		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Times(1)
+		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		authUser := domain.User{ID: 1}
 		request.AddCookie(getRefreshTokenCookie(refreshToken))
 		foundUser := domain.User{}

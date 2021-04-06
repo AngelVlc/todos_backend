@@ -21,6 +21,7 @@ type server struct {
 	authRepo     authDomain.AuthRepository
 	listsRepo    listsDomain.ListsRepository
 	cfgSrv       sharedApp.ConfigurationService
+	tokenSrv     authDomain.TokenService
 	passGen      passgen.PasswordGenerator
 	countersRepo sharedDomain.CountersRepository
 }
@@ -30,6 +31,7 @@ func NewServer(db *gorm.DB) *server {
 		authRepo:     wire.InitAuthRepository(db),
 		listsRepo:    wire.InitListsRepository(db),
 		cfgSrv:       wire.InitConfigurationService(),
+		tokenSrv:     wire.InitTokenService(),
 		passGen:      wire.InitPasswordGenerator(),
 		countersRepo: wire.InitCountersRepository(db),
 	}
@@ -77,5 +79,5 @@ func NewServer(db *gorm.DB) *server {
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.passGen)
+	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen)
 }

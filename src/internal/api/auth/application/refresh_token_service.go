@@ -7,18 +7,17 @@ import (
 )
 
 type RefreshTokenService struct {
-	repo   domain.AuthRepository
-	cfgSvc sharedApp.ConfigurationService
+	repo     domain.AuthRepository
+	cfgSvr   sharedApp.ConfigurationService
+	tokenSrv domain.TokenService
 }
 
-func NewRefreshTokenService(repo domain.AuthRepository, cfgSvc sharedApp.ConfigurationService) *LoginService {
-	return &LoginService{repo, cfgSvc}
+func NewRefreshTokenService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *LoginService {
+	return &LoginService{repo, cfgSvr, tokenSrv}
 }
 
 func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
-	tokenSvc := domain.NewTokenService(s.cfgSvc)
-
-	parsedRt, err := tokenSvc.ParseToken(rt)
+	parsedRt, err := s.tokenSrv.ParseToken(rt)
 	if err != nil {
 		return nil, &appErrors.UnauthorizedError{Msg: "Error parsing the refresh token", InternalError: err}
 	}
@@ -27,7 +26,7 @@ func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
 		return nil, &appErrors.UnauthorizedError{Msg: "Invalid refresh token"}
 	}
 
-	rtInfo := tokenSvc.GetRefreshTokenInfo(parsedRt)
+	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
 	foundUser, err := s.repo.FindUserByID(rtInfo.UserID)
 	if err != nil {
@@ -38,13 +37,13 @@ func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
 		return nil, &appErrors.UnauthorizedError{Msg: "The user no longer exists"}
 	}
 
-	token, err := tokenSvc.GenerateToken(foundUser)
+	token, err := s.tokenSrv.GenerateToken(foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	refreshTokenExpDate := s.cfgSvc.GetRefreshTokenExpirationDate()
-	refreshToken, err := tokenSvc.GenerateRefreshToken(foundUser, refreshTokenExpDate)
+	refreshTokenExpDate := s.cfgSvr.GetRefreshTokenExpirationDate()
+	refreshToken, err := s.tokenSrv.GenerateRefreshToken(foundUser, refreshTokenExpDate)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
 	}

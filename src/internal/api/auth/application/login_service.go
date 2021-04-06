@@ -7,12 +7,13 @@ import (
 )
 
 type LoginService struct {
-	repo   domain.AuthRepository
-	cfgSvc sharedApp.ConfigurationService
+	repo     domain.AuthRepository
+	cfgSvr   sharedApp.ConfigurationService
+	tokenSrv domain.TokenService
 }
 
-func NewLoginService(repo domain.AuthRepository, cfgSvc sharedApp.ConfigurationService) *LoginService {
-	return &LoginService{repo, cfgSvc}
+func NewLoginService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *LoginService {
+	return &LoginService{repo, cfgSvr, tokenSrv}
 }
 
 func (s *LoginService) Login(userName domain.UserName, password domain.UserPassword) (*domain.TokenResponse, error) {
@@ -30,16 +31,14 @@ func (s *LoginService) Login(userName domain.UserName, password domain.UserPassw
 		return nil, &appErrors.BadRequestError{Msg: "Invalid password", InternalError: err}
 	}
 
-	tokenSvc := domain.NewTokenService(s.cfgSvc)
-
-	token, err := tokenSvc.GenerateToken(foundUser)
+	token, err := s.tokenSrv.GenerateToken(foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	refreshTokenExpDate := s.cfgSvc.GetRefreshTokenExpirationDate()
+	refreshTokenExpDate := s.cfgSvr.GetRefreshTokenExpirationDate()
 
-	refreshToken, err := tokenSvc.GenerateRefreshToken(foundUser, refreshTokenExpDate)
+	refreshToken, err := s.tokenSrv.GenerateRefreshToken(foundUser, refreshTokenExpDate)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
 	}

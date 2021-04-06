@@ -83,13 +83,13 @@ func InitConfigurationService() sharedApp.ConfigurationService {
 
 func InitAuthRepository(db *gorm.DB) authDomain.AuthRepository {
 	if inTestingMode() {
-		return initMockedAuthRepositorySet()
+		return initMockedAuthRepository()
 	} else {
 		return initMySqlAuthRepository(db)
 	}
 }
 
-func initMockedAuthRepositorySet() authDomain.AuthRepository {
+func initMockedAuthRepository() authDomain.AuthRepository {
 	wire.Build(MockedAuthRepositorySet)
 	return nil
 }
@@ -119,13 +119,13 @@ func initMockedPasswordGenerator() passgen.PasswordGenerator {
 
 func InitListsRepository(db *gorm.DB) listsDomain.ListsRepository {
 	if inTestingMode() {
-		return initMockedListsRepositorySet()
+		return initMockedListsRepository()
 	} else {
 		return initMySqlListsRepository(db)
 	}
 }
 
-func initMockedListsRepositorySet() listsDomain.ListsRepository {
+func initMockedListsRepository() listsDomain.ListsRepository {
 	wire.Build(MockedListsRepositorySet)
 	return nil
 }
@@ -137,19 +137,37 @@ func initMySqlListsRepository(db *gorm.DB) listsDomain.ListsRepository {
 
 func InitCountersRepository(db *gorm.DB) sharedDomain.CountersRepository {
 	if inTestingMode() {
-		return initMockedCountersRepositorySet()
+		return initMockedCountersRepository()
 	} else {
 		return initMySqlCountersRepository(db)
 	}
 }
 
-func initMockedCountersRepositorySet() sharedDomain.CountersRepository {
+func initMockedCountersRepository() sharedDomain.CountersRepository {
 	wire.Build(MockedCountersRepositorySet)
 	return nil
 }
 
 func initMySqlCountersRepository(db *gorm.DB) sharedDomain.CountersRepository {
 	wire.Build(MySqlCountersRepositorySet)
+	return nil
+}
+
+func InitTokenService() authDomain.TokenService {
+	if inTestingMode() {
+		return initMockedTokenService()
+	} else {
+		return initRealTokenService()
+	}
+}
+
+func initMockedTokenService() authDomain.TokenService {
+	wire.Build(MockedTokenServiceSet)
+	return nil
+}
+
+func initRealTokenService() authDomain.TokenService {
+	wire.Build(RealTokenServiceSet)
 	return nil
 }
 
@@ -184,7 +202,7 @@ var LogMiddlewareSet = wire.NewSet(
 	wire.Bind(new(sharedDomain.Middleware), new(*logMdw.LogMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	RealConfigurationServiceSet,
+	RealTokenServiceSet,
 	authMiddleware.NewRealAuthMiddleware,
 	wire.Bind(new(authMiddleware.AuthMiddleware), new(*authMiddleware.RealAuthMiddleware)))
 
@@ -227,3 +245,12 @@ var MySqlCountersRepositorySet = wire.NewSet(
 var MockedCountersRepositorySet = wire.NewSet(
 	sharedInfra.NewMockedCountersRepository,
 	wire.Bind(new(sharedDomain.CountersRepository), new(*sharedInfra.MockedCountersRepository)))
+
+var RealTokenServiceSet = wire.NewSet(
+	RealConfigurationServiceSet,
+	authDomain.NewRealTokenService,
+	wire.Bind(new(authDomain.TokenService), new(*authDomain.RealTokenService)))
+
+var MockedTokenServiceSet = wire.NewSet(
+	authDomain.NewMockedTokenService,
+	wire.Bind(new(authDomain.TokenService), new(*authDomain.MockedTokenService)))

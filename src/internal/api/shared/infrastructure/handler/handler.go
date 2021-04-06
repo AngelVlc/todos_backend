@@ -19,6 +19,7 @@ type Handler struct {
 	AuthRepository  authDomain.AuthRepository
 	ListsRepository listsDomain.ListsRepository
 	CfgSrv          sharedApp.ConfigurationService
+	TokenSrv        authDomain.TokenService
 	PassGen         passgen.PasswordGenerator
 }
 
@@ -26,8 +27,11 @@ type HandlerResult interface {
 	IsError() bool
 }
 
-func NewHandler(f HandlerFunc, authRepo authDomain.AuthRepository,
-	listsRepo listsDomain.ListsRepository, cfgSrv sharedApp.ConfigurationService,
+func NewHandler(f HandlerFunc,
+	authRepo authDomain.AuthRepository,
+	listsRepo listsDomain.ListsRepository,
+	cfgSrv sharedApp.ConfigurationService,
+	tokenSrv authDomain.TokenService,
 	passGen passgen.PasswordGenerator) Handler {
 	return Handler{
 		HandlerFunc:     f,

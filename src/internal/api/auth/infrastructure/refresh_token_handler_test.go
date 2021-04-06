@@ -34,12 +34,13 @@ func TestRefreshTokenHandlerValidations(t *testing.T) {
 func TestRefreshTokenHandler(t *testing.T) {
 	mockedRepo := authRepository.MockedAuthRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
-	h := handler.Handler{AuthRepository: &mockedRepo, CfgSrv: &mockedCfgSrv}
+	mockedTokenSrv := domain.MockedTokenService{}
+	h := handler.Handler{AuthRepository: &mockedRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
 
-	cfgSvc := sharedApp.NewRealConfigurationService(sharedApp.NewOsEnvGetter())
-	tokenSvc := domain.NewTokenService(cfgSvc)
-	refreshTokenExpDate := cfgSvc.GetRefreshTokenExpirationDate()
-	refreshToken, _ := tokenSvc.GenerateRefreshToken(&domain.User{ID: 1}, refreshTokenExpDate)
+	cfgSrv := sharedApp.NewRealConfigurationService(sharedApp.NewOsEnvGetter())
+	tokenSrv := domain.NewRealTokenService(cfgSrv)
+	refreshTokenExpDate := cfgSrv.GetRefreshTokenExpirationDate()
+	refreshToken, _ := tokenSrv.GenerateRefreshToken(&domain.User{ID: 1}, refreshTokenExpDate)
 
 	getRefreshTokenCookie := func(rt string) *http.Cookie {
 		return &http.Cookie{Name: refreshTokenCookieName, Value: rt}
@@ -56,7 +57,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 	t.Run("Should return an errorResult with an UnexpectedError if getting the user by id fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		mockedCfgSrv.On("GetJwtSecret").Return(cfgSvc.GetJwtSecret()).Once()
+		mockedCfgSrv.On("GetJwtSecret").Return(cfgSrv.GetJwtSecret()).Once()
 		authUser := domain.User{ID: 1}
 		request.AddCookie(getRefreshTokenCookie(refreshToken))
 		mockedRepo.On("FindUserByID", authUser.ID).Return(nil, fmt.Errorf("some error")).Once()
@@ -70,7 +71,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 	t.Run("Should return an errorResult with an UnauthorizedError if the user no longer exists", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		mockedCfgSrv.On("GetJwtSecret").Return(cfgSvc.GetJwtSecret()).Once()
+		mockedCfgSrv.On("GetJwtSecret").Return(cfgSrv.GetJwtSecret()).Once()
 		authUser := domain.User{ID: 1}
 		request.AddCookie(getRefreshTokenCookie(refreshToken))
 		mockedRepo.On("FindUserByID", authUser.ID).Return(nil, nil).Once()

@@ -3,22 +3,21 @@
 package authmdw
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	"github.com/dgrijalva/jwt-go"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestRealAuthMiddleware(t *testing.T) {
-
-	mockedCfgSrv := sharedApp.NewMockedConfigurationService()
-	md := NewRealAuthMiddleware(mockedCfgSrv)
+	mockedTokenSrv := domain.NewMockedTokenService()
+	md := NewRealAuthMiddleware(mockedTokenSrv)
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
@@ -55,6 +54,8 @@ func TestRealAuthMiddleware(t *testing.T) {
 	})
 
 	t.Run("Should return an error if the token is not a jwt token", func(t *testing.T) {
+		mockedTokenSrv.On("ParseToken", "badToken").Return(nil, fmt.Errorf("some error")).Once()
+
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request.Header.Set("Authorization", "Bearer badToken")
 		response := httptest.NewRecorder()
@@ -64,20 +65,40 @@ func TestRealAuthMiddleware(t *testing.T) {
 
 		assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
 		assert.Equal(t, "Error parsing the authorization token\n", string(response.Body.String()))
+
+		mockedTokenSrv.AssertExpectations(t)
+	})
+
+	t.Run("Should return an error if the token is not valid", func(t *testing.T) {
+		mockedTokenSrv.On("ParseToken", "token").Return(&jwt.Token{}, nil).Once()
+
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request.Header.Set("Authorization", "Bearer token")
+		response := httptest.NewRecorder()
+		handlerToTest := md.Middleware(nextHandler)
+
+		handlerToTest.ServeHTTP(response, request)
+
+		assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
+		assert.Equal(t, "Invalid authorization token\n", string(response.Body.String()))
+
+		mockedTokenSrv.AssertExpectations(t)
 	})
 
 	t.Run("Should add the token info to the request context if the token is valid", func(t *testing.T) {
-		mockedCfgSrv.On("GetTokenExpirationDate").Return(time.Now()).Once()
-		mockedCfgSrv.On("GetJwtSecret").Return("secret").Times(2)
-		authUSer := domain.User{ID: int32(1), Name: "user", IsAdmin: true}
-		token, _ := domain.NewTokenService(mockedCfgSrv).GenerateToken(&authUSer)
+		token := jwt.Token{Valid: true}
+		mockedTokenSrv.On("ParseToken", "validToken").Return(&token, nil).Once()
+		mockedTokenSrv.On("GetTokenInfo", &token).Return(&domain.TokenClaimsInfo{UserID: 1, UserName: "user", IsAdmin: true}).Once()
+
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request.Header.Set("Authorization", "Bearer "+token)
+		request.Header.Set("Authorization", "Bearer validToken")
 		response := httptest.NewRecorder()
 		handlerToTest := md.Middleware(nextHandler)
 
 		handlerToTest.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusOK, response.Result().StatusCode)
+
+		mockedTokenSrv.AssertExpectations(t)
 	})
 }

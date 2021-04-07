@@ -19,11 +19,7 @@ func NewRefreshTokenService(repo domain.AuthRepository, cfgSvr sharedApp.Configu
 func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
 	parsedRt, err := s.tokenSrv.ParseToken(rt)
 	if err != nil {
-		return nil, &appErrors.UnauthorizedError{Msg: "Error parsing the refresh token", InternalError: err}
-	}
-
-	if !parsedRt.Valid {
-		return nil, &appErrors.UnauthorizedError{Msg: "Invalid refresh token"}
+		return nil, &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}
 	}
 
 	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
@@ -37,18 +33,21 @@ func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
 		return nil, &appErrors.UnauthorizedError{Msg: "The user no longer exists"}
 	}
 
+	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(rt, rtInfo.UserID)
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
+	}
+
+	if foundRefreshToken == nil {
+		return nil, &appErrors.UnauthorizedError{Msg: "The refresh token is not valid"}
+	}
+
 	token, err := s.tokenSrv.GenerateToken(foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	refreshTokenExpDate := s.cfgSvr.GetRefreshTokenExpirationDate()
-	refreshToken, err := s.tokenSrv.GenerateRefreshToken(foundUser, refreshTokenExpDate)
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
-	}
-
-	res := domain.TokenResponse{Token: token, RefreshToken: refreshToken}
+	res := domain.TokenResponse{Token: token}
 
 	return &res, nil
 }

@@ -53,27 +53,11 @@ func TestRealAuthMiddleware(t *testing.T) {
 		assert.Equal(t, "Invalid authorization header\n", string(response.Body.String()))
 	})
 
-	t.Run("Should return an error if the token is not a jwt token", func(t *testing.T) {
+	t.Run("Should return an error if the token is not valid", func(t *testing.T) {
 		mockedTokenSrv.On("ParseToken", "badToken").Return(nil, fmt.Errorf("some error")).Once()
 
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request.Header.Set("Authorization", "Bearer badToken")
-		response := httptest.NewRecorder()
-		handlerToTest := md.Middleware(nextHandler)
-
-		handlerToTest.ServeHTTP(response, request)
-
-		assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
-		assert.Equal(t, "Error parsing the authorization token\n", string(response.Body.String()))
-
-		mockedTokenSrv.AssertExpectations(t)
-	})
-
-	t.Run("Should return an error if the token is not valid", func(t *testing.T) {
-		mockedTokenSrv.On("ParseToken", "token").Return(&jwt.Token{}, nil).Once()
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request.Header.Set("Authorization", "Bearer token")
 		response := httptest.NewRecorder()
 		handlerToTest := md.Middleware(nextHandler)
 

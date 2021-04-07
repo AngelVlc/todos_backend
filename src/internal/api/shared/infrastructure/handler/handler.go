@@ -33,12 +33,14 @@ func NewHandler(f HandlerFunc,
 	cfgSrv sharedApp.ConfigurationService,
 	tokenSrv authDomain.TokenService,
 	passGen passgen.PasswordGenerator) Handler {
+
 	return Handler{
 		HandlerFunc:     f,
 		AuthRepository:  authRepo,
 		ListsRepository: listsRepo,
 		CfgSrv:          cfgSrv,
 		PassGen:         passGen,
+		TokenSrv:        tokenSrv,
 	}
 }
 

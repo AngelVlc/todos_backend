@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
-	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -37,62 +36,123 @@ func TestRefreshTokenHandler(t *testing.T) {
 	mockedTokenSrv := domain.MockedTokenService{}
 	h := handler.Handler{AuthRepository: &mockedRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
 
-	cfgSrv := sharedApp.NewRealConfigurationService(sharedApp.NewOsEnvGetter())
-	tokenSrv := domain.NewRealTokenService(cfgSrv)
-	refreshTokenExpDate := cfgSrv.GetRefreshTokenExpirationDate()
-	refreshToken, _ := tokenSrv.GenerateRefreshToken(&domain.User{ID: 1}, refreshTokenExpDate)
-
 	getRefreshTokenCookie := func(rt string) *http.Cookie {
 		return &http.Cookie{Name: refreshTokenCookieName, Value: rt}
 	}
 
 	t.Run("Should return an errorResult with an UnauthorizedError if the refresh token is not valid", func(t *testing.T) {
+		mockedTokenSrv.On("ParseToken", "badToken").Return(nil, fmt.Errorf("some error")).Once()
+
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("badToken"))
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
-		results.CheckUnauthorizedErrorErrorResult(t, result, "Error parsing the refresh token")
+		results.CheckUnauthorizedErrorErrorResult(t, result, "Invalid refresh token")
+		mockedTokenSrv.AssertExpectations(t)
 	})
 
 	t.Run("Should return an errorResult with an UnexpectedError if getting the user by id fails", func(t *testing.T) {
+		token := jwt.Token{Valid: true}
+		mockedTokenSrv.On("ParseToken", "token").Return(&token, nil).Once()
+		rtClaims := domain.RefreshTokenClaimsInfo{UserID: 1}
+		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		mockedCfgSrv.On("GetJwtSecret").Return(cfgSrv.GetJwtSecret()).Once()
-		authUser := domain.User{ID: 1}
-		request.AddCookie(getRefreshTokenCookie(refreshToken))
-		mockedRepo.On("FindUserByID", authUser.ID).Return(nil, fmt.Errorf("some error")).Once()
+		request.AddCookie(getRefreshTokenCookie("token"))
+		mockedRepo.On("FindUserByID", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error getting user by user id")
 		mockedCfgSrv.AssertExpectations(t)
 		mockedRepo.AssertExpectations(t)
+		mockedTokenSrv.AssertExpectations(t)
 	})
 
 	t.Run("Should return an errorResult with an UnauthorizedError if the user no longer exists", func(t *testing.T) {
+		token := jwt.Token{Valid: true}
+		mockedTokenSrv.On("ParseToken", "token").Return(&token, nil).Once()
+		rtClaims := domain.RefreshTokenClaimsInfo{UserID: 1}
+		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		mockedCfgSrv.On("GetJwtSecret").Return(cfgSrv.GetJwtSecret()).Once()
-		authUser := domain.User{ID: 1}
-		request.AddCookie(getRefreshTokenCookie(refreshToken))
-		mockedRepo.On("FindUserByID", authUser.ID).Return(nil, nil).Once()
+		request.AddCookie(getRefreshTokenCookie("token"))
+		mockedRepo.On("FindUserByID", int32(1)).Return(nil, nil).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnauthorizedErrorErrorResult(t, result, "The user no longer exists")
 		mockedCfgSrv.AssertExpectations(t)
 		mockedRepo.AssertExpectations(t)
+		mockedTokenSrv.AssertExpectations(t)
 	})
 
-	t.Run("Should return an okResult with the tokens and should create the cookie if the refresh token is valid", func(t *testing.T) {
+	t.Run("Should return an errorResult with an UnexpectedError if getting the refresh token fails", func(t *testing.T) {
+		token := jwt.Token{Valid: true}
+		mockedTokenSrv.On("ParseToken", "token").Return(&token, nil).Once()
+		rtClaims := domain.RefreshTokenClaimsInfo{UserID: 1}
+		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		mockedCfgSrv.On("GetJwtSecret").Return(os.Getenv("JWT_SECRET")).Times(3)
-		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
-		mockedCfgSrv.On("GetTokenExpirationDate").Return(expDate).Once()
-		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
-		authUser := domain.User{ID: 1}
-		request.AddCookie(getRefreshTokenCookie(refreshToken))
+		request.AddCookie(getRefreshTokenCookie("token"))
+		mockedRepo.On("FindUserByID", int32(1)).Return(&domain.User{}, nil).Once()
+		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
+
+		results.CheckUnexpectedErrorResult(t, result, "Error getting the refresh token")
+		mockedCfgSrv.AssertExpectations(t)
+		mockedRepo.AssertExpectations(t)
+		mockedTokenSrv.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult with an UnauthorizedError if the refresh token does not exist", func(t *testing.T) {
+		token := jwt.Token{Valid: true}
+		mockedTokenSrv.On("ParseToken", "token").Return(&token, nil).Once()
+		rtClaims := domain.RefreshTokenClaimsInfo{UserID: 1}
+		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
+		request, _ := http.NewRequest(http.MethodPost, "/", nil)
+		request.AddCookie(getRefreshTokenCookie("token"))
+		mockedRepo.On("FindUserByID", int32(1)).Return(&domain.User{}, nil).Once()
+		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(nil, nil).Once()
+
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
+
+		results.CheckUnauthorizedErrorErrorResult(t, result, "The refresh token is not valid")
+		mockedCfgSrv.AssertExpectations(t)
+		mockedRepo.AssertExpectations(t)
+		mockedTokenSrv.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult with an UnexpectedError if generate the new token fails", func(t *testing.T) {
+		token := jwt.Token{Valid: true}
+		mockedTokenSrv.On("ParseToken", "token").Return(&token, nil).Once()
+		rtClaims := domain.RefreshTokenClaimsInfo{UserID: 1}
+		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
+		request, _ := http.NewRequest(http.MethodPost, "/", nil)
+		request.AddCookie(getRefreshTokenCookie("token"))
 		foundUser := domain.User{}
-		mockedRepo.On("FindUserByID", authUser.ID).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
+		mockedTokenSrv.On("GenerateToken", &foundUser).Return("", fmt.Errorf("some error")).Once()
+
+		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
+
+		results.CheckUnexpectedErrorResult(t, result, "Error creating jwt token")
+		mockedCfgSrv.AssertExpectations(t)
+		mockedRepo.AssertExpectations(t)
+		mockedTokenSrv.AssertExpectations(t)
+	})
+
+	t.Run("Should return an okResult with the token and should create the cookie if the refresh token is valid", func(t *testing.T) {
+		token := jwt.Token{Valid: true}
+		mockedTokenSrv.On("ParseToken", "token").Return(&token, nil).Once()
+		rtClaims := domain.RefreshTokenClaimsInfo{UserID: 1}
+		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
+		request, _ := http.NewRequest(http.MethodPost, "/", nil)
+		request.AddCookie(getRefreshTokenCookie("token"))
+		foundUser := domain.User{}
+		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
+		mockedTokenSrv.On("GenerateToken", &foundUser).Return("token", nil).Once()
 
 		recorder := httptest.NewRecorder()
 		result := RefreshTokenHandler(recorder, request, h)
@@ -100,8 +160,8 @@ func TestRefreshTokenHandler(t *testing.T) {
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.Content.(*domain.TokenResponse)
 		require.Equal(t, true, isOk, "should be a token response")
-		assert.Equal(t, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTc0NzY0MDAsImlzQWRtaW4iOmZhbHNlLCJ1c2VySWQiOjAsInVzZXJOYW1lIjoiIn0.X2LZjUCGxdqgnUkpnXTkcZQuUSk7JgERVnQK4Vc6Sp0", resDto.Token)
-		assert.Equal(t, "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MTc0NzY0MDAsInVzZXJJZCI6MH0.jPcsnr6IZsQNPhpDB1--hW2EX1a1MCFrT0kujY6VQL4", resDto.RefreshToken)
+		assert.Equal(t, "token", resDto.Token)
+		assert.Equal(t, "", resDto.RefreshToken)
 
 		require.Equal(t, 1, len(recorder.Result().Cookies()))
 		assert.Equal(t, "refreshToken", recorder.Result().Cookies()[0].Name)
@@ -110,5 +170,6 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 		mockedRepo.AssertExpectations(t)
 		mockedCfgSrv.AssertExpectations(t)
+		mockedTokenSrv.AssertExpectations(t)
 	})
 }

@@ -29,12 +29,7 @@ func (m *RealAuthMiddleware) Middleware(next http.Handler) http.Handler {
 
 		parsedToken, err := m.tokenSrv.ParseToken(token)
 		if err != nil {
-			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Error parsing the authorization token", err)
-			return
-		}
-
-		if !parsedToken.Valid {
-			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", nil)
+			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
 			return
 		}
 

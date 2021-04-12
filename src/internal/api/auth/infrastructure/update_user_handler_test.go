@@ -13,6 +13,7 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
@@ -61,7 +62,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	}
 
 	mockedRepo := authRepository.MockedAuthRepository{}
-	mockedPassGen := authDomain.MockedPasswordGenerator{}
+	mockedPassGen := passgen.MockedPasswordGenerator{}
 	h := handler.Handler{AuthRepository: &mockedRepo, PassGen: &mockedPassGen}
 
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {
@@ -115,8 +116,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{Name: domain.UserName("wadus")}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
-		authPass := domain.UserPassword("newPass")
-		mockedPassGen.On("GenerateFromPassword", authPass).Return("", fmt.Errorf("some error")).Once()
+		mockedPassGen.On("GenerateFromPassword", "newPass").Return("", fmt.Errorf("some error")).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
 
@@ -167,8 +167,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
-		authPass := domain.UserPassword("newPass")
-		mockedPassGen.On("GenerateFromPassword", authPass).Return("hassedPass", nil).Once()
+		mockedPassGen.On("GenerateFromPassword", "newPass").Return("hassedPass", nil).Once()
 		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)

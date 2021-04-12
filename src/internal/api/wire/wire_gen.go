@@ -7,6 +7,7 @@ package wire
 
 import (
 	domain2 "github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	"github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	domain3 "github.com/AngelVlc/todos/internal/api/lists/domain"
 	repository2 "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
@@ -37,8 +38,9 @@ func initLogMiddleware() domain.Middleware {
 
 func initDefaultAuthMiddleware() authmdw.AuthMiddleware {
 	osEnvGetter := application.NewOsEnvGetter()
-	defaultConfigurationService := application.NewDefaultConfigurationService(osEnvGetter)
-	realAuthMiddleware := authmdw.NewRealAuthMiddleware(defaultConfigurationService)
+	realConfigurationService := application.NewRealConfigurationService(osEnvGetter)
+	realTokenService := domain2.NewRealTokenService(realConfigurationService)
+	realAuthMiddleware := authmdw.NewRealAuthMiddleware(realTokenService)
 	return realAuthMiddleware
 }
 
@@ -60,11 +62,11 @@ func initRequestCounterMiddleware(db *gorm.DB) domain.Middleware {
 
 func InitConfigurationService() application.ConfigurationService {
 	osEnvGetter := application.NewOsEnvGetter()
-	defaultConfigurationService := application.NewDefaultConfigurationService(osEnvGetter)
-	return defaultConfigurationService
+	realConfigurationService := application.NewRealConfigurationService(osEnvGetter)
+	return realConfigurationService
 }
 
-func initMockedAuthRepositorySet() domain2.AuthRepository {
+func initMockedAuthRepository() domain2.AuthRepository {
 	mockedAuthRepository := repository.NewMockedAuthRepository()
 	return mockedAuthRepository
 }
@@ -74,17 +76,17 @@ func initMySqlAuthRepository(db *gorm.DB) domain2.AuthRepository {
 	return mySqlAuthRepository
 }
 
-func initBryptPasswordGenerator() domain2.PasswordGenerator {
-	bcryptPasswordGenerator := domain2.NewBcryptPasswordGenerator()
+func initBryptPasswordGenerator() passgen.PasswordGenerator {
+	bcryptPasswordGenerator := passgen.NewBcryptPasswordGenerator()
 	return bcryptPasswordGenerator
 }
 
-func initMockedPasswordGenerator() domain2.PasswordGenerator {
-	mockedPasswordGenerator := domain2.NewMockedPasswordGenerator()
+func initMockedPasswordGenerator() passgen.PasswordGenerator {
+	mockedPasswordGenerator := passgen.NewMockedPasswordGenerator()
 	return mockedPasswordGenerator
 }
 
-func initMockedListsRepositorySet() domain3.ListsRepository {
+func initMockedListsRepository() domain3.ListsRepository {
 	mockedListsRepository := repository2.NewMockedListsRepository()
 	return mockedListsRepository
 }
@@ -94,7 +96,7 @@ func initMySqlListsRepository(db *gorm.DB) domain3.ListsRepository {
 	return mySqlListsRepository
 }
 
-func initMockedCountersRepositorySet() domain.CountersRepository {
+func initMockedCountersRepository() domain.CountersRepository {
 	mockedCountersRepository := infrastructure.NewMockedCountersRepository()
 	return mockedCountersRepository
 }
@@ -102,6 +104,18 @@ func initMockedCountersRepositorySet() domain.CountersRepository {
 func initMySqlCountersRepository(db *gorm.DB) domain.CountersRepository {
 	mySqlCountersRepository := infrastructure.NewMySqlCountersRepository(db)
 	return mySqlCountersRepository
+}
+
+func initMockedTokenService() domain2.TokenService {
+	mockedTokenService := domain2.NewMockedTokenService()
+	return mockedTokenService
+}
+
+func initRealTokenService() domain2.TokenService {
+	osEnvGetter := application.NewOsEnvGetter()
+	realConfigurationService := application.NewRealConfigurationService(osEnvGetter)
+	realTokenService := domain2.NewRealTokenService(realConfigurationService)
+	return realTokenService
 }
 
 // wire.go:
@@ -132,13 +146,13 @@ func InitRequestCounterMiddleware(db *gorm.DB) domain.Middleware {
 
 func InitAuthRepository(db *gorm.DB) domain2.AuthRepository {
 	if inTestingMode() {
-		return initMockedAuthRepositorySet()
+		return initMockedAuthRepository()
 	} else {
 		return initMySqlAuthRepository(db)
 	}
 }
 
-func InitPasswordGenerator() domain2.PasswordGenerator {
+func InitPasswordGenerator() passgen.PasswordGenerator {
 	if inTestingMode() {
 		return initMockedPasswordGenerator()
 	} else {
@@ -148,7 +162,7 @@ func InitPasswordGenerator() domain2.PasswordGenerator {
 
 func InitListsRepository(db *gorm.DB) domain3.ListsRepository {
 	if inTestingMode() {
-		return initMockedListsRepositorySet()
+		return initMockedListsRepository()
 	} else {
 		return initMySqlListsRepository(db)
 	}
@@ -156,9 +170,17 @@ func InitListsRepository(db *gorm.DB) domain3.ListsRepository {
 
 func InitCountersRepository(db *gorm.DB) domain.CountersRepository {
 	if inTestingMode() {
-		return initMockedCountersRepositorySet()
+		return initMockedCountersRepository()
 	} else {
 		return initMySqlCountersRepository(db)
+	}
+}
+
+func InitTokenService() domain2.TokenService {
+	if inTestingMode() {
+		return initMockedTokenService()
+	} else {
+		return initRealTokenService()
 	}
 }
 
@@ -168,8 +190,8 @@ func inTestingMode() bool {
 
 var EnvGetterSet = wire.NewSet(application.NewOsEnvGetter, wire.Bind(new(application.EnvGetter), new(*application.OsEnvGetter)))
 
-var ConfigurationServiceSet = wire.NewSet(
-	EnvGetterSet, application.NewDefaultConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.DefaultConfigurationService)))
+var RealConfigurationServiceSet = wire.NewSet(
+	EnvGetterSet, application.NewRealConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.RealConfigurationService)))
 
 var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.MockedConfigurationService)))
 
@@ -181,7 +203,7 @@ var RequestCounterMiddlewareSet = wire.NewSet(
 var LogMiddlewareSet = wire.NewSet(logmdw.NewLogMiddleware, wire.Bind(new(domain.Middleware), new(*logmdw.LogMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	ConfigurationServiceSet, authmdw.NewRealAuthMiddleware, wire.Bind(new(authmdw.AuthMiddleware), new(*authmdw.RealAuthMiddleware)))
+	RealTokenServiceSet, authmdw.NewRealAuthMiddleware, wire.Bind(new(authmdw.AuthMiddleware), new(*authmdw.RealAuthMiddleware)))
 
 var FakeAuthMiddlewareSet = wire.NewSet(authmdw.NewFakeAuthMiddleware, wire.Bind(new(authmdw.AuthMiddleware), new(*authmdw.FakeAuthMiddleware)))
 
@@ -191,9 +213,9 @@ var MySqlAuthRepositorySet = wire.NewSet(repository.NewMySqlAuthRepository, wire
 
 var MockedAuthRepositorySet = wire.NewSet(repository.NewMockedAuthRepository, wire.Bind(new(domain2.AuthRepository), new(*repository.MockedAuthRepository)))
 
-var BcryptPasswordGeneratorSet = wire.NewSet(domain2.NewBcryptPasswordGenerator, wire.Bind(new(domain2.PasswordGenerator), new(*domain2.BcryptPasswordGenerator)))
+var BcryptPasswordGeneratorSet = wire.NewSet(passgen.NewBcryptPasswordGenerator, wire.Bind(new(passgen.PasswordGenerator), new(*passgen.BcryptPasswordGenerator)))
 
-var MockedPasswordGeneratorSet = wire.NewSet(domain2.NewMockedPasswordGenerator, wire.Bind(new(domain2.PasswordGenerator), new(*domain2.MockedPasswordGenerator)))
+var MockedPasswordGeneratorSet = wire.NewSet(passgen.NewMockedPasswordGenerator, wire.Bind(new(passgen.PasswordGenerator), new(*passgen.MockedPasswordGenerator)))
 
 var MySqlListsRepositorySet = wire.NewSet(repository2.NewMySqlListsRepository, wire.Bind(new(domain3.ListsRepository), new(*repository2.MySqlListsRepository)))
 
@@ -202,3 +224,8 @@ var MockedListsRepositorySet = wire.NewSet(repository2.NewMockedListsRepository,
 var MySqlCountersRepositorySet = wire.NewSet(infrastructure.NewMySqlCountersRepository, wire.Bind(new(domain.CountersRepository), new(*infrastructure.MySqlCountersRepository)))
 
 var MockedCountersRepositorySet = wire.NewSet(infrastructure.NewMockedCountersRepository, wire.Bind(new(domain.CountersRepository), new(*infrastructure.MockedCountersRepository)))
+
+var RealTokenServiceSet = wire.NewSet(
+	RealConfigurationServiceSet, domain2.NewRealTokenService, wire.Bind(new(domain2.TokenService), new(*domain2.RealTokenService)))
+
+var MockedTokenServiceSet = wire.NewSet(domain2.NewMockedTokenService, wire.Bind(new(domain2.TokenService), new(*domain2.MockedTokenService)))

@@ -2,15 +2,16 @@ package application
 
 import (
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
 type CreateUserService struct {
 	repo    domain.AuthRepository
-	passGen domain.PasswordGenerator
+	passGen passgen.PasswordGenerator
 }
 
-func NewCreateUserService(repo domain.AuthRepository, passGen domain.PasswordGenerator) *CreateUserService {
+func NewCreateUserService(repo domain.AuthRepository, passGen passgen.PasswordGenerator) *CreateUserService {
 	return &CreateUserService{repo, passGen}
 }
 
@@ -24,7 +25,7 @@ func (s *CreateUserService) CreateUser(userName domain.UserName, password domain
 		return nil, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
 	}
 
-	hasshedPass, err := s.passGen.GenerateFromPassword(password)
+	hasshedPass, err := s.passGen.GenerateFromPassword(string(password))
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 	}

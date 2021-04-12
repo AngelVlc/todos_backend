@@ -7,4 +7,7 @@ type AuthRepository interface {
 	CreateUser(user *User) error
 	DeleteUser(userID int32) error
 	UpdateUser(user *User) error
+
+	FindRefreshTokenForUser(refreshToken string, userID int32) (*RefreshToken, error)
+	CreateRefreshToken(refreshToken *RefreshToken) error
 }

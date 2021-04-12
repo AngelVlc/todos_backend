@@ -7,27 +7,22 @@ import (
 )
 
 type RefreshTokenService struct {
-	repo   domain.AuthRepository
-	cfgSvc sharedApp.ConfigurationService
+	repo     domain.AuthRepository
+	cfgSvr   sharedApp.ConfigurationService
+	tokenSrv domain.TokenService
 }
 
-func NewRefreshTokenService(repo domain.AuthRepository, cfgSvc sharedApp.ConfigurationService) *LoginService {
-	return &LoginService{repo, cfgSvc}
+func NewRefreshTokenService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *LoginService {
+	return &LoginService{repo, cfgSvr, tokenSrv}
 }
 
 func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
-	tokenSvc := domain.NewTokenService(s.cfgSvc)
-
-	parsedRt, err := tokenSvc.ParseToken(rt)
+	parsedRt, err := s.tokenSrv.ParseToken(rt)
 	if err != nil {
-		return nil, &appErrors.UnauthorizedError{Msg: "Error parsing the refresh token", InternalError: err}
+		return nil, &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}
 	}
 
-	if !tokenSvc.IsTokenValid(parsedRt) {
-		return nil, &appErrors.UnauthorizedError{Msg: "Invalid refresh token"}
-	}
-
-	rtInfo := tokenSvc.GetRefreshTokenInfo(parsedRt)
+	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
 	foundUser, err := s.repo.FindUserByID(rtInfo.UserID)
 	if err != nil {
@@ -38,17 +33,21 @@ func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
 		return nil, &appErrors.UnauthorizedError{Msg: "The user no longer exists"}
 	}
 
-	token, err := tokenSvc.GenerateToken(foundUser)
+	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(rt, rtInfo.UserID)
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
+	}
+
+	if foundRefreshToken == nil {
+		return nil, &appErrors.UnauthorizedError{Msg: "The refresh token is not valid"}
+	}
+
+	token, err := s.tokenSrv.GenerateToken(foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	refreshToken, err := tokenSvc.GenerateRefreshToken(foundUser)
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
-	}
-
-	res := domain.TokenResponse{Token: token, RefreshToken: refreshToken}
+	res := domain.TokenResponse{Token: token}
 
 	return &res, nil
 }

@@ -6,18 +6,17 @@ import (
 	"strings"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 )
 
 type RealAuthMiddleware struct {
-	cfgSrv sharedApp.ConfigurationService
+	tokenSrv domain.TokenService
 }
 
-func NewRealAuthMiddleware(cfgSrv sharedApp.ConfigurationService) *RealAuthMiddleware {
-	return &RealAuthMiddleware{cfgSrv}
+func NewRealAuthMiddleware(tokenSrv domain.TokenService) *RealAuthMiddleware {
+	return &RealAuthMiddleware{tokenSrv}
 }
 
 func (m *RealAuthMiddleware) Middleware(next http.Handler) http.Handler {
@@ -28,20 +27,13 @@ func (m *RealAuthMiddleware) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		tokenSvc := domain.NewTokenService(m.cfgSrv)
-
-		parsed, err := tokenSvc.ParseToken(token)
+		parsedToken, err := m.tokenSrv.ParseToken(token)
 		if err != nil {
-			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Error parsing the authorization token", err)
+			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", err)
 			return
 		}
 
-		if !tokenSvc.IsTokenValid(parsed) {
-			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, "Invalid authorization token", nil)
-			return
-		}
-
-		tokenInfo := tokenSvc.GetTokenInfo(parsed)
+		tokenInfo := m.tokenSrv.GetTokenInfo(parsedToken)
 
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, tokenInfo.UserID)

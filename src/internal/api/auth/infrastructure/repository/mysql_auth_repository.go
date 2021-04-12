@@ -62,3 +62,22 @@ func (r *MySqlAuthRepository) DeleteUser(userID int32) error {
 func (r *MySqlAuthRepository) UpdateUser(user *domain.User) error {
 	return r.db.Save(&user).Error
 }
+
+func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userID int32) (*domain.RefreshToken, error) {
+	found := domain.RefreshToken{}
+	err := r.db.Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).First(&found).Error
+
+	if gorm.IsRecordNotFoundError(err) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &found, nil
+}
+
+func (r *MySqlAuthRepository) CreateRefreshToken(refreshToken *domain.RefreshToken) error {
+	return r.db.Create(refreshToken).Error
+}

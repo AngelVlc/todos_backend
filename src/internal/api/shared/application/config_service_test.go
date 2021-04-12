@@ -10,7 +10,7 @@ import (
 
 func TestConfigService(t *testing.T) {
 	mockedEg := MockedEnvGetter{}
-	svc := NewDefaultConfigurationService(&mockedEg)
+	svc := NewRealConfigurationService(&mockedEg)
 
 	mockedEg.On("Getenv", "MYSQL_HOST").Return("host")
 	mockedEg.On("Getenv", "MYSQL_PORT").Return("port")

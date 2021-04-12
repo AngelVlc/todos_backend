@@ -6,6 +6,7 @@ import (
 	"os"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
+	passgen "github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
@@ -76,19 +77,19 @@ func initRequestCounterMiddleware(db *gorm.DB) sharedDomain.Middleware {
 }
 
 func InitConfigurationService() sharedApp.ConfigurationService {
-	wire.Build(ConfigurationServiceSet)
+	wire.Build(RealConfigurationServiceSet)
 	return nil
 }
 
 func InitAuthRepository(db *gorm.DB) authDomain.AuthRepository {
 	if inTestingMode() {
-		return initMockedAuthRepositorySet()
+		return initMockedAuthRepository()
 	} else {
 		return initMySqlAuthRepository(db)
 	}
 }
 
-func initMockedAuthRepositorySet() authDomain.AuthRepository {
+func initMockedAuthRepository() authDomain.AuthRepository {
 	wire.Build(MockedAuthRepositorySet)
 	return nil
 }
@@ -98,7 +99,7 @@ func initMySqlAuthRepository(db *gorm.DB) authDomain.AuthRepository {
 	return nil
 }
 
-func InitPasswordGenerator() authDomain.PasswordGenerator {
+func InitPasswordGenerator() passgen.PasswordGenerator {
 	if inTestingMode() {
 		return initMockedPasswordGenerator()
 	} else {
@@ -106,25 +107,25 @@ func InitPasswordGenerator() authDomain.PasswordGenerator {
 	}
 }
 
-func initBryptPasswordGenerator() authDomain.PasswordGenerator {
+func initBryptPasswordGenerator() passgen.PasswordGenerator {
 	wire.Build(BcryptPasswordGeneratorSet)
 	return nil
 }
 
-func initMockedPasswordGenerator() authDomain.PasswordGenerator {
+func initMockedPasswordGenerator() passgen.PasswordGenerator {
 	wire.Build(MockedPasswordGeneratorSet)
 	return nil
 }
 
 func InitListsRepository(db *gorm.DB) listsDomain.ListsRepository {
 	if inTestingMode() {
-		return initMockedListsRepositorySet()
+		return initMockedListsRepository()
 	} else {
 		return initMySqlListsRepository(db)
 	}
 }
 
-func initMockedListsRepositorySet() listsDomain.ListsRepository {
+func initMockedListsRepository() listsDomain.ListsRepository {
 	wire.Build(MockedListsRepositorySet)
 	return nil
 }
@@ -136,19 +137,37 @@ func initMySqlListsRepository(db *gorm.DB) listsDomain.ListsRepository {
 
 func InitCountersRepository(db *gorm.DB) sharedDomain.CountersRepository {
 	if inTestingMode() {
-		return initMockedCountersRepositorySet()
+		return initMockedCountersRepository()
 	} else {
 		return initMySqlCountersRepository(db)
 	}
 }
 
-func initMockedCountersRepositorySet() sharedDomain.CountersRepository {
+func initMockedCountersRepository() sharedDomain.CountersRepository {
 	wire.Build(MockedCountersRepositorySet)
 	return nil
 }
 
 func initMySqlCountersRepository(db *gorm.DB) sharedDomain.CountersRepository {
 	wire.Build(MySqlCountersRepositorySet)
+	return nil
+}
+
+func InitTokenService() authDomain.TokenService {
+	if inTestingMode() {
+		return initMockedTokenService()
+	} else {
+		return initRealTokenService()
+	}
+}
+
+func initMockedTokenService() authDomain.TokenService {
+	wire.Build(MockedTokenServiceSet)
+	return nil
+}
+
+func initRealTokenService() authDomain.TokenService {
+	wire.Build(RealTokenServiceSet)
 	return nil
 }
 
@@ -160,10 +179,10 @@ var EnvGetterSet = wire.NewSet(
 	sharedApp.NewOsEnvGetter,
 	wire.Bind(new(sharedApp.EnvGetter), new(*sharedApp.OsEnvGetter)))
 
-var ConfigurationServiceSet = wire.NewSet(
+var RealConfigurationServiceSet = wire.NewSet(
 	EnvGetterSet,
-	sharedApp.NewDefaultConfigurationService,
-	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.DefaultConfigurationService)))
+	sharedApp.NewRealConfigurationService,
+	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.RealConfigurationService)))
 
 var MockedConfigurationServiceSet = wire.NewSet(
 	sharedApp.NewMockedConfigurationService,
@@ -183,7 +202,7 @@ var LogMiddlewareSet = wire.NewSet(
 	wire.Bind(new(sharedDomain.Middleware), new(*logMdw.LogMiddleware)))
 
 var AuthMiddlewareSet = wire.NewSet(
-	ConfigurationServiceSet,
+	RealTokenServiceSet,
 	authMiddleware.NewRealAuthMiddleware,
 	wire.Bind(new(authMiddleware.AuthMiddleware), new(*authMiddleware.RealAuthMiddleware)))
 
@@ -204,12 +223,12 @@ var MockedAuthRepositorySet = wire.NewSet(
 	wire.Bind(new(authDomain.AuthRepository), new(*authRepository.MockedAuthRepository)))
 
 var BcryptPasswordGeneratorSet = wire.NewSet(
-	authDomain.NewBcryptPasswordGenerator,
-	wire.Bind(new(authDomain.PasswordGenerator), new(*authDomain.BcryptPasswordGenerator)))
+	passgen.NewBcryptPasswordGenerator,
+	wire.Bind(new(passgen.PasswordGenerator), new(*passgen.BcryptPasswordGenerator)))
 
 var MockedPasswordGeneratorSet = wire.NewSet(
-	authDomain.NewMockedPasswordGenerator,
-	wire.Bind(new(authDomain.PasswordGenerator), new(*authDomain.MockedPasswordGenerator)))
+	passgen.NewMockedPasswordGenerator,
+	wire.Bind(new(passgen.PasswordGenerator), new(*passgen.MockedPasswordGenerator)))
 
 var MySqlListsRepositorySet = wire.NewSet(
 	listsRepository.NewMySqlListsRepository,
@@ -226,3 +245,12 @@ var MySqlCountersRepositorySet = wire.NewSet(
 var MockedCountersRepositorySet = wire.NewSet(
 	sharedInfra.NewMockedCountersRepository,
 	wire.Bind(new(sharedDomain.CountersRepository), new(*sharedInfra.MockedCountersRepository)))
+
+var RealTokenServiceSet = wire.NewSet(
+	RealConfigurationServiceSet,
+	authDomain.NewRealTokenService,
+	wire.Bind(new(authDomain.TokenService), new(*authDomain.RealTokenService)))
+
+var MockedTokenServiceSet = wire.NewSet(
+	authDomain.NewMockedTokenService,
+	wire.Bind(new(authDomain.TokenService), new(*authDomain.MockedTokenService)))

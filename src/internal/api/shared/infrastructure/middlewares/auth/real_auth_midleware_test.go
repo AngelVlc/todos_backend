@@ -30,7 +30,11 @@ func TestRealAuthMiddleware(t *testing.T) {
 		assert.True(t, isAdmin)
 	})
 
-	t.Run("Should return an error if there isn't authorization header", func(t *testing.T) {
+	getTokenCookie := func(rt string) *http.Cookie {
+		return &http.Cookie{Name: "token", Value: rt}
+	}
+
+	t.Run("Should return an error if there isn't token cookie", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		response := httptest.NewRecorder()
 		handlerToTest := md.Middleware(nextHandler)
@@ -38,26 +42,14 @@ func TestRealAuthMiddleware(t *testing.T) {
 		handlerToTest.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
-		assert.Equal(t, "No authorization header\n", string(response.Body.String()))
-	})
-
-	t.Run("Should return an error if the authorization header is not a bearer", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request.Header.Set("Authorization", "bad_header")
-		response := httptest.NewRecorder()
-		handlerToTest := md.Middleware(nextHandler)
-
-		handlerToTest.ServeHTTP(response, request)
-
-		assert.Equal(t, http.StatusUnauthorized, response.Result().StatusCode)
-		assert.Equal(t, "Invalid authorization header\n", string(response.Body.String()))
+		assert.Equal(t, "No authorization cookie\n", string(response.Body.String()))
 	})
 
 	t.Run("Should return an error if the token is not valid", func(t *testing.T) {
 		mockedTokenSrv.On("ParseToken", "badToken").Return(nil, fmt.Errorf("some error")).Once()
 
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request.Header.Set("Authorization", "Bearer badToken")
+		request.AddCookie(getTokenCookie("badToken"))
 		response := httptest.NewRecorder()
 		handlerToTest := md.Middleware(nextHandler)
 
@@ -75,7 +67,7 @@ func TestRealAuthMiddleware(t *testing.T) {
 		mockedTokenSrv.On("GetTokenInfo", &token).Return(&domain.TokenClaimsInfo{UserID: 1, UserName: "user", IsAdmin: true}).Once()
 
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request.Header.Set("Authorization", "Bearer validToken")
+		request.AddCookie(getTokenCookie("validToken"))
 		response := httptest.NewRecorder()
 		handlerToTest := md.Middleware(nextHandler)
 

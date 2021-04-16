@@ -16,7 +16,7 @@ func NewLoginService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationS
 	return &LoginService{repo, cfgSvr, tokenSrv}
 }
 
-func (s *LoginService) Login(userName domain.UserName, password domain.UserPassword) (*domain.TokenResponse, error) {
+func (s *LoginService) Login(userName domain.UserName, password domain.UserPassword) (*domain.LoginResponse, error) {
 	foundUser, err := s.repo.FindUserByName(userName)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
@@ -48,7 +48,7 @@ func (s *LoginService) Login(userName domain.UserName, password domain.UserPassw
 		return nil, &appErrors.UnexpectedError{Msg: "Error saving the refresh token", InternalError: err}
 	}
 
-	res := domain.TokenResponse{Token: token, RefreshToken: refreshToken}
+	res := domain.LoginResponse{Token: token, RefreshToken: refreshToken, UserID: foundUser.ID, UserName: string(foundUser.Name), IsAdmin: foundUser.IsAdmin}
 
 	return &res, nil
 }

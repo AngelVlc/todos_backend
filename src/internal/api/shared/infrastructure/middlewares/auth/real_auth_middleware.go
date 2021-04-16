@@ -3,7 +3,6 @@ package authmdw
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
@@ -44,16 +43,10 @@ func (m *RealAuthMiddleware) Middleware(next http.Handler) http.Handler {
 }
 
 func (m *RealAuthMiddleware) getAuthToken(r *http.Request) (string, error) {
-	authHeader := r.Header.Get("Authorization")
-
-	if len(authHeader) == 0 {
-		return "", &appErrors.UnauthorizedError{Msg: "No authorization header", InternalError: nil}
+	cookie, err := r.Cookie("token")
+	if err != nil {
+		return "", &appErrors.UnauthorizedError{Msg: "No authorization cookie", InternalError: nil}
 	}
 
-	authHeaderParts := strings.Split(authHeader, "Bearer ")
-	if len(authHeaderParts) != 2 {
-		return "", &appErrors.UnauthorizedError{Msg: "Invalid authorization header", InternalError: nil}
-	}
-
-	return authHeaderParts[1], nil
+	return cookie.Value, nil
 }

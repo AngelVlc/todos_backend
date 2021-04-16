@@ -17,14 +17,14 @@ func RefreshTokenHandler(w http.ResponseWriter, r *http.Request, h handler.Handl
 	}
 
 	srv := application.NewRefreshTokenService(h.AuthRepository, h.CfgSrv, h.TokenSrv)
-	res, err := srv.RefreshToken(rt)
+	newToken, err := srv.RefreshToken(rt)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	addRefreshTokenCookie(w, res.RefreshToken)
+	addTokenCookie(w, newToken)
 
-	return results.OkResult{Content: res, StatusCode: http.StatusOK}
+	return results.OkResult{Content: nil, StatusCode: http.StatusOK}
 }
 
 func getRefreshTokenCookieValue(r *http.Request) (string, error) {

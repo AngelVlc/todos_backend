@@ -152,20 +152,17 @@ func TestRefreshTokenHandler(t *testing.T) {
 		foundUser := domain.User{}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
 		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
-		mockedTokenSrv.On("GenerateToken", &foundUser).Return("token", nil).Once()
+		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 
 		recorder := httptest.NewRecorder()
 		result := RefreshTokenHandler(recorder, request, h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		resDto, isOk := okRes.Content.(*domain.TokenResponse)
-		require.Equal(t, true, isOk, "should be a token response")
-		assert.Equal(t, "token", resDto.Token)
-		assert.Equal(t, "", resDto.RefreshToken)
+		assert.Nil(t, okRes.Content)
 
 		require.Equal(t, 1, len(recorder.Result().Cookies()))
-		assert.Equal(t, "refreshToken", recorder.Result().Cookies()[0].Name)
-		assert.Equal(t, resDto.RefreshToken, recorder.Result().Cookies()[0].Value)
+		assert.Equal(t, "token", recorder.Result().Cookies()[0].Name)
+		assert.Equal(t, "theToken", recorder.Result().Cookies()[0].Value)
 		assert.True(t, recorder.Result().Cookies()[0].HttpOnly)
 
 		mockedRepo.AssertExpectations(t)

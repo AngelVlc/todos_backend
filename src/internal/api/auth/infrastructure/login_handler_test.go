@@ -156,30 +156,35 @@ func TestLoginHandler(t *testing.T) {
 		mockedTokenSrv.AssertExpectations(t)
 	})
 
-	t.Run("Should return an okResult with the tokens, should create the cookie and should save the refresh token if the login is fine", func(t *testing.T) {
+	t.Run("Should return an okResult with a login response, should create the cookies and should save the refresh token if the login is ok", func(t *testing.T) {
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
-		foundUser := domain.User{PasswordHash: hashedPass}
+		foundUser := domain.User{ID: 1, Name: domain.UserName("user"), IsAdmin: true, PasswordHash: hashedPass}
 		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
-		mockedTokenSrv.On("GenerateToken", &foundUser).Return("token", nil).Once()
+		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
-		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("refreshToken", nil).Once()
-		mockedRepo.On("CreateRefreshToken", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "refreshToken", ExpirationDate: expDate}).Return(nil).Once()
+		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
+		mockedRepo.On("CreateRefreshToken", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		recorder := httptest.NewRecorder()
 		result := LoginHandler(recorder, request, h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		resDto, isOk := okRes.Content.(*domain.TokenResponse)
-		require.Equal(t, true, isOk, "should be a token response")
-		assert.Equal(t, "token", resDto.Token)
-		assert.Equal(t, "refreshToken", resDto.RefreshToken)
+		resDto, isOk := okRes.Content.(*domain.LoginResponse)
+		require.Equal(t, true, isOk, "should be a login response")
+		assert.Equal(t, "", resDto.Token)
+		assert.Equal(t, "", resDto.RefreshToken)
+		assert.Equal(t, int32(1), resDto.UserID)
+		assert.Equal(t, "user", resDto.UserName)
+		assert.True(t, resDto.IsAdmin)
 
-		require.Equal(t, 1, len(recorder.Result().Cookies()))
-		assert.Equal(t, "refreshToken", recorder.Result().Cookies()[0].Name)
-		assert.Equal(t, resDto.RefreshToken, recorder.Result().Cookies()[0].Value)
+		require.Equal(t, 2, len(recorder.Result().Cookies()))
+		assert.Equal(t, "token", recorder.Result().Cookies()[0].Name)
+		assert.Equal(t, "theToken", recorder.Result().Cookies()[0].Value)
+		assert.Equal(t, "refreshToken", recorder.Result().Cookies()[1].Name)
+		assert.Equal(t, "theRefreshToken", recorder.Result().Cookies()[1].Value)
 		assert.True(t, recorder.Result().Cookies()[0].HttpOnly)
 
 		mockedRepo.AssertExpectations(t)

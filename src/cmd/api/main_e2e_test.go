@@ -28,20 +28,19 @@ func TestEndtoEnd(t *testing.T) {
 
 	client := &http.Client{}
 
-	loginBody := "{\"username\": \"admin\",\"password\": \"admin\"}"
-	req := createRequest(t, "POST", baseURL+"/auth/login", strings.NewReader(loginBody))
+	loginBody := fmt.Sprintf("{\"username\": \"admin\",\"password\": \"%v\"}", adminPass)
+	req := createRequest(t, "POST", baseURL+"/auth/login", strings.NewReader(loginBody), nil)
 	req.Header.Set("Content-type", "application/json")
 	res, err := client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
-	tokenRes := authDomain.TokenResponse{}
-	err = objFromRes(res.Body, &tokenRes)
+	loginRes := authDomain.LoginResponse{}
+	err = objFromRes(res.Body, &loginRes)
 	require.Nil(t, err)
 
-	authHeaderContent := fmt.Sprintf("Bearer %v", tokenRes.Token)
+	loginResCookies := res.Cookies()
 
-	req = createRequest(t, "GET", baseURL+"/users/1", nil)
-	req.Header.Set("Authorization", authHeaderContent)
+	req = createRequest(t, "GET", baseURL+"/users/1", nil, loginResCookies)
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
@@ -52,9 +51,7 @@ func TestEndtoEnd(t *testing.T) {
 
 	listName := fmt.Sprintf("test %v", time.Now().Format("2006-01-02T15:04:05-0700"))
 	listBody := fmt.Sprintf("{\"name\": \"%v\"}", listName)
-	req = createRequest(t, "POST", baseURL+"/lists", strings.NewReader(listBody))
-	req.Header.Set("Authorization", authHeaderContent)
-	req.Header.Set("Content-type", "application/json")
+	req = createRequest(t, "POST", baseURL+"/lists", strings.NewReader(listBody), loginResCookies)
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
@@ -63,11 +60,16 @@ func TestEndtoEnd(t *testing.T) {
 	require.Nil(t, err)
 	listID := fmt.Sprint(createdRes.ID)
 
-	req = createRequest(t, "DELETE", baseURL+"/lists/"+string(listID), nil)
-	req.Header.Set("Authorization", authHeaderContent)
+	req = createRequest(t, "DELETE", baseURL+"/lists/"+string(listID), nil, loginResCookies)
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 204, res.StatusCode)
+
+	req = createRequest(t, "POST", baseURL+"/auth/refreshtoken", nil, loginResCookies)
+	res, err = client.Do(req)
+	require.Nil(t, err)
+	require.Equal(t, 200, res.StatusCode)
+	require.Equal(t, 1, len(res.Cookies()))
 }
 
 func bufferFromBody(body interface{}) (*bytes.Buffer, error) {
@@ -85,9 +87,15 @@ func objFromRes(resBody io.Reader, obj interface{}) error {
 	return err
 }
 
-func createRequest(t *testing.T, method, url string, body io.Reader) *http.Request {
+func createRequest(t *testing.T, method, url string, body io.Reader, cookies []*http.Cookie) *http.Request {
 	req, err := http.NewRequest(method, url, body)
 	require.Nil(t, err)
+
+	if cookies != nil {
+		for _, v := range cookies {
+			req.AddCookie(v)
+		}
+	}
 
 	return req
 }

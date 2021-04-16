@@ -16,38 +16,36 @@ func NewRefreshTokenService(repo domain.AuthRepository, cfgSvr sharedApp.Configu
 	return &LoginService{repo, cfgSvr, tokenSrv}
 }
 
-func (s *LoginService) RefreshToken(rt string) (*domain.TokenResponse, error) {
+func (s *LoginService) RefreshToken(rt string) (string, error) {
 	parsedRt, err := s.tokenSrv.ParseToken(rt)
 	if err != nil {
-		return nil, &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}
+		return "", &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}
 	}
 
 	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
 	foundUser, err := s.repo.FindUserByID(rtInfo.UserID)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user id", InternalError: err}
+		return "", &appErrors.UnexpectedError{Msg: "Error getting user by user id", InternalError: err}
 	}
 
 	if foundUser == nil {
-		return nil, &appErrors.UnauthorizedError{Msg: "The user no longer exists"}
+		return "", &appErrors.UnauthorizedError{Msg: "The user no longer exists"}
 	}
 
 	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(rt, rtInfo.UserID)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
+		return "", &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
 	}
 
 	if foundRefreshToken == nil {
-		return nil, &appErrors.UnauthorizedError{Msg: "The refresh token is not valid"}
+		return "", &appErrors.UnauthorizedError{Msg: "The refresh token is not valid"}
 	}
 
 	token, err := s.tokenSrv.GenerateToken(foundUser)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
+		return "", &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	res := domain.TokenResponse{Token: token}
-
-	return &res, nil
+	return token, nil
 }

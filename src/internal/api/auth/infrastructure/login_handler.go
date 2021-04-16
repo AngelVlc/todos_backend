@@ -53,6 +53,7 @@ func addTokenCookie(w http.ResponseWriter, token string) {
 		Value:    token,
 		HttpOnly: true,
 		Path:     "/",
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, &rfCookie)
 }
@@ -63,6 +64,7 @@ func addRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {
 		Value:    refreshToken,
 		HttpOnly: true,
 		Path:     "/auth",
+		SameSite: http.SameSiteNoneMode,
 	}
 	http.SetCookie(w, &rfCookie)
 }

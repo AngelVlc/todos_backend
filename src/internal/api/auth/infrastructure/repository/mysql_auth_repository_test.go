@@ -398,6 +398,49 @@ func TestMySqlAuthRepositoryCreateRefreshToken(t *testing.T) {
 	})
 }
 
+func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewMySqlAuthRepository(db)
+
+	expectedDelete := func(expTime time.Time) *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE (expirationDate <= ?)")).
+			WithArgs(expTime)
+	}
+
+	t.Run("should return an error if creating the new refresh token fails", func(t *testing.T) {
+		now := time.Now()
+		mock.ExpectBegin()
+		expectedDelete(now).WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.DeleteExpiredRefreshTokens(now)
+
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should create the new refresh token", func(t *testing.T) {
+		now := time.Now()
+
+		mock.ExpectBegin()
+		expectedDelete(now).WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+
+		err := repo.DeleteExpiredRefreshTokens(now)
+
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

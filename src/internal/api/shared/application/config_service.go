@@ -110,11 +110,11 @@ func (c *RealConfigurationService) GetCorsAllowedOrigins() []string {
 }
 
 func (c *RealConfigurationService) GetTokenExpirationDate() time.Time {
-	return time.Now().Add(c.getDurationEnvVar("TOKEN_EXPIRATION_IN_SECONDS"))
+	return time.Now().Add(c.getDurationEnvVar("TOKEN_EXPIRATION_DURATION"))
 }
 
 func (c *RealConfigurationService) GetRefreshTokenExpirationDate() time.Time {
-	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_IN_SECONDS"))
+	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_DURATION"))
 }
 
 func (c *RealConfigurationService) getDurationEnvVar(envVarName string) time.Duration {

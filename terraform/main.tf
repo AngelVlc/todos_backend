@@ -49,8 +49,8 @@ resource "heroku_config" "default" {
     JWT_SECRET = "${var.jwt_secret}"
     ADMIN_PASSWORD = "${var.admin_password}"
     CORS_ALLOWED_ORIGINS = "${var.cors_allowed_origins}"
-    TOKEN_EXPIRATION_IN_SECONDS = "5m"
-    REFRESH_TOKEN_EXPIRATION_IN_SECONDS = "24h"
+    TOKEN_EXPIRATION_DURATION = "5m"
+    REFRESH_TOKEN_EXPIRATION_DURATION = "24h"
   }
 }
 

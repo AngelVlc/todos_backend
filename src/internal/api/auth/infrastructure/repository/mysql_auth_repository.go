@@ -90,3 +90,11 @@ func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) erro
 	}
 	return nil
 }
+
+func (r *MySqlAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, error) {
+	res := []domain.RefreshToken{}
+	if err := r.db.Select("id,userId,expirationDate").Find(&res).Error; err != nil {
+		return nil, err
+	}
+	return res, nil
+}

@@ -441,6 +441,48 @@ func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
 	})
 }
 
+func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewMySqlAuthRepository(db)
+
+	expectedGetQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,userId,expirationDate FROM `refresh_tokens`"))
+	}
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		expectedGetQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.GetAllRefreshTokens()
+
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return the users", func(t *testing.T) {
+		columns := []string{"id", "userId", "expirationDate"}
+		now := time.Now()
+		expectedGetQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(11, 1, now))
+
+		res, err := repo.GetAllRefreshTokens()
+
+		assert.Nil(t, err)
+		require.Equal(t, 1, len(res))
+		assert.Equal(t, int32(11), res[0].ID)
+		assert.Equal(t, int32(1), res[0].UserID)
+		assert.Equal(t, now, res[0].ExpirationDate)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

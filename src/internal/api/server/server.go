@@ -43,7 +43,6 @@ func NewServer(db *gorm.DB) *server {
 
 	authMdw := wire.InitAuthMiddleware(db)
 	requireAdminMdw := wire.InitRequireAdminMiddleware()
-	logMdw := wire.InitLogMiddleware()
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
 	listsSubRouter.Handle("", s.getHandler(listsInfra.GetAllListsHandler)).Methods(http.MethodGet)
@@ -57,7 +56,6 @@ func NewServer(db *gorm.DB) *server {
 	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsInfra.DeleteListItemHandler)).Methods(http.MethodDelete)
 	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsInfra.UpdateListItemHandler)).Methods(http.MethodPut)
 	listsSubRouter.Use(authMdw.Middleware)
-	listsSubRouter.Use(logMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
 	usersSubRouter.Handle("", s.getHandler(authInfra.CreateUserHandler)).Methods(http.MethodPost)
@@ -67,13 +65,18 @@ func NewServer(db *gorm.DB) *server {
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authInfra.UpdateUserHandler)).Methods(http.MethodPut)
 	usersSubRouter.Use(authMdw.Middleware)
 	usersSubRouter.Use(requireAdminMdw.Middleware)
-	usersSubRouter.Use(logMdw.Middleware)
+
+	refreshTokensSubRouter := router.PathPrefix("/refreshtokens").Subrouter()
+	refreshTokensSubRouter.Handle("", s.getHandler(authInfra.GetAllRefreshTokensHandler)).Methods(http.MethodGet)
+	refreshTokensSubRouter.Use(authMdw.Middleware)
+	refreshTokensSubRouter.Use(requireAdminMdw.Middleware)
 
 	authSubRouter := router.PathPrefix("/auth").Subrouter()
 	authSubRouter.Handle("/login", s.getHandler(authInfra.LoginHandler)).Methods(http.MethodPost)
 	authSubRouter.Handle("/refreshtoken", s.getHandler(authInfra.RefreshTokenHandler)).Methods(http.MethodPost)
-	authSubRouter.Use(logMdw.Middleware)
 
+	logMdw := wire.InitLogMiddleware()
+	router.Use(logMdw.Middleware)
 	s.Handler = router
 
 	return &s

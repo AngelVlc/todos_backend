@@ -57,6 +57,7 @@ func TestServerAdminRoutes(t *testing.T) {
 		{"/users/12", http.MethodPut},
 		{"/users/12", http.MethodGet},
 		{"/refreshtokens", http.MethodGet},
+		{"/refreshtokens", http.MethodDelete},
 	}
 
 	for _, r := range adminRoutes {

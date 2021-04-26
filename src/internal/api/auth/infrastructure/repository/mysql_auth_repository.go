@@ -98,3 +98,10 @@ func (r *MySqlAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, erro
 	}
 	return res, nil
 }
+
+func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
+	if err := r.db.Delete(domain.RefreshToken{}, ids).Error; err != nil {
+		return err
+	}
+	return nil
+}

@@ -14,4 +14,5 @@ type AuthRepository interface {
 	CreateRefreshToken(refreshToken *RefreshToken) error
 	DeleteExpiredRefreshTokens(expTime time.Time) error
 	GetAllRefreshTokens() ([]RefreshToken, error)
+	DeleteRefreshTokensByID(ids []int32) error
 }

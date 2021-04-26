@@ -68,12 +68,14 @@ func NewServer(db *gorm.DB) *server {
 
 	refreshTokensSubRouter := router.PathPrefix("/refreshtokens").Subrouter()
 	refreshTokensSubRouter.Handle("", s.getHandler(authInfra.GetAllRefreshTokensHandler)).Methods(http.MethodGet)
+	refreshTokensSubRouter.Handle("", s.getHandler(authInfra.DeleteRefreshTokensHandler)).Methods(http.MethodDelete)
 	refreshTokensSubRouter.Use(authMdw.Middleware)
 	refreshTokensSubRouter.Use(requireAdminMdw.Middleware)
 
 	authSubRouter := router.PathPrefix("/auth").Subrouter()
 	authSubRouter.Handle("/login", s.getHandler(authInfra.LoginHandler)).Methods(http.MethodPost)
 	authSubRouter.Handle("/refreshtoken", s.getHandler(authInfra.RefreshTokenHandler)).Methods(http.MethodPost)
+	authSubRouter.Handle("/refreshtoken", s.getHandler(authInfra.RefreshTokenHandler)).Methods(http.MethodDelete)
 
 	logMdw := wire.InitLogMiddleware()
 	router.Use(logMdw.Middleware)

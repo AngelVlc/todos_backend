@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/jinzhu/gorm"
 )
@@ -80,4 +82,26 @@ func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userI
 
 func (r *MySqlAuthRepository) CreateRefreshToken(refreshToken *domain.RefreshToken) error {
 	return r.db.Create(refreshToken).Error
+}
+
+func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) error {
+	if err := r.db.Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *MySqlAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, error) {
+	res := []domain.RefreshToken{}
+	if err := r.db.Select("id,userId,expirationDate").Find(&res).Error; err != nil {
+		return nil, err
+	}
+	return res, nil
+}
+
+func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
+	if err := r.db.Delete(domain.RefreshToken{}, ids).Error; err != nil {
+		return err
+	}
+	return nil
 }

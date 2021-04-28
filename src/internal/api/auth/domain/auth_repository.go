@@ -1,5 +1,7 @@
 package domain
 
+import "time"
+
 type AuthRepository interface {
 	FindUserByName(userName UserName) (*User, error)
 	FindUserByID(userID int32) (*User, error)
@@ -10,4 +12,7 @@ type AuthRepository interface {
 
 	FindRefreshTokenForUser(refreshToken string, userID int32) (*RefreshToken, error)
 	CreateRefreshToken(refreshToken *RefreshToken) error
+	DeleteExpiredRefreshTokens(expTime time.Time) error
+	GetAllRefreshTokens() ([]RefreshToken, error)
+	DeleteRefreshTokensByID(ids []int32) error
 }

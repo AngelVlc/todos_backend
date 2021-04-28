@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/server"
@@ -26,6 +27,9 @@ func main() {
 	//	db.LogMode(true)
 
 	createAdminUserIfNotExists(cfg, db)
+
+	authRepo := wire.InitAuthRepository(db)
+	initDeleteExpiredTokensProcess(authRepo)
 
 	countersRepo := wire.InitCountersRepository(db)
 	countSvc := sharedApp.NewInitRequestsCounterService(countersRepo)
@@ -88,4 +92,19 @@ func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, db *gorm.DB)
 			log.Fatal(err)
 		}
 	}
+}
+
+func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository) {
+	ticker := time.NewTicker(1 * time.Second)
+	done := make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case t := <-ticker.C:
+				authRepo.DeleteExpiredRefreshTokens(t)
+			}
+		}
+	}()
 }

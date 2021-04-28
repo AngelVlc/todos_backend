@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"time"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/stretchr/testify/mock"
 )
@@ -62,5 +64,23 @@ func (m *MockedAuthRepository) FindRefreshTokenForUser(refreshToken string, user
 
 func (m *MockedAuthRepository) CreateRefreshToken(refreshToken *domain.RefreshToken) error {
 	args := m.Called(refreshToken)
+	return args.Error(0)
+}
+
+func (m *MockedAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) error {
+	args := m.Called(expTime)
+	return args.Error(0)
+}
+
+func (m *MockedAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, error) {
+	args := m.Called()
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]domain.RefreshToken), args.Error(1)
+}
+
+func (m *MockedAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
+	args := m.Called(ids)
 	return args.Error(0)
 }

@@ -1,7 +1,9 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
+	"time"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
@@ -10,6 +12,7 @@ import (
 	listsInfra "github.com/AngelVlc/todos/internal/api/lists/infrastructure"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
+	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/mux"
@@ -24,9 +27,11 @@ type server struct {
 	tokenSrv     authDomain.TokenService
 	passGen      passgen.PasswordGenerator
 	countersRepo sharedDomain.CountersRepository
+	eventBus     events.EventBus
 }
 
 func NewServer(db *gorm.DB) *server {
+
 	s := server{
 		authRepo:     wire.InitAuthRepository(db),
 		listsRepo:    wire.InitListsRepository(db),
@@ -34,6 +39,7 @@ func NewServer(db *gorm.DB) *server {
 		tokenSrv:     wire.InitTokenService(),
 		passGen:      wire.InitPasswordGenerator(),
 		countersRepo: wire.InitCountersRepository(db),
+		eventBus:     wire.InitEventBus(map[string]events.DataChannelSlice{}),
 	}
 
 	router := mux.NewRouter()
@@ -81,9 +87,31 @@ func NewServer(db *gorm.DB) *server {
 	router.Use(logMdw.Middleware)
 	s.Handler = router
 
+	ch1 := make(chan events.DataEvent)
+	s.eventBus.Subscribe("topic1", ch1)
+	go handle(ch1)
+
+	go s.eventBus.Publish("topic1", "Hi topic 1")
+
 	return &s
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen)
+	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus)
+}
+
+func handle(ch1 <-chan events.DataEvent) {
+	for {
+		select {
+		case d := <-ch1:
+			// go printDataEvent("ch1", d)
+			printDataEvent("ch1", d)
+
+		}
+	}
+}
+
+func printDataEvent(ch string, data events.DataEvent) {
+	time.Sleep(10 * time.Second)
+	fmt.Printf("Channel: %s; Topic: %s; DataEvent: %v\n", ch, data.Topic, data.Data)
 }

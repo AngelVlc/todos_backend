@@ -9,6 +9,7 @@ import (
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
+	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 )
@@ -21,6 +22,7 @@ type Handler struct {
 	CfgSrv          sharedApp.ConfigurationService
 	TokenSrv        authDomain.TokenService
 	PassGen         passgen.PasswordGenerator
+	EventBus        events.EventBus
 }
 
 type HandlerResult interface {
@@ -32,7 +34,8 @@ func NewHandler(f HandlerFunc,
 	listsRepo listsDomain.ListsRepository,
 	cfgSrv sharedApp.ConfigurationService,
 	tokenSrv authDomain.TokenService,
-	passGen passgen.PasswordGenerator) Handler {
+	passGen passgen.PasswordGenerator,
+	eventBus events.EventBus) Handler {
 
 	return Handler{
 		HandlerFunc:     f,
@@ -41,6 +44,7 @@ func NewHandler(f HandlerFunc,
 		CfgSrv:          cfgSrv,
 		PassGen:         passGen,
 		TokenSrv:        tokenSrv,
+		EventBus:        eventBus,
 	}
 }
 

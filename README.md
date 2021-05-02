@@ -21,7 +21,7 @@ migrate -database "mysql://root:pass@tcp(localhost)/todos?query"  -path src/db/m
 ```
 
 
-** Profiling
+**Profiling**
 
 CPU
 ```

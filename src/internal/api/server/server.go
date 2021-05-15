@@ -1,13 +1,12 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
-	"time"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
+	listsApp "github.com/AngelVlc/todos/internal/api/lists/application"
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos/internal/api/lists/infrastructure"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
@@ -28,6 +27,7 @@ type server struct {
 	passGen      passgen.PasswordGenerator
 	countersRepo sharedDomain.CountersRepository
 	eventBus     events.EventBus
+	subscribers  []events.Subscriber
 }
 
 func NewServer(db *gorm.DB) *server {
@@ -40,6 +40,7 @@ func NewServer(db *gorm.DB) *server {
 		passGen:      wire.InitPasswordGenerator(),
 		countersRepo: wire.InitCountersRepository(db),
 		eventBus:     wire.InitEventBus(map[string]events.DataChannelSlice{}),
+		subscribers:  []events.Subscriber{},
 	}
 
 	router := mux.NewRouter()
@@ -87,11 +88,9 @@ func NewServer(db *gorm.DB) *server {
 	router.Use(logMdw.Middleware)
 	s.Handler = router
 
-	ch1 := make(chan events.DataEvent)
-	s.eventBus.Subscribe("topic1", ch1)
-	go handle(ch1)
+	s.addSubscriber(listsApp.NewListItemCreatedEventSubscriber(s.eventBus))
 
-	go s.eventBus.Publish("topic1", "Hi topic 1")
+	s.startSubscribers()
 
 	return &s
 }
@@ -100,18 +99,13 @@ func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
 	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus)
 }
 
-func handle(ch1 <-chan events.DataEvent) {
-	for {
-		select {
-		case d := <-ch1:
-			// go printDataEvent("ch1", d)
-			printDataEvent("ch1", d)
-
-		}
-	}
+func (s *server) addSubscriber(subscriber events.Subscriber) {
+	s.subscribers = append(s.subscribers, subscriber)
 }
 
-func printDataEvent(ch string, data events.DataEvent) {
-	time.Sleep(10 * time.Second)
-	fmt.Printf("Channel: %s; Topic: %s; DataEvent: %v\n", ch, data.Topic, data.Data)
+func (s *server) startSubscribers() {
+	for _, subscriber := range s.subscribers {
+		subscriber.Subscribe()
+		go subscriber.Start()
+	}
 }

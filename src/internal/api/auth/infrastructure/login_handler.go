@@ -16,6 +16,8 @@ type loginRequest struct {
 
 // LoginHandler is the handler for the /auth/login endpoint
 func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+	go h.EventBus.Publish("listItemCreated", "Hi topic 1")
+
 	loginReq := loginRequest{}
 	err := h.ParseBody(r, &loginReq)
 	if err != nil {

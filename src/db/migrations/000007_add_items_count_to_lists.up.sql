@@ -1,0 +1,1 @@
+ALTER TABLE `lists` ADD `itemsCount` int(32) NOT NULL DEFAULT 0;

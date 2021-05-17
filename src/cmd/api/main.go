@@ -95,7 +95,7 @@ func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, db *gorm.DB)
 }
 
 func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository) {
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(30 * time.Second)
 	done := make(chan bool)
 	go func() {
 		for {

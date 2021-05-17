@@ -6,6 +6,8 @@ type ListsRepository interface {
 	CreateList(list *List) error
 	DeleteList(listID int32, userID int32) error
 	UpdateList(list *List) error
+	IncrementListCounter(listID int32) error
+	DecrementListCounter(listID int32) error
 
 	FindListItemByID(itemID int32, listID int32, userID int32) (*ListItem, error)
 	GetAllListItems(listID int32, userID int32) ([]ListItem, error)

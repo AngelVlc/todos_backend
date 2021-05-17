@@ -1,23 +1,26 @@
-package application
+package infrastructure
 
 import (
 	"fmt"
 	"time"
 
+	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 )
 
 type ListItemCreatedEventSubscriber struct {
-	topic    string
-	eventBus events.EventBus
-	channel  chan events.DataEvent
+	topic     string
+	eventBus  events.EventBus
+	channel   chan events.DataEvent
+	listsRepo domain.ListsRepository
 }
 
-func NewListItemCreatedEventSubscriber(eventBus events.EventBus) *ListItemCreatedEventSubscriber {
+func NewListItemCreatedEventSubscriber(eventBus events.EventBus, listsRepo domain.ListsRepository) *ListItemCreatedEventSubscriber {
 	return &ListItemCreatedEventSubscriber{
-		topic:    "listItemCreated",
-		eventBus: eventBus,
-		channel:  make(chan events.DataEvent),
+		topic:     "listItemCreated",
+		eventBus:  eventBus,
+		channel:   make(chan events.DataEvent),
+		listsRepo: listsRepo,
 	}
 }
 

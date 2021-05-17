@@ -10,8 +10,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 )
 
 func TestMain(m *testing.M) {
@@ -19,9 +21,20 @@ func TestMain(m *testing.M) {
 	os.Exit(m.Run())
 }
 
-func TestServerPublicRoutes(t *testing.T) {
+func initServer(t *testing.T) *server {
+	mockedEventBus := events.MockedEventBus{}
+	mockedEventBus.On("Subscribe", "listItemCreated", mock.AnythingOfType("events.DataChannel"))
+	mockedEventBus.On("Subscribe", "listItemDeleted", mock.AnythingOfType("events.DataChannel"))
+	mockedEventBus.Wg.Add(2)
+	s := NewServer(nil, &mockedEventBus)
+	mockedEventBus.Wg.Wait()
+	mockedEventBus.AssertExpectations(t)
 
-	s := NewServer(nil)
+	return s
+}
+
+func TestServerPublicRoutes(t *testing.T) {
+	s := initServer(t)
 
 	var publicRoutes = []struct {
 		url            string
@@ -45,7 +58,7 @@ func TestServerPublicRoutes(t *testing.T) {
 }
 
 func TestServerAdminRoutes(t *testing.T) {
-	s := NewServer(nil)
+	s := initServer(t)
 
 	var adminRoutes = []struct {
 		url    string
@@ -87,7 +100,7 @@ func TestServerAdminRoutes(t *testing.T) {
 }
 
 func TestServerPrivateRoutes(t *testing.T) {
-	s := NewServer(nil)
+	s := initServer(t)
 
 	var privateRoutes = []struct {
 		url    string
@@ -117,7 +130,7 @@ func TestServerPrivateRoutes(t *testing.T) {
 }
 
 func TestServerBadRoutes(t *testing.T) {
-	s := NewServer(nil)
+	s := initServer(t)
 
 	var badParamsRoutes = []struct {
 		url    string

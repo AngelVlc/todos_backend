@@ -6,7 +6,6 @@ import (
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
-	listsApp "github.com/AngelVlc/todos/internal/api/lists/application"
 	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos/internal/api/lists/infrastructure"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
@@ -30,7 +29,7 @@ type server struct {
 	subscribers  []events.Subscriber
 }
 
-func NewServer(db *gorm.DB) *server {
+func NewServer(db *gorm.DB, eb events.EventBus) *server {
 
 	s := server{
 		authRepo:     wire.InitAuthRepository(db),
@@ -39,7 +38,7 @@ func NewServer(db *gorm.DB) *server {
 		tokenSrv:     wire.InitTokenService(),
 		passGen:      wire.InitPasswordGenerator(),
 		countersRepo: wire.InitCountersRepository(db),
-		eventBus:     wire.InitEventBus(map[string]events.DataChannelSlice{}),
+		eventBus:     eb,
 		subscribers:  []events.Subscriber{},
 	}
 
@@ -88,7 +87,8 @@ func NewServer(db *gorm.DB) *server {
 	router.Use(logMdw.Middleware)
 	s.Handler = router
 
-	s.addSubscriber(listsApp.NewListItemCreatedEventSubscriber(s.eventBus))
+	s.addSubscriber(listsInfra.NewListItemCreatedEventSubscriber(s.eventBus, s.listsRepo))
+	s.addSubscriber(listsInfra.NewListItemDeletedEventSubscriber(s.eventBus, s.listsRepo))
 
 	s.startSubscribers()
 

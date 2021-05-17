@@ -36,6 +36,8 @@ func CreateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 		return results.ErrorResult{Err: err}
 	}
 
+	go h.EventBus.Publish("listItemCreated", listID)
+
 	res := ListItemResponse{
 		ID:          newItem.ID,
 		Title:       string(newItem.Title),

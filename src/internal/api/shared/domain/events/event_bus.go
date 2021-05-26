@@ -1,6 +1,6 @@
 package events
 
 type EventBus interface {
-	Publish(topic string, data interface{})
-	Subscribe(topic string, ch DataChannel)
+	Publish(eventName string, data interface{})
+	Subscribe(eventName string, ch DataChannel)
 }

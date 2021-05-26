@@ -8,23 +8,29 @@ import (
 )
 
 type ListItemCreatedEventSubscriber struct {
-	topic     string
+	eventName string
 	eventBus  events.EventBus
 	channel   chan events.DataEvent
 	listsRepo domain.ListsRepository
+	doneFunc  func(listID int32)
 }
 
 func NewListItemCreatedEventSubscriber(eventBus events.EventBus, listsRepo domain.ListsRepository) *ListItemCreatedEventSubscriber {
+	doneFunc := func(listID int32) {
+		log.Printf("Increment items counter for list with ID %v\n", listID)
+	}
+
 	return &ListItemCreatedEventSubscriber{
-		topic:     "listItemCreated",
+		eventName: "listItemCreated",
 		eventBus:  eventBus,
 		channel:   make(chan events.DataEvent),
 		listsRepo: listsRepo,
+		doneFunc:  doneFunc,
 	}
 }
 
 func (s *ListItemCreatedEventSubscriber) Subscribe() {
-	s.eventBus.Subscribe(s.topic, s.channel)
+	s.eventBus.Subscribe(s.eventName, s.channel)
 }
 
 func (s *ListItemCreatedEventSubscriber) Start() {
@@ -32,8 +38,8 @@ func (s *ListItemCreatedEventSubscriber) Start() {
 		select {
 		case d := <-s.channel:
 			listID, _ := d.Data.(int32)
-			log.Printf("Incrementing items counter for list with ID %v\n", d.Data)
 			s.listsRepo.IncrementListCounter(listID)
+			s.doneFunc(listID)
 		}
 	}
 }

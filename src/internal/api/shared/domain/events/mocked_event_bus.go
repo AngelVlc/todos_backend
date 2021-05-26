@@ -16,18 +16,18 @@ func NewMockedEventBus() *MockedEventBus {
 	return &MockedEventBus{}
 }
 
-func (m *MockedEventBus) Publish(topic string, data interface{}) {
+func (m *MockedEventBus) Publish(eventName string, data interface{}) {
 	defer m.Wg.Done()
 
 	m.mu.Lock()
-	m.Called(topic, data)
+	m.Called(eventName, data)
 	m.mu.Unlock()
 }
 
-func (m *MockedEventBus) Subscribe(topic string, ch DataChannel) {
+func (m *MockedEventBus) Subscribe(eventName string, ch DataChannel) {
 	defer m.Wg.Done()
 
 	m.mu.Lock()
-	m.Called(topic, ch)
+	m.Called(eventName, ch)
 	m.mu.Unlock()
 }

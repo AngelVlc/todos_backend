@@ -45,7 +45,15 @@ func (r *MySqlListsRepository) DeleteList(listID int32, userID int32) error {
 }
 
 func (r *MySqlListsRepository) UpdateList(list *domain.List) error {
-	return r.db.Save(&list).Error
+	return r.db.Model(list).Updates(domain.List{Name: list.Name}).Error
+}
+
+func (r *MySqlListsRepository) IncrementListCounter(listID int32) error {
+	return r.db.Model(domain.List{}).Where(domain.List{ID: listID}).UpdateColumn("itemsCount", gorm.Expr("itemsCount + ?", 1)).Error
+}
+
+func (r *MySqlListsRepository) DecrementListCounter(listID int32) error {
+	return r.db.Model(domain.List{}).Where(domain.List{ID: listID}).UpdateColumn("itemsCount", gorm.Expr("itemsCount - ?", 1)).Error
 }
 
 func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, userID int32) (*domain.ListItem, error) {

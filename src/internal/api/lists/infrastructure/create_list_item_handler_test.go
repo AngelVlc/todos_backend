@@ -15,6 +15,7 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
+	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
@@ -62,7 +63,8 @@ func TestCreateListItemHandlerValidations(t *testing.T) {
 
 func TestCreateListItemHandler(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	mockedEventBus := events.MockedEventBus{}
+	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
 	request := func() *http.Request {
 		createReq := createListItemRequest{Title: "title", Description: "desc"}
@@ -117,7 +119,11 @@ func TestCreateListItemHandler(t *testing.T) {
 			*arg = domain.ListItem{ID: int32(1)}
 		})
 
+		mockedEventBus.On("Publish", "listItemCreated", int32(11))
+
+		mockedEventBus.Wg.Add(1)
 		result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
+		mockedEventBus.Wg.Wait()
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		res, isOk := okRes.Content.(ListItemResponse)
@@ -125,5 +131,6 @@ func TestCreateListItemHandler(t *testing.T) {
 		assert.Equal(t, int32(1), res.ID)
 
 		mockedRepo.AssertExpectations(t)
+		mockedEventBus.AssertExpectations(t)
 	})
 }

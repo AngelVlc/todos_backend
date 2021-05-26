@@ -44,6 +44,16 @@ func (m *MockedListsRepository) UpdateList(list *domain.List) error {
 	return args.Error(0)
 }
 
+func (m *MockedListsRepository) IncrementListCounter(listID int32) error {
+	args := m.Called(listID)
+	return args.Error(0)
+}
+
+func (m *MockedListsRepository) DecrementListCounter(listID int32) error {
+	args := m.Called(listID)
+	return args.Error(0)
+}
+
 func (m *MockedListsRepository) GetAllListItems(listID int32, userID int32) ([]domain.ListItem, error) {
 	args := m.Called(listID, userID)
 	if args.Get(0) == nil {

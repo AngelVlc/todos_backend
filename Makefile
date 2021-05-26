@@ -30,7 +30,7 @@ mysql-client:
 	docker-compose exec mysql ${MYSQL_COMMAND}
 
 test:
-	docker-compose run --rm app go test ./...
+	docker-compose run --rm app go test --race ./...
 
 test-e2e:
 	docker-compose run --rm -e BASE_URL=http://app:5001 app-e2e

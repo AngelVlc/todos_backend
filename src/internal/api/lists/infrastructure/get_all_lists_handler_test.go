@@ -40,8 +40,8 @@ func TestGetAllListsHandler(t *testing.T) {
 
 	t.Run("Should return the lists if the query does not fail", func(t *testing.T) {
 		found := []domain.List{
-			{ID: 11, Name: "list1"},
-			{ID: 12, Name: "list2"},
+			{ID: 11, Name: "list1", ItemsCount: 4},
+			{ID: 12, Name: "list2", ItemsCount: 8},
 		}
 
 		mockedRepo.On("GetAllLists", int32(1)).Return(found, nil)
@@ -55,8 +55,10 @@ func TestGetAllListsHandler(t *testing.T) {
 		require.Equal(t, len(listRes), 2)
 		assert.Equal(t, int32(11), listRes[0].ID)
 		assert.Equal(t, "list1", listRes[0].Name)
+		assert.Equal(t, int32(4), listRes[0].ItemsCount)
 		assert.Equal(t, int32(12), listRes[1].ID)
 		assert.Equal(t, "list2", listRes[1].Name)
+		assert.Equal(t, int32(8), listRes[1].ItemsCount)
 
 		mockedRepo.AssertExpectations(t)
 	})

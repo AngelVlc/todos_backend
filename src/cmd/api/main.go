@@ -9,6 +9,7 @@ import (
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/server"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
+	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/handlers"
 	"github.com/jinzhu/gorm"
@@ -38,7 +39,9 @@ func main() {
 		log.Fatal("error checking requests counter: ", err)
 	}
 
-	s := server.NewServer(db)
+	eb := wire.InitEventBus(map[string]events.DataChannelSlice{})
+
+	s := server.NewServer(db, eb)
 
 	port := cfg.GetPort()
 

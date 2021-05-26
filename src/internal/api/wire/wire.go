@@ -12,6 +12,7 @@ import (
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
+	events "github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	sharedInfra "github.com/AngelVlc/todos/internal/api/shared/infrastructure"
 	authMiddleware "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/auth"
 	fakemdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/fake"
@@ -171,6 +172,24 @@ func initRealTokenService() authDomain.TokenService {
 	return nil
 }
 
+func InitEventBus(subscribers map[string]events.DataChannelSlice) events.EventBus {
+	if inTestingMode() {
+		return initMockedEventBus()
+	} else {
+		return initRealEventBus(subscribers)
+	}
+}
+
+func initMockedEventBus() events.EventBus {
+	wire.Build(MockedEventBusSet)
+	return nil
+}
+
+func initRealEventBus(subscribers map[string]events.DataChannelSlice) events.EventBus {
+	wire.Build(RealEventBusSet)
+	return nil
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -254,3 +273,11 @@ var RealTokenServiceSet = wire.NewSet(
 var MockedTokenServiceSet = wire.NewSet(
 	authDomain.NewMockedTokenService,
 	wire.Bind(new(authDomain.TokenService), new(*authDomain.MockedTokenService)))
+
+var RealEventBusSet = wire.NewSet(
+	events.NewRealEventBus,
+	wire.Bind(new(events.EventBus), new(*events.RealEventBus)))
+
+var MockedEventBusSet = wire.NewSet(
+	events.NewMockedEventBus,
+	wire.Bind(new(events.EventBus), new(*events.MockedEventBus)))

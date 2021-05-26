@@ -19,5 +19,8 @@ func DeleteListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
+
+	go h.EventBus.Publish("listItemDeleted", listID)
+
 	return results.OkResult{Content: nil, StatusCode: http.StatusNoContent}
 }

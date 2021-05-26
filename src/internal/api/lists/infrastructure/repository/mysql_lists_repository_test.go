@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	listColumns      = []string{"id", "name", "userId"}
+	listColumns      = []string{"id", "name", "userId", "itemsCount"}
 	listItemsColumns = []string{"id", "listId", "title", "description"}
 )
 
@@ -60,7 +60,7 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	})
 
 	t.Run("should return the user if it exists", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID))
+		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID, int32(3)))
 
 		res, err := repo.FindListByID(listID, userID)
 
@@ -68,6 +68,7 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 		assert.Equal(t, listID, res.ID)
 		assert.Equal(t, domain.ListName("list1"), res.Name)
 		assert.Equal(t, userID, res.UserID)
+		assert.Equal(t, int32(3), res.ItemsCount)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)
@@ -103,7 +104,7 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 	})
 
 	t.Run("should return the user lists", func(t *testing.T) {
-		expectedGetListsQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(int32(11), "list1", userID).AddRow(int32(12), "list2", userID))
+		expectedGetListsQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(int32(11), "list1", userID, int32(3)).AddRow(int32(12), "list2", userID, int32(4)))
 
 		res, err := repo.GetAllLists(userID)
 
@@ -113,9 +114,11 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 		assert.Equal(t, int32(11), res[0].ID)
 		assert.Equal(t, domain.ListName("list1"), res[0].Name)
 		assert.Equal(t, userID, res[0].UserID)
+		assert.Equal(t, int32(3), res[0].ItemsCount)
 		assert.Equal(t, int32(12), res[1].ID)
 		assert.Equal(t, domain.ListName("list2"), res[1].Name)
 		assert.Equal(t, userID, res[1].UserID)
+		assert.Equal(t, int32(4), res[1].ItemsCount)
 
 		checkMockExpectations(t, mock)
 	})
@@ -135,8 +138,8 @@ func TestMySqlListsRepositoryCreateList(t *testing.T) {
 	repo := NewMySqlListsRepository(db)
 
 	expectedInsertListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`) VALUES (?,?)")).
-			WithArgs(list.Name, list.UserID)
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`itemsCount`) VALUES (?,?,?)")).
+			WithArgs(list.Name, list.UserID, list.ItemsCount)
 	}
 
 	t.Run("should return an error if create fails", func(t *testing.T) {
@@ -220,8 +223,8 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 	list := domain.List{ID: 11, UserID: 1, Name: "list1"}
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name` = ?, `userId` = ? WHERE `lists`.`id` = ?")).
-			WithArgs("list1", int32(1), int32(11))
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name` = ? WHERE `lists`.`id` = ?")).
+			WithArgs("list1", int32(11))
 	}
 
 	t.Run("should return an error if the update fails", func(t *testing.T) {
@@ -240,11 +243,88 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 		mock.ExpectBegin()
 		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists`  WHERE `lists`.`id` = ? ORDER BY `lists`.`id` ASC LIMIT 1")).
-			WithArgs(int32(11)).
-			WillReturnRows(sqlmock.NewRows(listColumns).AddRow(int32(11), "list1", int32(1)))
 
 		err := repo.UpdateList(&list)
+
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
+func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewMySqlListsRepository(db)
+
+	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `itemsCount` = itemsCount + ? WHERE (`lists`.`id` = ?)")).
+			WithArgs(1, int32(11))
+	}
+
+	t.Run("should return an error if the update fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.IncrementListCounter(int32(11))
+
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should increment the items counter", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+
+		err := repo.IncrementListCounter(int32(11))
+
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
+func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+	db, err := gorm.Open("mysql", mockDb)
+	defer db.Close()
+
+	repo := NewMySqlListsRepository(db)
+
+	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `itemsCount` = itemsCount - ? WHERE (`lists`.`id` = ?)")).
+			WithArgs(1, int32(11))
+	}
+
+	t.Run("should return an error if the update fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.DecrementListCounter(int32(11))
+
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should increment the items counter", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+
+		err := repo.DecrementListCounter(int32(11))
 
 		assert.Nil(t, err)
 

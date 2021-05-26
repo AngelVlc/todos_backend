@@ -10,6 +10,7 @@ import (
 	listsInfra "github.com/AngelVlc/todos/internal/api/lists/infrastructure"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
+	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/mux"
@@ -24,9 +25,12 @@ type server struct {
 	tokenSrv     authDomain.TokenService
 	passGen      passgen.PasswordGenerator
 	countersRepo sharedDomain.CountersRepository
+	eventBus     events.EventBus
+	subscribers  []events.Subscriber
 }
 
-func NewServer(db *gorm.DB) *server {
+func NewServer(db *gorm.DB, eb events.EventBus) *server {
+
 	s := server{
 		authRepo:     wire.InitAuthRepository(db),
 		listsRepo:    wire.InitListsRepository(db),
@@ -34,6 +38,8 @@ func NewServer(db *gorm.DB) *server {
 		tokenSrv:     wire.InitTokenService(),
 		passGen:      wire.InitPasswordGenerator(),
 		countersRepo: wire.InitCountersRepository(db),
+		eventBus:     eb,
+		subscribers:  []events.Subscriber{},
 	}
 
 	router := mux.NewRouter()
@@ -81,9 +87,25 @@ func NewServer(db *gorm.DB) *server {
 	router.Use(logMdw.Middleware)
 	s.Handler = router
 
+	s.addSubscriber(listsInfra.NewListItemCreatedEventSubscriber(s.eventBus, s.listsRepo))
+	s.addSubscriber(listsInfra.NewListItemDeletedEventSubscriber(s.eventBus, s.listsRepo))
+
+	s.startSubscribers()
+
 	return &s
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen)
+	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus)
+}
+
+func (s *server) addSubscriber(subscriber events.Subscriber) {
+	s.subscribers = append(s.subscribers, subscriber)
+}
+
+func (s *server) startSubscribers() {
+	for _, subscriber := range s.subscribers {
+		subscriber.Subscribe()
+		go subscriber.Start()
+	}
 }

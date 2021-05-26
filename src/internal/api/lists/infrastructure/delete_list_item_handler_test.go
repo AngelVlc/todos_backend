@@ -11,6 +11,7 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
+	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
@@ -30,7 +31,8 @@ func TestDeletesListItemHandler(t *testing.T) {
 	}
 
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	mockedEventBus := events.MockedEventBus{}
+	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the list item fails", func(t *testing.T) {
 		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
@@ -65,10 +67,14 @@ func TestDeletesListItemHandler(t *testing.T) {
 		listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
 		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(&listItem, nil).Once()
 		mockedRepo.On("DeleteListItem", int32(111), int32(11), int32(1)).Return(nil).Once()
+		mockedEventBus.On("Publish", "listItemDeleted", int32(11))
 
+		mockedEventBus.Wg.Add(1)
 		result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
+		mockedEventBus.Wg.Wait()
 
 		results.CheckOkResult(t, result, http.StatusNoContent)
 		mockedRepo.AssertExpectations(t)
+		mockedEventBus.AssertExpectations(t)
 	})
 }

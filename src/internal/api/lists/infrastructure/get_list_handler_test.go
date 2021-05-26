@@ -52,7 +52,7 @@ func TestGetListHandler(t *testing.T) {
 	})
 
 	t.Run("should return the list", func(t *testing.T) {
-		list := domain.List{ID: 11, Name: "list1"}
+		list := domain.List{ID: 11, Name: "list1", ItemsCount: 4}
 		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
 
 		result := GetListHandler(httptest.NewRecorder(), request(), h)
@@ -63,6 +63,7 @@ func TestGetListHandler(t *testing.T) {
 
 		assert.Equal(t, int32(11), listRes.ID)
 		assert.Equal(t, "list1", listRes.Name)
+		assert.Equal(t, int32(4), listRes.ItemsCount)
 		mockedRepo.AssertExpectations(t)
 	})
 }

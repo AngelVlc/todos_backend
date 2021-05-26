@@ -20,8 +20,9 @@ func GetListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) h
 	}
 
 	res := ListResponse{
-		ID:   foundList.ID,
-		Name: string(foundList.Name),
+		ID:         foundList.ID,
+		Name:       string(foundList.Name),
+		ItemsCount: foundList.ItemsCount,
 	}
 
 	return results.OkResult{Content: &res, StatusCode: http.StatusOK}

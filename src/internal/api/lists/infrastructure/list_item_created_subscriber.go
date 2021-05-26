@@ -1,8 +1,7 @@
 package infrastructure
 
 import (
-	"fmt"
-	"time"
+	"log"
 
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
@@ -29,17 +28,12 @@ func (s *ListItemCreatedEventSubscriber) Subscribe() {
 }
 
 func (s *ListItemCreatedEventSubscriber) Start() {
-
 	for {
 		select {
 		case d := <-s.channel:
-			// go printDataEvent("ch1", d)
-			printDataEvent("ch1", d)
+			listID, _ := d.Data.(int32)
+			log.Printf("Incrementing items counter for list with ID %v\n", d.Data)
+			s.listsRepo.IncrementListCounter(listID)
 		}
 	}
-}
-
-func printDataEvent(ch string, data events.DataEvent) {
-	time.Sleep(3 * time.Second)
-	fmt.Printf("Channel: %s; Topic: %s; DataEvent: %v\n", ch, data.Topic, data.Data)
 }

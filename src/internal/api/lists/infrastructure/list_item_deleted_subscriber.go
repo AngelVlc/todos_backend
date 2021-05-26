@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
@@ -14,8 +14,8 @@ type ListItemDeletedEventSubscriber struct {
 	listsRepo domain.ListsRepository
 }
 
-func NewListItemDeletedEventSubscriber(eventBus events.EventBus, listsRepo domain.ListsRepository) *ListItemCreatedEventSubscriber {
-	return &ListItemCreatedEventSubscriber{
+func NewListItemDeletedEventSubscriber(eventBus events.EventBus, listsRepo domain.ListsRepository) *ListItemDeletedEventSubscriber {
+	return &ListItemDeletedEventSubscriber{
 		topic:     "listItemDeleted",
 		eventBus:  eventBus,
 		channel:   make(chan events.DataEvent),
@@ -31,8 +31,9 @@ func (s *ListItemDeletedEventSubscriber) Start() {
 	for {
 		select {
 		case d := <-s.channel:
-			// go printDataEvent("ch1", d)
-			fmt.Printf("Topic: %s; DataEvent: %v\n", d.Topic, d.Data)
+			listID, _ := d.Data.(int32)
+			log.Printf("Decrementing items counter for list with ID %v\n", d.Data)
+			s.listsRepo.DecrementListCounter(listID)
 		}
 	}
 }

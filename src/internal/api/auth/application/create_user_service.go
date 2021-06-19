@@ -16,13 +16,9 @@ func NewCreateUserService(repo domain.AuthRepository, passGen passgen.PasswordGe
 }
 
 func (s *CreateUserService) CreateUser(userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
-	foundUser, err := s.repo.FindUserByName(userName)
+	err := userName.CheckIfAlreadyExists(s.repo)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
-	}
-
-	if foundUser != nil {
-		return nil, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
+		return nil, err
 	}
 
 	hasshedPass, err := s.passGen.GenerateFromPassword(string(password))

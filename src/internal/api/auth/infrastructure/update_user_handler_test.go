@@ -99,7 +99,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		mockedRepo.AssertExpectations(t)
 	})
 
-	t.Run("Should return an errorResult with a BadRequestError if tries to update the name of the admin user", func(t *testing.T) {
+	t.Run("Should return an errorResult with a BadRequestError if tries to update isAdmin of the admin user", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "admin", IsAdmin: false}
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{Name: domain.UserName("admin")}
@@ -109,6 +109,35 @@ func TestUpdateUserHandler(t *testing.T) {
 
 		results.CheckBadRequestErrorResult(t, result, "The admin user must be an admin")
 		mockedRepo.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult with an UnexpectedError if finding the user by name fails", func(t *testing.T) {
+		updateReq := updateUserRequest{Name: "wadusR", Password: "newPass", ConfirmPassword: "newPass"}
+		body, _ := json.Marshal(updateReq)
+		foundUser := domain.User{Name: domain.UserName("wadus")}
+		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByName", domain.UserName("wadusR")).Return(nil, fmt.Errorf("some error")).Once()
+
+		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
+
+		results.CheckUnexpectedErrorResult(t, result, "Error getting user by user name")
+		mockedRepo.AssertExpectations(t)
+		mockedPassGen.AssertExpectations(t)
+	})
+
+	t.Run("Should return an errorResult with an BadRequestError if the new username already exists", func(t *testing.T) {
+		updateReq := updateUserRequest{Name: "wadusR", Password: "newPass", ConfirmPassword: "newPass"}
+		body, _ := json.Marshal(updateReq)
+		foundUser := domain.User{Name: domain.UserName("wadus")}
+		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
+		existingUser := domain.User{Name: domain.UserName("wadusR")}
+		mockedRepo.On("FindUserByName", domain.UserName("wadusR")).Return(&existingUser, nil).Once()
+
+		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
+
+		results.CheckBadRequestErrorResult(t, result, "A user with the same user name already exists")
+		mockedRepo.AssertExpectations(t)
+		mockedPassGen.AssertExpectations(t)
 	})
 
 	t.Run("Should return an error result with an UnexpectedError if generate the password fails", func(t *testing.T) {
@@ -145,8 +174,10 @@ func TestUpdateUserHandler(t *testing.T) {
 		body, _ := json.Marshal(updateReq)
 		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
-		foundUser.Name = authDomain.UserName("wadusUpdated")
-		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()
+		mockedRepo.On("FindUserByName", domain.UserName("wadusUpdated")).Return(nil, nil).Once()
+		foundUser2 := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
+		foundUser2.Name = authDomain.UserName("wadusUpdated")
+		mockedRepo.On("UpdateUser", &foundUser2).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
 

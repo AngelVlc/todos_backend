@@ -35,6 +35,13 @@ func (s *UpdateUserService) UpdateUser(userID int32, userName domain.UserName, p
 		}
 	}
 
+	if foundUser.Name != userName {
+		err = userName.CheckIfAlreadyExists(s.repo)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	if len(password) > 0 {
 		hasshedPass, err := s.passGen.GenerateFromPassword(string(password))
 		if err != nil {

@@ -16,7 +16,7 @@ import (
 
 var (
 	listColumns      = []string{"id", "name", "userId", "itemsCount"}
-	listItemsColumns = []string{"id", "listId", "title", "description"}
+	listItemsColumns = []string{"id", "listId", "title", "description", "position"}
 )
 
 func TestMySqlListsRepositoryFindListByID(t *testing.T) {
@@ -374,7 +374,7 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 	})
 
 	t.Run("should get an item", func(t *testing.T) {
-		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, "title", "description"))
+		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, "title", "description", 0))
 
 		res, err := repo.FindListItemByID(itemID, listID, userID)
 
@@ -401,7 +401,7 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	listID := int32(11)
 
 	expectedGetAllItemsQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE (`listItems`.`listId` = ?) AND (`listItems`.`userId` = ?)")).
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE (`listItems`.`listId` = ?) AND (`listItems`.`userId` = ?) ORDER BY `position`")).
 			WithArgs(listID, userID)
 	}
 
@@ -417,7 +417,7 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	})
 
 	t.Run("should get all the items", func(t *testing.T) {
-		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), listID, "title1", "desc1").AddRow(int32(112), listID, "title2", "desc2"))
+		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), listID, "title1", "desc1", 0).AddRow(int32(112), listID, "title2", "desc2", 1))
 
 		res, err := repo.GetAllListItems(listID, userID)
 
@@ -425,8 +425,10 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 		require.Equal(t, 2, len(res))
 		assert.Equal(t, domain.ItemTitle("title1"), res[0].Title)
 		assert.Equal(t, "desc1", res[0].Description)
+		assert.Equal(t, int32(0), res[0].Position)
 		assert.Equal(t, domain.ItemTitle("title2"), res[1].Title)
 		assert.Equal(t, "desc2", res[1].Description)
+		assert.Equal(t, int32(1), res[1].Position)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)
@@ -446,8 +448,8 @@ func TestMySqlListsRepositoryCreateListItem(t *testing.T) {
 	item := domain.ListItem{ListID: 11, UserID: 1, Title: "title", Description: "desc"}
 
 	expectedInsertListItemExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`) VALUES (?,?,?,?)")).
-			WithArgs(int32(11), int32(1), "title", "desc")
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`) VALUES (?,?,?,?,?)")).
+			WithArgs(int32(11), int32(1), "title", "desc", int32(0))
 	}
 
 	t.Run("should return an error if create fails", func(t *testing.T) {
@@ -532,8 +534,8 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 	item := domain.ListItem{ID: 111, ListID: 11, UserID: 1, Title: "title", Description: "desc"}
 
 	expectedUpdateListItemExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId` = ?, `userId` = ?, `title` = ?, `description` = ? WHERE `listItems`.`id` = ?")).
-			WithArgs(int32(11), int32(1), "title", "desc", int32(111))
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId` = ?, `userId` = ?, `title` = ?, `description` = ?, `position` = ? WHERE `listItems`.`id` = ?")).
+			WithArgs(int32(11), int32(1), "title", "desc", int32(0), int32(111))
 	}
 
 	t.Run("should return an error if update fails", func(t *testing.T) {
@@ -554,7 +556,7 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 		mock.ExpectCommit()
 		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? ORDER BY `listItems`.`id` ASC LIMIT 1")).
 			WithArgs(int32(111)).
-			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), int32(11), "title", "desc"))
+			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), int32(11), "title", "desc", 0))
 
 		err := repo.UpdateListItem(&item)
 

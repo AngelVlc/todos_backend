@@ -1,0 +1,1 @@
+ALTER TABLE `listItems` ADD `position` int(32) NOT NULL DEFAULT 0;

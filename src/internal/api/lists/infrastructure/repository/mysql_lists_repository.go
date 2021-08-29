@@ -73,7 +73,7 @@ func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, user
 
 func (r *MySqlListsRepository) GetAllListItems(listID int32, userID int32) ([]domain.ListItem, error) {
 	res := []domain.ListItem{}
-	if err := r.db.Where(domain.ListItem{ListID: listID, UserID: userID}).Find(&res).Error; err != nil {
+	if err := r.db.Where(domain.ListItem{ListID: listID, UserID: userID}).Order("position").Find(&res).Error; err != nil {
 		return nil, err
 	}
 	return res, nil

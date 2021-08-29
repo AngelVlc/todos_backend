@@ -28,6 +28,7 @@ func (s *CreateListItemService) CreateListItem(listID int32, title domain.ItemTi
 		Description: description,
 		ListID:      listID,
 		UserID:      userID,
+		Position:    foundList.ItemsCount,
 	}
 
 	err = s.repo.CreateListItem(&item)

@@ -111,9 +111,9 @@ func TestCreateListItemHandler(t *testing.T) {
 	})
 
 	t.Run("should create the new list item", func(t *testing.T) {
-		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1)}
+		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1), ItemsCount: int32(3)}
 		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
-		listItem := domain.ListItem{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc"}
+		listItem := domain.ListItem{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc", Position: int32(3)}
 		mockedRepo.On("CreateListItem", &listItem).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(0).(*domain.ListItem)
 			*arg = domain.ListItem{ID: int32(1)}

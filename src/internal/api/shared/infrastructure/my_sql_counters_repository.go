@@ -1,8 +1,10 @@
 package infrastructure
 
 import (
+	"errors"
+
 	"github.com/AngelVlc/todos/internal/api/shared/domain"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type MySqlCountersRepository struct {
@@ -17,7 +19,7 @@ func (r *MySqlCountersRepository) FindByName(name string) (*domain.Counter, erro
 	foundCounter := domain.Counter{}
 	err := r.db.Where(domain.Counter{Name: name}).First(&foundCounter).Error
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 

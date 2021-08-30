@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type MySqlListsRepository struct {
@@ -17,7 +19,7 @@ func (r *MySqlListsRepository) FindListByID(listID int32, userID int32) (*domain
 	found := domain.List{}
 	err := r.db.Where(domain.List{ID: listID, UserID: userID}).First(&found).Error
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 
@@ -60,7 +62,7 @@ func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, user
 	found := domain.ListItem{}
 	err := r.db.Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).First(&found).Error
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 

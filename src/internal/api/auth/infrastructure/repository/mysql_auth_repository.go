@@ -1,10 +1,11 @@
 package repository
 
 import (
+	"errors"
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 )
 
 type MySqlAuthRepository struct {
@@ -19,7 +20,7 @@ func (r *MySqlAuthRepository) FindUserByName(userName domain.UserName) (*domain.
 	foundUser := domain.User{}
 	err := r.db.Where(domain.User{Name: userName}).First(&foundUser).Error
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 
@@ -34,7 +35,7 @@ func (r *MySqlAuthRepository) FindUserByID(userID int32) (*domain.User, error) {
 	foundUser := domain.User{}
 	err := r.db.Where(domain.User{ID: userID}).First(&foundUser).Error
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 
@@ -69,7 +70,7 @@ func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userI
 	found := domain.RefreshToken{}
 	err := r.db.Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).First(&found).Error
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 

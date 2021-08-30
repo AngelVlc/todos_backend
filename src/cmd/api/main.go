@@ -12,8 +12,8 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/handlers"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 func main() {
@@ -23,9 +23,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
-
-	//	db.LogMode(true)
 
 	createAdminUserIfNotExists(cfg, db)
 
@@ -59,12 +56,7 @@ func main() {
 }
 
 func initDb(c sharedApp.ConfigurationService) (*gorm.DB, error) {
-	db, err := gorm.Open("mysql", c.GetDatasource())
-	if err != nil {
-		return nil, err
-	}
-
-	err = db.DB().Ping()
+	db, err := gorm.Open(mysql.Open(c.GetDatasource()), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,8 @@ import (
 )
 
 type updateListRequest struct {
-	Name string `json:"name"`
+	Name          string  `json:"name"`
+	IDsByPosition []int32 `json:"idsByPosition"`
 }
 
 func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {

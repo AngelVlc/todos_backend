@@ -31,7 +31,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewUpdateListService(h.ListsRepository)
-	list, err := srv.UpdateList(listID, listName, userID)
+	list, err := srv.UpdateList(listID, listName, userID, updateReq.IDsByPosition)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

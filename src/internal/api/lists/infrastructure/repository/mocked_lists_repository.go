@@ -84,3 +84,8 @@ func (m *MockedListsRepository) UpdateListItem(listItem *domain.ListItem) error 
 	args := m.Called(listItem)
 	return args.Error(0)
 }
+
+func (m *MockedListsRepository) BulkUpdateListItems(listItems []domain.ListItem) error {
+	args := m.Called(listItems)
+	return args.Error(0)
+}

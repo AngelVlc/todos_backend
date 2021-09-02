@@ -603,6 +603,53 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 	})
 }
 
+func TestBulkUpdateListItems(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
+
+	repo := NewMySqlListsRepository(db)
+
+	item1 := domain.ListItem{ID: 1, Position: 0}
+	item2 := domain.ListItem{ID: 2, Position: 1}
+	item3 := domain.ListItem{ID: 3, Position: 2}
+	items := []domain.ListItem{item1, item2, item3}
+
+	expectedUpdateListItemsExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`,`id`) VALUES (?,?,?,?,?,?),(?,?,?,?,?,?),(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `position`=VALUES(`position`)")).
+			WithArgs(int32(0), int32(0), "", "", int32(0), int32(1), int32(0), int32(0), "", "", int32(1), int32(2), int32(0), int32(0), "", "", int32(2), int32(3))
+	}
+
+	t.Run("should return an error if update fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListItemsExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.BulkUpdateListItems(items)
+
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should update the list items position", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListItemsExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+
+		err := repo.BulkUpdateListItems(items)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

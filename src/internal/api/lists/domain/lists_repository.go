@@ -14,4 +14,5 @@ type ListsRepository interface {
 	CreateListItem(listItem *ListItem) error
 	DeleteListItem(itemID int32, listID int32, userID int32) error
 	UpdateListItem(listItem *ListItem) error
+	BulkUpdateListItems(listItems []ListItem) error
 }

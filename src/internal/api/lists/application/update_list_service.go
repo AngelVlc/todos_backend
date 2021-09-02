@@ -13,7 +13,7 @@ func NewUpdateListService(repo domain.ListsRepository) *UpdateListService {
 	return &UpdateListService{repo}
 }
 
-func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userID int32) (*domain.List, error) {
+func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userID int32, IDsByPosition []int32) (*domain.List, error) {
 	foundList, err := s.repo.FindListByID(listID, userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting the user list", InternalError: err}
@@ -29,6 +29,25 @@ func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userI
 
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}
+	}
+
+	foundItems, err := s.repo.GetAllListItems(listID, userID)
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error getting all list items", InternalError: err}
+	}
+
+	for i := 0; i < len(IDsByPosition); i++ {
+		for _, item := range foundItems {
+			if item.ID == IDsByPosition[i] {
+				item.Position = int32(i)
+				break
+			}
+		}
+	}
+
+	err = s.repo.BulkUpdateListItems(foundItems)
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error bulk updating", InternalError: err}
 	}
 
 	return foundList, nil

@@ -5,6 +5,7 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type MySqlListsRepository struct {
@@ -91,4 +92,11 @@ func (r *MySqlListsRepository) DeleteListItem(itemID int32, listID int32, userID
 
 func (r *MySqlListsRepository) UpdateListItem(listItem *domain.ListItem) error {
 	return r.db.Save(&listItem).Error
+}
+
+func (r *MySqlListsRepository) BulkUpdateListItems(listItems []domain.ListItem) error {
+	return r.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"position"}),
+	}).Debug().Create(listItems).Error
 }

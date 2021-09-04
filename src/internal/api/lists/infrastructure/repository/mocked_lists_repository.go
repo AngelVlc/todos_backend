@@ -89,3 +89,11 @@ func (m *MockedListsRepository) BulkUpdateListItems(listItems []domain.ListItem)
 	args := m.Called(listItems)
 	return args.Error(0)
 }
+
+func (m *MockedListsRepository) GetListItemsMaxPosition(listID int32, userID int32) (int32, error) {
+	args := m.Called(listID, userID)
+	if args.Get(0) == nil {
+		return -1, args.Error(1)
+	}
+	return args.Get(0).(int32), args.Error(1)
+}

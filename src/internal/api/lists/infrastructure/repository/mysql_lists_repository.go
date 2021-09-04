@@ -100,3 +100,11 @@ func (r *MySqlListsRepository) BulkUpdateListItems(listItems []domain.ListItem) 
 		DoUpdates: clause.AssignmentColumns([]string{"position"}),
 	}).Debug().Create(listItems).Error
 }
+
+func (r *MySqlListsRepository) GetListItemsMaxPosition(listID int32, userID int32) (int32, error) {
+	res := int32(-1)
+	if err := r.db.Table("listItems").Where(domain.ListItem{ListID: listID, UserID: userID}).Select("MAX(position)").Scan(&res).Error; err != nil {
+		return res, err
+	}
+	return res, nil
+}

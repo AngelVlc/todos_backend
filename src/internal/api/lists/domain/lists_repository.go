@@ -15,4 +15,5 @@ type ListsRepository interface {
 	DeleteListItem(itemID int32, listID int32, userID int32) error
 	UpdateListItem(listItem *ListItem) error
 	BulkUpdateListItems(listItems []ListItem) error
+	GetListItemsMaxPosition(listID int32, userID int32) (int32, error)
 }

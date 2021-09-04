@@ -650,6 +650,51 @@ func TestBulkUpdateListItems(t *testing.T) {
 	})
 }
 
+func TestGetListItemsMaxPosition(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
+
+	repo := NewMySqlListsRepository(db)
+
+	userID := int32(1)
+	listID := int32(11)
+
+	expectedGetAllItemsQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT MAX(position) FROM `listItems` WHERE `listItems`.`listId` = ? AND `listItems`.`userId` = ?")).
+			WithArgs(listID, userID)
+	}
+
+	t.Run("should return an error if the get fails", func(t *testing.T) {
+		expectedGetAllItemsQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.GetListItemsMaxPosition(listID, userID)
+
+		assert.Equal(t, int32(-1), res)
+		assert.EqualError(t, err, "some error; some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should get the max position", func(t *testing.T) {
+		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows([]string{""}).AddRow(int32(3)))
+
+		res, err := repo.GetListItemsMaxPosition(listID, userID)
+
+		require.NotNil(t, res)
+		require.Equal(t, int32(3), res)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

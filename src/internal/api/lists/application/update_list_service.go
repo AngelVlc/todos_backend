@@ -36,10 +36,14 @@ func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userI
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting all list items", InternalError: err}
 	}
 
+	if len(foundItems) == 0 {
+		return foundList, nil
+	}
+
 	for i := 0; i < len(IDsByPosition); i++ {
-		for _, item := range foundItems {
-			if item.ID == IDsByPosition[i] {
-				item.Position = int32(i)
+		for j := 0; j < len(foundItems); j++ {
+			if foundItems[j].ID == int32(IDsByPosition[i]) {
+				foundItems[j].Position = int32(i)
 				break
 			}
 		}

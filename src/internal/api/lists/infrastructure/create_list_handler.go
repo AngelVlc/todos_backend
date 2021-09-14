@@ -35,8 +35,9 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	res := ListResponse{
-		ID:   newList.ID,
-		Name: string(newList.Name),
+		ID:         newList.ID,
+		Name:       string(newList.Name),
+		ItemsCount: newList.ItemsCount,
 	}
 
 	return results.OkResult{Content: res, StatusCode: http.StatusOK}

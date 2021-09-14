@@ -37,8 +37,9 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	res := ListResponse{
-		ID:   list.ID,
-		Name: string(list.Name),
+		ID:         list.ID,
+		Name:       string(list.Name),
+		ItemsCount: list.ItemsCount,
 	}
 
 	return results.OkResult{Content: res, StatusCode: http.StatusOK}

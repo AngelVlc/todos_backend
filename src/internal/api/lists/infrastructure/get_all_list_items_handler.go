@@ -27,6 +27,7 @@ func GetAllListItemsHandler(w http.ResponseWriter, r *http.Request, h handler.Ha
 			Title:       string(v.Title),
 			Description: v.Description,
 			ListID:      v.ListID,
+			Position:    v.Position,
 		}
 	}
 

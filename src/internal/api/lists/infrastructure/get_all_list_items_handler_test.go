@@ -44,8 +44,8 @@ func TestGetAllListItemsHandler(t *testing.T) {
 
 	t.Run("Should return the lists if the query does not fail", func(t *testing.T) {
 		found := []domain.ListItem{
-			{ID: 111, ListID: 11, Title: "title1", Description: "desc1"},
-			{ID: 112, ListID: 11, Title: "title2", Description: "desc2"},
+			{ID: 111, ListID: 11, Title: "title1", Description: "desc1", Position: int32(0)},
+			{ID: 112, ListID: 11, Title: "title2", Description: "desc2", Position: int32(1)},
 		}
 
 		mockedRepo.On("GetAllListItems", int32(11), int32(1)).Return(found, nil)
@@ -60,9 +60,11 @@ func TestGetAllListItemsHandler(t *testing.T) {
 		assert.Equal(t, int32(111), listRes[0].ID)
 		assert.Equal(t, "title1", listRes[0].Title)
 		assert.Equal(t, "desc1", listRes[0].Description)
+		assert.Equal(t, int32(0), listRes[0].Position)
 		assert.Equal(t, int32(112), listRes[1].ID)
 		assert.Equal(t, "title2", listRes[1].Title)
 		assert.Equal(t, "desc2", listRes[1].Description)
+		assert.Equal(t, int32(1), listRes[1].Position)
 
 		mockedRepo.AssertExpectations(t)
 	})

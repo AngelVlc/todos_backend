@@ -1,8 +1,11 @@
 package repository
 
 import (
+	"errors"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type MySqlListsRepository struct {
@@ -17,7 +20,7 @@ func (r *MySqlListsRepository) FindListByID(listID int32, userID int32) (*domain
 	found := domain.List{}
 	err := r.db.Where(domain.List{ID: listID, UserID: userID}).First(&found).Error
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 
@@ -60,7 +63,7 @@ func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, user
 	found := domain.ListItem{}
 	err := r.db.Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).First(&found).Error
 
-	if gorm.IsRecordNotFoundError(err) {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
 
@@ -73,7 +76,7 @@ func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, user
 
 func (r *MySqlListsRepository) GetAllListItems(listID int32, userID int32) ([]domain.ListItem, error) {
 	res := []domain.ListItem{}
-	if err := r.db.Where(domain.ListItem{ListID: listID, UserID: userID}).Find(&res).Error; err != nil {
+	if err := r.db.Where(domain.ListItem{ListID: listID, UserID: userID}).Order("position").Find(&res).Error; err != nil {
 		return nil, err
 	}
 	return res, nil
@@ -89,4 +92,19 @@ func (r *MySqlListsRepository) DeleteListItem(itemID int32, listID int32, userID
 
 func (r *MySqlListsRepository) UpdateListItem(listItem *domain.ListItem) error {
 	return r.db.Save(&listItem).Error
+}
+
+func (r *MySqlListsRepository) BulkUpdateListItems(listItems []domain.ListItem) error {
+	return r.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{"position"}),
+	}).Debug().Create(listItems).Error
+}
+
+func (r *MySqlListsRepository) GetListItemsMaxPosition(listID int32, userID int32) (int32, error) {
+	res := int32(-1)
+	if err := r.db.Table("listItems").Where(domain.ListItem{ListID: listID, UserID: userID}).Select("MAX(position)").Scan(&res).Error; err != nil {
+		return res, err
+	}
+	return res, nil
 }

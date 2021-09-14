@@ -5,4 +5,5 @@ type ListItemResponse struct {
 	ListID      int32  `json:"listId"`
 	Title       string `json:"title"`
 	Description string `json:"description"`
+	Position    int32  `json:"position"`
 }

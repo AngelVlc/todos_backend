@@ -14,10 +14,10 @@ func NewGetAllListItemsService(repo domain.ListsRepository) *GetAllListItemsServ
 }
 
 func (s *GetAllListItemsService) GetAllListItems(listID int32, userID int32) ([]domain.ListItem, error) {
-	foundLists, err := s.repo.GetAllListItems(listID, userID)
+	foundItems, err := s.repo.GetAllListItems(listID, userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting all list items", InternalError: err}
 	}
 
-	return foundLists, nil
+	return foundItems, nil
 }

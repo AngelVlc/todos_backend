@@ -21,7 +21,7 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqadmin"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqcounter"
 	"github.com/google/wire"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 	"os"
 )
 

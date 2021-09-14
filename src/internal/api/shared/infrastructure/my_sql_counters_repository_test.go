@@ -9,8 +9,9 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 var (
@@ -22,15 +23,18 @@ func TestMySqlCountersRepositoryFindByName(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlCountersRepository(db)
 
 	name := "counter-name"
 
 	expectedFindByNameQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `counters` WHERE (`counters`.`name` = ?) ORDER BY `counters`.`id` ASC LIMIT 1")).
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `counters` WHERE `counters`.`name` = ? ORDER BY `counters`.`id` LIMIT 1")).
 			WithArgs("counter-name")
 	}
 
@@ -76,8 +80,11 @@ func TestMySqlCountersRepositoryCreate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	counter := domain.Counter{Name: "counter", Value: 0}
 
@@ -120,15 +127,18 @@ func TestMySqlCountersRepositoryUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	counter := domain.Counter{ID: int32(11), Name: "counter", Value: 100}
 
 	repo := NewMySqlCountersRepository(db)
 
 	expectedUpdateExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `counters` SET `name` = ?, `value` = ? WHERE `counters`.`id` = ?")).
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `counters` SET `name`=?,`value`=? WHERE `id` = ?")).
 			WithArgs("counter", int32(100), 11)
 	}
 
@@ -147,7 +157,7 @@ func TestMySqlCountersRepositoryUpdate(t *testing.T) {
 		mock.ExpectBegin()
 		expectedUpdateExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `counters`  WHERE `counters`.`id` = ? ORDER BY `counters`.`id` ASC LIMIT 1")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `counters` WHERE `id` = ? ORDER BY `counters`.`id` LIMIT 1")).
 			WithArgs(11).
 			WillReturnRows(sqlmock.NewRows(counterColumns).AddRow(11, "counter", int32(100)))
 

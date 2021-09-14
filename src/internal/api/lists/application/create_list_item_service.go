@@ -23,11 +23,21 @@ func (s *CreateListItemService) CreateListItem(listID int32, title domain.ItemTi
 		return nil, &appErrors.BadRequestError{Msg: "The list does not exist"}
 	}
 
+	maxPosition := int32(-1)
+
+	if foundList.ItemsCount > 0 {
+		maxPosition, err = s.repo.GetListItemsMaxPosition(listID, userID)
+		if err != nil {
+			return nil, &appErrors.UnexpectedError{Msg: "Error getting the max position", InternalError: err}
+		}
+	}
+
 	item := domain.ListItem{
 		Title:       title,
 		Description: description,
 		ListID:      listID,
 		UserID:      userID,
+		Position:    maxPosition + 1,
 	}
 
 	err = s.repo.CreateListItem(&item)

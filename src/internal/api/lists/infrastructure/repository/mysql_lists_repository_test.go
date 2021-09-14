@@ -9,14 +9,15 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/jinzhu/gorm"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 var (
 	listColumns      = []string{"id", "name", "userId", "itemsCount"}
-	listItemsColumns = []string{"id", "listId", "title", "description"}
+	listItemsColumns = []string{"id", "listId", "title", "description", "position"}
 )
 
 func TestMySqlListsRepositoryFindListByID(t *testing.T) {
@@ -24,8 +25,11 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
@@ -33,7 +37,7 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	userID := int32(1)
 
 	expectedFindByIDQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?)")).
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")).
 			WithArgs(listID, userID)
 	}
 
@@ -80,15 +84,18 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	userID := int32(1)
 
 	repo := NewMySqlListsRepository(db)
 
 	expectedGetListsQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE (`lists`.`userId` = ?)")).
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`userId` = ?")).
 			WithArgs(userID)
 	}
 
@@ -130,8 +137,11 @@ func TestMySqlListsRepositoryCreateList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	list := domain.List{UserID: 1, Name: "list1"}
 
@@ -172,8 +182,11 @@ func TestMySqlListsRepositoryDeleteList(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	userID := int32(1)
 	listID := int32(11)
@@ -181,7 +194,7 @@ func TestMySqlListsRepositoryDeleteList(t *testing.T) {
 	repo := NewMySqlListsRepository(db)
 
 	expectedRemoveListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `lists` WHERE (`lists`.`id` = ?) AND (`lists`.`userId` = ?)")).
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")).
 			WithArgs(listID, userID)
 	}
 
@@ -215,15 +228,18 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
 	list := domain.List{ID: 11, UserID: 1, Name: "list1"}
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name` = ? WHERE `lists`.`id` = ?")).
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=? WHERE `id` = ?")).
 			WithArgs("list1", int32(11))
 	}
 
@@ -257,13 +273,16 @@ func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `itemsCount` = itemsCount + ? WHERE (`lists`.`id` = ?)")).
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `itemsCount`=itemsCount + ? WHERE `lists`.`id` = ?")).
 			WithArgs(1, int32(11))
 	}
 
@@ -297,13 +316,16 @@ func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `itemsCount` = itemsCount - ? WHERE (`lists`.`id` = ?)")).
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `itemsCount`=itemsCount - ? WHERE `lists`.`id` = ?")).
 			WithArgs(1, int32(11))
 	}
 
@@ -337,8 +359,11 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
@@ -347,7 +372,7 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 	itemID := int32(111)
 
 	expectedGetItemQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE (`listItems`.`id` = ?) AND (`listItems`.`listId` = ?) AND (`listItems`.`userId` = ?) ORDER BY `listItems`.`id` ASC LIMIT 1")).
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? AND `listItems`.`listId` = ? AND `listItems`.`userId` = ? ORDER BY `listItems`.`id` LIMIT 1")).
 			WithArgs(itemID, listID, userID)
 	}
 
@@ -374,7 +399,7 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 	})
 
 	t.Run("should get an item", func(t *testing.T) {
-		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, "title", "description"))
+		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, "title", "description", 0))
 
 		res, err := repo.FindListItemByID(itemID, listID, userID)
 
@@ -392,8 +417,11 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
@@ -401,7 +429,7 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	listID := int32(11)
 
 	expectedGetAllItemsQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE (`listItems`.`listId` = ?) AND (`listItems`.`userId` = ?)")).
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`listId` = ? AND `listItems`.`userId` = ? ORDER BY position")).
 			WithArgs(listID, userID)
 	}
 
@@ -417,7 +445,7 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	})
 
 	t.Run("should get all the items", func(t *testing.T) {
-		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), listID, "title1", "desc1").AddRow(int32(112), listID, "title2", "desc2"))
+		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), listID, "title1", "desc1", 0).AddRow(int32(112), listID, "title2", "desc2", 1))
 
 		res, err := repo.GetAllListItems(listID, userID)
 
@@ -425,8 +453,10 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 		require.Equal(t, 2, len(res))
 		assert.Equal(t, domain.ItemTitle("title1"), res[0].Title)
 		assert.Equal(t, "desc1", res[0].Description)
+		assert.Equal(t, int32(0), res[0].Position)
 		assert.Equal(t, domain.ItemTitle("title2"), res[1].Title)
 		assert.Equal(t, "desc2", res[1].Description)
+		assert.Equal(t, int32(1), res[1].Position)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)
@@ -438,16 +468,19 @@ func TestMySqlListsRepositoryCreateListItem(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
 	item := domain.ListItem{ListID: 11, UserID: 1, Title: "title", Description: "desc"}
 
 	expectedInsertListItemExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`) VALUES (?,?,?,?)")).
-			WithArgs(int32(11), int32(1), "title", "desc")
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`) VALUES (?,?,?,?,?)")).
+			WithArgs(int32(11), int32(1), "title", "desc", int32(0))
 	}
 
 	t.Run("should return an error if create fails", func(t *testing.T) {
@@ -480,8 +513,11 @@ func TestMySqlListsRepositoryDeleteListItem(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
@@ -490,7 +526,7 @@ func TestMySqlListsRepositoryDeleteListItem(t *testing.T) {
 	itemID := int32(111)
 
 	expectedRemoveListItemExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE (`listItems`.`id` = ?) AND (`listItems`.`listId` = ?) AND (`listItems`.`userId` = ?)")).
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE `listItems`.`id` = ? AND `listItems`.`listId` = ? AND `listItems`.`userId` = ?")).
 			WithArgs(itemID, listID, userID)
 	}
 
@@ -524,16 +560,19 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
-	db, err := gorm.Open("mysql", mockDb)
-	defer db.Close()
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
 
 	repo := NewMySqlListsRepository(db)
 
 	item := domain.ListItem{ID: 111, ListID: 11, UserID: 1, Title: "title", Description: "desc"}
 
 	expectedUpdateListItemExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId` = ?, `userId` = ?, `title` = ?, `description` = ? WHERE `listItems`.`id` = ?")).
-			WithArgs(int32(11), int32(1), "title", "desc", int32(111))
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId`=?,`userId`=?,`title`=?,`description`=?,`position`=? WHERE `id` = ?")).
+			WithArgs(int32(11), int32(1), "title", "desc", int32(0), int32(111))
 	}
 
 	t.Run("should return an error if update fails", func(t *testing.T) {
@@ -552,12 +591,104 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 		mock.ExpectBegin()
 		expectedUpdateListItemExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? ORDER BY `listItems`.`id` ASC LIMIT 1")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `id` = ? ORDER BY `listItems`.`id` LIMIT 1")).
 			WithArgs(int32(111)).
-			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), int32(11), "title", "desc"))
+			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), int32(11), "title", "desc", 0))
 
 		err := repo.UpdateListItem(&item)
 
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
+func TestBulkUpdateListItems(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
+
+	repo := NewMySqlListsRepository(db)
+
+	item1 := domain.ListItem{ID: 1, Position: 0}
+	item2 := domain.ListItem{ID: 2, Position: 1}
+	item3 := domain.ListItem{ID: 3, Position: 2}
+	items := []domain.ListItem{item1, item2, item3}
+
+	expectedUpdateListItemsExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`,`id`) VALUES (?,?,?,?,?,?),(?,?,?,?,?,?),(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `position`=VALUES(`position`)")).
+			WithArgs(int32(0), int32(0), "", "", int32(0), int32(1), int32(0), int32(0), "", "", int32(1), int32(2), int32(0), int32(0), "", "", int32(2), int32(3))
+	}
+
+	t.Run("should return an error if update fails", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListItemsExec().WillReturnError(fmt.Errorf("some error"))
+		mock.ExpectRollback()
+
+		err := repo.BulkUpdateListItems(items)
+
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should update the list items position", func(t *testing.T) {
+		mock.ExpectBegin()
+		expectedUpdateListItemsExec().WillReturnResult(sqlmock.NewResult(0, 0))
+		mock.ExpectCommit()
+
+		err := repo.BulkUpdateListItems(items)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
+func TestGetListItemsMaxPosition(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
+
+	repo := NewMySqlListsRepository(db)
+
+	userID := int32(1)
+	listID := int32(11)
+
+	expectedGetAllItemsQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT MAX(position) FROM `listItems` WHERE `listItems`.`listId` = ? AND `listItems`.`userId` = ?")).
+			WithArgs(listID, userID)
+	}
+
+	t.Run("should return an error if the get fails", func(t *testing.T) {
+		expectedGetAllItemsQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.GetListItemsMaxPosition(listID, userID)
+
+		assert.Equal(t, int32(-1), res)
+		assert.EqualError(t, err, "some error; some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should get the max position", func(t *testing.T) {
+		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows([]string{""}).AddRow(int32(3)))
+
+		res, err := repo.GetListItemsMaxPosition(listID, userID)
+
+		require.NotNil(t, res)
+		require.Equal(t, int32(3), res)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)

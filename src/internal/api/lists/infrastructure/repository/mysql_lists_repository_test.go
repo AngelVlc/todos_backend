@@ -79,6 +79,65 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	})
 }
 
+func TestMySqlListsRepositoryFindListByName(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
+
+	repo := NewMySqlListsRepository(db)
+
+	name := domain.ListName("list name")
+	userID := int32(1)
+
+	expectedFindByIDQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
+			WithArgs(name, userID)
+	}
+
+	t.Run("should not return a list if it does not exist", func(t *testing.T) {
+		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns))
+
+		res, err := repo.FindListByName(name, userID)
+
+		assert.Nil(t, res)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.FindListByName(name, userID)
+
+		assert.Nil(t, res)
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return the user if it exists", func(t *testing.T) {
+		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(int32(1), "list name", userID, int32(3)))
+
+		res, err := repo.FindListByName(name, userID)
+
+		require.NotNil(t, res)
+		assert.Equal(t, int32(1), res.ID)
+		assert.Equal(t, domain.ListName("list name"), res.Name)
+		assert.Equal(t, userID, res.UserID)
+		assert.Equal(t, int32(3), res.ItemsCount)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {

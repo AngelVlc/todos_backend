@@ -17,33 +17,11 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 }
 
 func (r *MySqlAuthRepository) FindUserByName(userName domain.UserName) (*domain.User, error) {
-	foundUser := domain.User{}
-	err := r.db.Where(domain.User{Name: userName}).First(&foundUser).Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &foundUser, nil
+	return r.findUser(domain.User{Name: userName})
 }
 
 func (r *MySqlAuthRepository) FindUserByID(userID int32) (*domain.User, error) {
-	foundUser := domain.User{}
-	err := r.db.Where(domain.User{ID: userID}).First(&foundUser).Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &foundUser, nil
+	return r.findUser(domain.User{ID: userID})
 }
 
 func (r *MySqlAuthRepository) GetAllUsers() ([]domain.User, error) {
@@ -105,4 +83,19 @@ func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
 		return err
 	}
 	return nil
+}
+
+func (r *MySqlAuthRepository) findUser(where domain.User) (*domain.User, error) {
+	foundUser := domain.User{}
+	err := r.db.Where(where).First(&foundUser).Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &foundUser, nil
 }

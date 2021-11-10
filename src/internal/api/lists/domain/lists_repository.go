@@ -2,6 +2,7 @@ package domain
 
 type ListsRepository interface {
 	FindListByID(listID int32, userID int32) (*List, error)
+	FindListByName(name ListName, userID int32) (*List, error)
 	GetAllLists(userID int32) ([]List, error)
 	CreateList(list *List) error
 	DeleteList(listID int32, userID int32) error

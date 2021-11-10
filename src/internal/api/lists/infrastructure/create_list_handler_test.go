@@ -71,7 +71,26 @@ func TestCreateListHandler(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
+	t.Run("Should return an error result with an UnexpectedError if the query to find a list by name fails", func(t *testing.T) {
+		mockedRepo.On("FindListByName", domain.ListName("list1"), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+
+		result := CreateListHandler(httptest.NewRecorder(), request(), h)
+
+		results.CheckUnexpectedErrorResult(t, result, "Error getting list by name")
+		mockedRepo.AssertExpectations(t)
+	})
+
+	t.Run("Should return an error result with a BadRequestError if a list with the same name already exist", func(t *testing.T) {
+		mockedRepo.On("FindListByName", domain.ListName("list1"), int32(1)).Return(&domain.List{ID: int32(1)}, nil).Once()
+
+		result := CreateListHandler(httptest.NewRecorder(), request(), h)
+
+		results.CheckBadRequestErrorResult(t, result, "A list with the same name already exists")
+		mockedRepo.AssertExpectations(t)
+	})
+
 	t.Run("Should return an error result with an UnexpectedError if create user list fails", func(t *testing.T) {
+		mockedRepo.On("FindListByName", domain.ListName("list1"), int32(1)).Return(nil, nil).Once()
 		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1)}
 		mockedRepo.On("CreateList", &list).Return(fmt.Errorf("some error")).Once()
 
@@ -82,6 +101,7 @@ func TestCreateListHandler(t *testing.T) {
 	})
 
 	t.Run("should create the new user list", func(t *testing.T) {
+		mockedRepo.On("FindListByName", domain.ListName("list1"), int32(1)).Return(nil, nil).Once()
 		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1)}
 		mockedRepo.On("CreateList", &list).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(0).(*domain.List)

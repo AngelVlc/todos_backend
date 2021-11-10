@@ -14,12 +14,17 @@ func NewCreateListService(repo domain.ListsRepository) *CreateListService {
 }
 
 func (s *CreateListService) CreateList(name domain.ListName, userID int32) (*domain.List, error) {
+	err := name.CheckIfAlreadyExists(userID, s.repo)
+	if err != nil {
+		return nil, err
+	}
+
 	list := domain.List{
 		Name:   name,
 		UserID: userID,
 	}
 
-	err := s.repo.CreateList(&list)
+	err = s.repo.CreateList(&list)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user list", InternalError: err}
 	}

@@ -21,6 +21,14 @@ func (m *MockedListsRepository) FindListByID(listID int32, userID int32) (*domai
 	return args.Get(0).(*domain.List), args.Error(1)
 }
 
+func (m *MockedListsRepository) FindListByName(name domain.ListName, userID int32) (*domain.List, error) {
+	args := m.Called(name, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domain.List), args.Error(1)
+}
+
 func (m *MockedListsRepository) GetAllLists(userID int32) ([]domain.List, error) {
 	args := m.Called(userID)
 	if args.Get(0) == nil {

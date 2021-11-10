@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 type TokenService interface {

@@ -13,3 +13,16 @@ func NewListName(name string) (ListName, error) {
 
 	return ListName(name), nil
 }
+
+func (l ListName) CheckIfAlreadyExists(userID int32, repo ListsRepository) error {
+	foundList, err := repo.FindListByName(l, userID)
+	if err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error getting list by name", InternalError: err}
+	}
+
+	if foundList != nil {
+		return &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
+	}
+
+	return nil
+}

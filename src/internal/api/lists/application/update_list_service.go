@@ -23,6 +23,13 @@ func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userI
 		return nil, &appErrors.BadRequestError{Msg: "The list does not exist"}
 	}
 
+	if foundList.Name != name {
+		err = name.CheckIfAlreadyExists(userID, s.repo)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	foundList.Name = name
 
 	err = s.repo.UpdateList(foundList)

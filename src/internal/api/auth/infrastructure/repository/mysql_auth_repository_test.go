@@ -17,7 +17,7 @@ import (
 )
 
 var (
-	userColumns         = []string{"id", "name", "password_hash", "is_admin"}
+	userColumns         = []string{"id", "name", "passwordHash", "isAdmin"}
 	refreshTokenColumns = []string{"id", "userId", "refreshToken", "expirationDate"}
 )
 
@@ -148,7 +148,7 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 	repo := NewMySqlAuthRepository(db)
 
 	expectedGetUsersQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,is_admin FROM `users`"))
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,isAdmin FROM `users`"))
 	}
 
 	t.Run("should return an error if the query fails", func(t *testing.T) {
@@ -198,7 +198,7 @@ func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
 	repo := NewMySqlAuthRepository(db)
 
 	expectedInsertExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`password_hash`,`is_admin`) VALUES (?,?,?)")).
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
 			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
 	}
 
@@ -288,7 +288,7 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 	repo := NewMySqlAuthRepository(db)
 
 	expectedUpdateExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`password_hash`=?,`is_admin`=? WHERE `id` = ?")).
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`passwordHash`=?,`isAdmin`=? WHERE `id` = ?")).
 			WithArgs("userName", "hash", false, 11)
 	}
 

@@ -96,7 +96,6 @@ func main() {
 	cancel()
 
 	defer os.Exit(0)
-	return
 }
 
 func initDb(c sharedApp.ConfigurationService) (*gorm.DB, error) {
@@ -119,7 +118,7 @@ func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, db *gorm.DB)
 
 	if foundAdmin == nil {
 		passGen := wire.InitPasswordGenerator()
-		hassedPass, err := passGen.GenerateFromPassword(cfg.GetAdminPassword())
+		hassedPass, _ := passGen.GenerateFromPassword(cfg.GetAdminPassword())
 
 		user := authDomain.User{
 			Name:         "admin",

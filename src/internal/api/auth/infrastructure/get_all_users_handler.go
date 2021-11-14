@@ -12,7 +12,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request, h handler.Handle
 	srv := application.NewGetAllUsersService(h.AuthRepository)
 	foundUsers, err := srv.GetAllUsers()
 	if err != nil {
-		return results.ErrorResult{err}
+		return results.ErrorResult{Err: err}
 	}
 
 	res := make([]*UserResponse, len(foundUsers))
@@ -25,5 +25,5 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request, h handler.Handle
 		}
 	}
 
-	return results.OkResult{res, http.StatusOK}
+	return results.OkResult{Content: res, StatusCode: http.StatusOK}
 }

@@ -11,7 +11,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
@@ -90,7 +89,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should return an errorResult with a BadRequestError if tries to update the name of the admin user", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "newAdmin"}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{Name: domain.UserName("admin")}
+		foundUser := authDomain.User{Name: authDomain.UserName("admin")}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
@@ -102,7 +101,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should return an errorResult with a BadRequestError if tries to update isAdmin of the admin user", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "admin", IsAdmin: false}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{Name: domain.UserName("admin")}
+		foundUser := authDomain.User{Name: authDomain.UserName("admin")}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
@@ -114,9 +113,9 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should return an errorResult with an UnexpectedError if finding the user by name fails", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "wadusR", Password: "newPass", ConfirmPassword: "newPass"}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{Name: domain.UserName("wadus")}
+		foundUser := authDomain.User{Name: authDomain.UserName("wadus")}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
-		mockedRepo.On("FindUserByName", domain.UserName("wadusR")).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindUserByName", authDomain.UserName("wadusR")).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
 
@@ -128,10 +127,10 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should return an errorResult with an BadRequestError if the new username already exists", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "wadusR", Password: "newPass", ConfirmPassword: "newPass"}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{Name: domain.UserName("wadus")}
+		foundUser := authDomain.User{Name: authDomain.UserName("wadus")}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
-		existingUser := domain.User{Name: domain.UserName("wadusR")}
-		mockedRepo.On("FindUserByName", domain.UserName("wadusR")).Return(&existingUser, nil).Once()
+		existingUser := authDomain.User{Name: authDomain.UserName("wadusR")}
+		mockedRepo.On("FindUserByName", authDomain.UserName("wadusR")).Return(&existingUser, nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), request(body), h)
 
@@ -143,7 +142,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should return an error result with an UnexpectedError if generate the password fails", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "wadus", Password: "newPass", ConfirmPassword: "newPass"}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{Name: domain.UserName("wadus")}
+		foundUser := authDomain.User{Name: authDomain.UserName("wadus")}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
 		mockedPassGen.On("GenerateFromPassword", "newPass").Return("", fmt.Errorf("some error")).Once()
 
@@ -157,7 +156,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should return an error result with an UnexpectedError if the update fails", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "wadusUpdated"}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{Name: domain.UserName("wadus")}
+		foundUser := authDomain.User{Name: authDomain.UserName("wadus")}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
 		foundUser.Name = authDomain.UserName("wadusUpdated")
 		mockedRepo.On("UpdateUser", &foundUser).Return(fmt.Errorf("some error")).Once()
@@ -172,10 +171,10 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should update the user name", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "wadusUpdated"}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
+		foundUser := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
-		mockedRepo.On("FindUserByName", domain.UserName("wadusUpdated")).Return(nil, nil).Once()
-		foundUser2 := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
+		mockedRepo.On("FindUserByName", authDomain.UserName("wadusUpdated")).Return(nil, nil).Once()
+		foundUser2 := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		foundUser2.Name = authDomain.UserName("wadusUpdated")
 		mockedRepo.On("UpdateUser", &foundUser2).Return(nil).Once()
 
@@ -196,7 +195,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should update the password", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "wadus", Password: "newPass", ConfirmPassword: "newPass"}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
+		foundUser := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
 		mockedPassGen.On("GenerateFromPassword", "newPass").Return("hassedPass", nil).Once()
 		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()
@@ -218,7 +217,7 @@ func TestUpdateUserHandler(t *testing.T) {
 	t.Run("Should update the is admin value", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "wadus", IsAdmin: true}
 		body, _ := json.Marshal(updateReq)
-		foundUser := domain.User{ID: int32(1), Name: domain.UserName("wadus"), IsAdmin: false}
+		foundUser := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
 		foundUser.IsAdmin = true
 		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()

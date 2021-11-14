@@ -1,9 +1,14 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
@@ -49,10 +54,49 @@ func main() {
 	validCorsMethods := handlers.AllowedMethods([]string{"GET", "DELETE", "POST", "PUT", "OPTIONS"})
 	allowCredentials := handlers.AllowCredentials()
 
-	log.Printf("Listening on port %v ...\n", port)
-	if err = http.ListenAndServe(address, handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods, allowCredentials)(s)); err != nil {
-		log.Fatalf("could not listen on port %v %v", port, err)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	httpServer := &http.Server{
+		Addr:         address,
+		Handler:      handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods, allowCredentials)(s),
+		WriteTimeout: 5 * time.Second,
+		ReadTimeout:  5 * time.Second,
+		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 	}
+
+	go func() {
+		log.Printf("Listening on port %v ...\n", port)
+		if err = http.ListenAndServe(address, handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods, allowCredentials)(s)); err != nil {
+			log.Fatalf("could not listen on port %v %v", port, err)
+		}
+	}()
+
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	<-sigChan
+	log.Print("os.Interrupt - shutting down...\n")
+
+	go func() {
+		<-sigChan
+		log.Fatal("os.Kill - terminating...\n")
+	}()
+
+	gracefullCtx, cancelShutdown := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancelShutdown()
+
+	if err := httpServer.Shutdown(gracefullCtx); err != nil {
+		log.Printf("shutdown error: %v\n", err)
+		defer os.Exit(1)
+		return
+	} else {
+		log.Println("gracefully stopped")
+	}
+
+	cancel()
+
+	defer os.Exit(0)
+	return
 }
 
 func initDb(c sharedApp.ConfigurationService) (*gorm.DB, error) {

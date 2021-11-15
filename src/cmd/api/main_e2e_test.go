@@ -22,12 +22,15 @@ import (
 func TestEndtoEnd(t *testing.T) {
 	baseURL := os.Getenv("BASE_URL")
 	require.NotNil(t, baseURL)
+	require.NotEmpty(t, baseURL)
 
 	adminPass := os.Getenv("ADMIN_PASSWORD")
 	require.NotNil(t, adminPass)
+	require.NotEmpty(t, adminPass)
 
 	client := &http.Client{}
 
+	// Login
 	loginBody := fmt.Sprintf("{\"username\": \"admin\",\"password\": \"%v\"}", adminPass)
 	req := createRequest(t, "POST", baseURL+"/auth/login", strings.NewReader(loginBody), nil)
 	req.Header.Set("Content-type", "application/json")
@@ -40,15 +43,25 @@ func TestEndtoEnd(t *testing.T) {
 
 	loginResCookies := res.Cookies()
 
-	req = createRequest(t, "GET", baseURL+"/users/1", nil, loginResCookies)
+	// Get users
+	req = createRequest(t, "GET", baseURL+"/users", nil, loginResCookies)
+	res, err = client.Do(req)
+	require.Nil(t, err)
+	require.Equal(t, 200, res.StatusCode)
+	usersRes := []authInfra.UserResponse{}
+	err = objFromRes(res.Body, &usersRes)
+	require.Nil(t, err)
+
+	// Get user with the first id
+	req = createRequest(t, "GET", fmt.Sprintf("%v/users/%v", baseURL, usersRes[0].ID), nil, loginResCookies)
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
 	userRes := authInfra.UserResponse{}
 	err = objFromRes(res.Body, &userRes)
 	require.Nil(t, err)
-	require.True(t, userRes.IsAdmin)
 
+	// Creates a list
 	listName := fmt.Sprintf("test %v", time.Now().Format("2006-01-02T15:04:05-0700"))
 	listBody := fmt.Sprintf("{\"name\": \"%v\"}", listName)
 	req = createRequest(t, "POST", baseURL+"/lists", strings.NewReader(listBody), loginResCookies)
@@ -60,16 +73,18 @@ func TestEndtoEnd(t *testing.T) {
 	require.Nil(t, err)
 	listID := fmt.Sprint(createdRes.ID)
 
-	req = createRequest(t, "DELETE", baseURL+"/lists/"+string(listID), nil, loginResCookies)
-	res, err = client.Do(req)
-	require.Nil(t, err)
-	require.Equal(t, 204, res.StatusCode)
-
+	// Refreshes the token
 	req = createRequest(t, "POST", baseURL+"/auth/refreshtoken", nil, loginResCookies)
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
 	require.Equal(t, 1, len(res.Cookies()))
+
+	// Removes a list
+	req = createRequest(t, "DELETE", baseURL+"/lists/"+string(listID), nil, loginResCookies)
+	res, err = client.Do(req)
+	require.Nil(t, err)
+	require.Equal(t, 204, res.StatusCode)
 }
 
 func bufferFromBody(body interface{}) (*bytes.Buffer, error) {

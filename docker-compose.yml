@@ -26,8 +26,6 @@ services:
     build:
       context: ./src/
       target: base
-    depends_on:
-      - app
     volumes:
       - './src:/go/src'      
     env_file: 

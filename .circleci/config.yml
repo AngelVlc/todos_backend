@@ -11,6 +11,12 @@ workflows:
             filters:
               branches:
                 only: master
+        - smoke:
+            requires:
+              - deploy
+            filters:
+              branches:
+                only: master
 
 commands:
   install_terraform:
@@ -47,3 +53,9 @@ jobs:
       - run: docker tag todos-release registry.heroku.com/$APP_NAME/web
       - run: docker push registry.heroku.com/$APP_NAME/web
       - run: heroku container:release --app $APP_NAME web
+  smoke:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - checkout
+      - run: HEROKU_URL=`heroku apps:info -a $APP_NAME -s | sed -n 's/.*web_url=//p' | sed 's/\/\([^\/]*\)$/\1/'` && docker-compose run --rm -e BASE_URL=$HEROKU_URL -e ADMIN_PASSWORD=$ADMIN_PASSWORD app-e2e

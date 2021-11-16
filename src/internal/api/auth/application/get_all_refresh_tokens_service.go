@@ -11,12 +11,13 @@ type GetAllRefreshTokensService struct {
 	repo domain.AuthRepository
 }
 
-func NewGetAllRefreshTokensService(repo domain.AuthRepository) *GetAllUsersService {
-	return &GetAllUsersService{repo}
+func NewGetAllRefreshTokensService(repo domain.AuthRepository) *GetAllRefreshTokensService {
+	return &GetAllRefreshTokensService{repo}
 }
 
-func (s *GetAllUsersService) GetAllRefreshTokens(ctx context.Context) ([]domain.RefreshToken, error) {
+func (s *GetAllRefreshTokensService) GetAllRefreshTokens(ctx context.Context) ([]domain.RefreshToken, error) {
 	found, err := s.repo.GetAllRefreshTokens(ctx)
+
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting refresh tokens", InternalError: err}
 	}

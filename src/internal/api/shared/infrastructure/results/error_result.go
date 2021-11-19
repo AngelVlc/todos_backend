@@ -16,6 +16,13 @@ func (e ErrorResult) IsError() bool {
 	return true
 }
 
+func CheckError(t *testing.T, result interface{}, errorMsg string) {
+	require.NotNil(t, result)
+	errorRes, isErrorResult := result.(ErrorResult)
+	require.Equal(t, true, isErrorResult, "should be an error result")
+	assert.Equal(t, errorMsg, errorRes.Err.Error())
+}
+
 func CheckBadRequestErrorResult(t *testing.T, result interface{}, errorMsg string) {
 	require.NotNil(t, result)
 	errorRes, isErrorResult := result.(ErrorResult)

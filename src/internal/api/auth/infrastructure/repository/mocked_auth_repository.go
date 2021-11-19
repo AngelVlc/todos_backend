@@ -15,6 +15,11 @@ func NewMockedAuthRepository() *MockedAuthRepository {
 	return &MockedAuthRepository{}
 }
 
+func (m *MockedAuthRepository) ExistsUser(userName domain.UserName) (bool, error) {
+	args := m.Called(userName)
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockedAuthRepository) FindUserByID(userID int32) (*domain.User, error) {
 	args := m.Called(userID)
 	if args.Get(0) == nil {

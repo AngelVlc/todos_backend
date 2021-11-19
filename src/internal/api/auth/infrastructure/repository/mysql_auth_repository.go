@@ -16,6 +16,17 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 	return &MySqlAuthRepository{db}
 }
 
+func (r *MySqlAuthRepository) ExistsUser(userName domain.UserName) (bool, error) {
+	count := int64(0)
+	err := r.db.Model(&domain.User{}).Where(domain.User{Name: userName}).Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
 func (r *MySqlAuthRepository) FindUserByName(userName domain.UserName) (*domain.User, error) {
 	return r.findUser(domain.User{Name: userName})
 }

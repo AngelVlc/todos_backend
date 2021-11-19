@@ -21,6 +21,49 @@ var (
 	refreshTokenColumns = []string{"id", "userId", "refreshToken", "expirationDate"}
 )
 
+func TestMySqlAuthRepositoryExistsUser(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
+
+	repo := NewMySqlAuthRepository(db)
+
+	userName := domain.UserName("userName")
+
+	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
+			WithArgs("userName")
+	}
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		expectedExistsQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.ExistsUser(userName)
+
+		assert.False(t, res)
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return true if the user exists", func(t *testing.T) {
+		expectedExistsQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+		res, err := repo.ExistsUser(userName)
+
+		assert.True(t, res)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {

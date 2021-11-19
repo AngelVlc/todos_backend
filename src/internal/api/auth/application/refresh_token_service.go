@@ -26,11 +26,7 @@ func (s *LoginService) RefreshToken(rt string) (string, error) {
 
 	foundUser, err := s.repo.FindUserByID(rtInfo.UserID)
 	if err != nil {
-		return "", &appErrors.UnexpectedError{Msg: "Error getting user by user id", InternalError: err}
-	}
-
-	if foundUser == nil {
-		return "", &appErrors.UnauthorizedError{Msg: "The user no longer exists"}
+		return "", err
 	}
 
 	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(rt, rtInfo.UserID)

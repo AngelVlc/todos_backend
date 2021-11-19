@@ -52,7 +52,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedTokenSrv.AssertExpectations(t)
 	})
 
-	t.Run("Should return an errorResult with an UnexpectedError if getting the user by id fails", func(t *testing.T) {
+	t.Run("Should return an error if getting the user by id fails", func(t *testing.T) {
 		token := jwt.Token{Valid: true}
 		mockedTokenSrv.On("ParseToken", "token").Return(&token, nil).Once()
 		rtClaims := domain.RefreshTokenClaimsInfo{UserID: 1}
@@ -63,24 +63,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
-		results.CheckUnexpectedErrorResult(t, result, "Error getting user by user id")
-		mockedCfgSrv.AssertExpectations(t)
-		mockedRepo.AssertExpectations(t)
-		mockedTokenSrv.AssertExpectations(t)
-	})
-
-	t.Run("Should return an errorResult with an UnauthorizedError if the user no longer exists", func(t *testing.T) {
-		token := jwt.Token{Valid: true}
-		mockedTokenSrv.On("ParseToken", "token").Return(&token, nil).Once()
-		rtClaims := domain.RefreshTokenClaimsInfo{UserID: 1}
-		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
-		request, _ := http.NewRequest(http.MethodPost, "/", nil)
-		request.AddCookie(getRefreshTokenCookie("token"))
-		mockedRepo.On("FindUserByID", int32(1)).Return(nil, nil).Once()
-
-		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckUnauthorizedErrorErrorResult(t, result, "The user no longer exists")
+		results.CheckError(t, result, "some error")
 		mockedCfgSrv.AssertExpectations(t)
 		mockedRepo.AssertExpectations(t)
 		mockedTokenSrv.AssertExpectations(t)

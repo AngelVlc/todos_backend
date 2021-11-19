@@ -20,6 +20,50 @@ var (
 	listItemsColumns = []string{"id", "listId", "title", "description", "position"}
 )
 
+func TestMySqlListsRepositoryExistsList(t *testing.T) {
+	mockDb, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
+	}
+
+	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
+	if err != nil {
+		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
+	}
+
+	repo := NewMySqlListsRepository(db)
+
+	name := domain.ListName("list name")
+	userID := int32(1)
+
+	expectedExistsListQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
+			WithArgs(name, userID)
+	}
+
+	t.Run("should return an error if the query fails", func(t *testing.T) {
+		expectedExistsListQuery().WillReturnError(fmt.Errorf("some error"))
+
+		res, err := repo.ExistsList(name, userID)
+
+		assert.False(t, res)
+		assert.EqualError(t, err, "some error")
+
+		checkMockExpectations(t, mock)
+	})
+
+	t.Run("should return true if the list exists", func(t *testing.T) {
+		expectedExistsListQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+		res, err := repo.ExistsList(name, userID)
+
+		assert.True(t, res)
+		assert.Nil(t, err)
+
+		checkMockExpectations(t, mock)
+	})
+}
+
 func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {
@@ -41,17 +85,6 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 			WithArgs(listID, userID)
 	}
 
-	t.Run("should not return a list if it does not exist", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns))
-
-		res, err := repo.FindListByID(listID, userID)
-
-		assert.Nil(t, res)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
-
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
@@ -71,65 +104,6 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 		require.NotNil(t, res)
 		assert.Equal(t, listID, res.ID)
 		assert.Equal(t, domain.ListName("list1"), res.Name)
-		assert.Equal(t, userID, res.UserID)
-		assert.Equal(t, int32(3), res.ItemsCount)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
-}
-
-func TestMySqlListsRepositoryFindListByName(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
-	repo := NewMySqlListsRepository(db)
-
-	name := domain.ListName("list name")
-	userID := int32(1)
-
-	expectedFindByIDQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
-			WithArgs(name, userID)
-	}
-
-	t.Run("should not return a list if it does not exist", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns))
-
-		res, err := repo.FindListByName(name, userID)
-
-		assert.Nil(t, res)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("should return an error if the query fails", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
-
-		res, err := repo.FindListByName(name, userID)
-
-		assert.Nil(t, res)
-		assert.EqualError(t, err, "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("should return the user if it exists", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(int32(1), "list name", userID, int32(3)))
-
-		res, err := repo.FindListByName(name, userID)
-
-		require.NotNil(t, res)
-		assert.Equal(t, int32(1), res.ID)
-		assert.Equal(t, domain.ListName("list name"), res.Name)
 		assert.Equal(t, userID, res.UserID)
 		assert.Equal(t, int32(3), res.ItemsCount)
 		assert.Nil(t, err)
@@ -442,17 +416,6 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("should not return an item if it does not exist", func(t *testing.T) {
-		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns))
-
-		res, err := repo.FindListItemByID(itemID, listID, userID)
-
-		assert.Nil(t, res)
-		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)
 	})

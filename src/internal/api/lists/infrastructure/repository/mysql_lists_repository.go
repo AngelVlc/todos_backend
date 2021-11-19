@@ -1,8 +1,6 @@
 package repository
 
 import (
-	"errors"
-
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -16,12 +14,26 @@ func NewMySqlListsRepository(db *gorm.DB) *MySqlListsRepository {
 	return &MySqlListsRepository{db}
 }
 
-func (r *MySqlListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
-	return r.findList(domain.List{ID: listID, UserID: userID})
+func (r *MySqlListsRepository) ExistsList(name domain.ListName, userID int32) (bool, error) {
+	count := int64(0)
+	err := r.db.Model(&domain.List{}).Where(domain.List{Name: name, UserID: userID}).Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
 
-func (r *MySqlListsRepository) FindListByName(name domain.ListName, userID int32) (*domain.List, error) {
-	return r.findList(domain.List{Name: name, UserID: userID})
+func (r *MySqlListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
+	found := domain.List{}
+	err := r.db.Where(domain.List{ID: listID, UserID: userID}).First(&found).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &found, nil
 }
 
 func (r *MySqlListsRepository) GetAllLists(userID int32) ([]domain.List, error) {
@@ -53,7 +65,14 @@ func (r *MySqlListsRepository) DecrementListCounter(listID int32) error {
 }
 
 func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
-	return r.findListItem(domain.ListItem{ID: itemID, ListID: listID, UserID: userID})
+	found := domain.ListItem{}
+	err := r.db.Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).First(&found).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &found, nil
 }
 
 func (r *MySqlListsRepository) GetAllListItems(listID int32, userID int32) ([]domain.ListItem, error) {
@@ -89,34 +108,4 @@ func (r *MySqlListsRepository) GetListItemsMaxPosition(listID int32, userID int3
 		return res, err
 	}
 	return res, nil
-}
-
-func (r *MySqlListsRepository) findList(where domain.List) (*domain.List, error) {
-	found := domain.List{}
-	err := r.db.Where(where).First(&found).Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &found, nil
-}
-
-func (r *MySqlListsRepository) findListItem(where domain.ListItem) (*domain.ListItem, error) {
-	found := domain.ListItem{}
-	err := r.db.Where(where).First(&found).Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &found, nil
 }

@@ -18,11 +18,7 @@ func NewUpdateUserService(repo domain.AuthRepository, passGen passgen.PasswordGe
 func (s *UpdateUserService) UpdateUser(userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
 	foundUser, err := s.repo.FindUserByID(userID)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by id", InternalError: err}
-	}
-
-	if foundUser == nil {
-		return nil, &appErrors.BadRequestError{Msg: "The user does not exist"}
+		return nil, err
 	}
 
 	if foundUser.IsTheAdminUser() {

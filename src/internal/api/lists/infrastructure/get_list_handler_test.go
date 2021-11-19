@@ -33,21 +33,12 @@ func TestGetListHandler(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	t.Run("Should return an errorResult with an UnexpectedError if the query to find the list fails", func(t *testing.T) {
+	t.Run("Should return an error if the query to find the list fails", func(t *testing.T) {
 		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := GetListHandler(httptest.NewRecorder(), request(), h)
 
-		results.CheckUnexpectedErrorResult(t, result, "Error getting the user list")
-		mockedRepo.AssertExpectations(t)
-	})
-
-	t.Run("should return an errorResult with a BadRequestError if the list does not exits", func(t *testing.T) {
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(nil, nil).Once()
-
-		result := GetListHandler(httptest.NewRecorder(), request(), h)
-
-		results.CheckBadRequestErrorResult(t, result, "The list does not exist")
+		results.CheckError(t, result, "some error")
 		mockedRepo.AssertExpectations(t)
 	})
 

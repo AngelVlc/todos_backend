@@ -15,12 +15,13 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"gorm.io/gorm"
 )
 
 func TestHandlerServeHTTP(t *testing.T) {
 	t.Run("Returns 200 when no error", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return results.OkResult{nil, http.StatusOK}
+			return results.OkResult{Content: nil, StatusCode: http.StatusOK}
 		}
 
 		handler := Handler{
@@ -41,7 +42,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 				Field1 string
 				Field2 string
 			}{Field1: "a", Field2: "b"}
-			return results.OkResult{obj, http.StatusOK}
+			return results.OkResult{Content: obj, StatusCode: http.StatusOK}
 		}
 
 		handler := Handler{
@@ -64,7 +65,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 
 	t.Run("Returns 500 when an unexpected error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return results.ErrorResult{&appErrors.UnexpectedError{Msg: "error", InternalError: errors.New("msg")}}
+			return results.ErrorResult{Err: &appErrors.UnexpectedError{Msg: "error", InternalError: errors.New("msg")}}
 		}
 
 		handler := Handler{
@@ -82,7 +83,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 
 	t.Run("Returns 404 when a not found error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return results.ErrorResult{&appErrors.NotFoundError{Model: "model"}}
+			return results.ErrorResult{Err: gorm.ErrRecordNotFound}
 		}
 
 		handler := Handler{
@@ -95,12 +96,12 @@ func TestHandlerServeHTTP(t *testing.T) {
 		handler.ServeHTTP(response, request)
 
 		assert.Equal(t, http.StatusNotFound, response.Result().StatusCode)
-		assert.Equal(t, "model not found\n", string(response.Body.String()))
+		assert.Equal(t, "Not found\n", string(response.Body.String()))
 	})
 
 	t.Run("Returns 400 when a bad request error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return results.ErrorResult{&appErrors.BadRequestError{Msg: fmt.Sprintf("%q is not a valid id", "id")}}
+			return results.ErrorResult{Err: &appErrors.BadRequestError{Msg: fmt.Sprintf("%q is not a valid id", "id")}}
 		}
 
 		handler := Handler{
@@ -118,7 +119,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 
 	t.Run("Returns 401 when an unauthorized error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return results.ErrorResult{&appErrors.UnauthorizedError{Msg: "wadus"}}
+			return results.ErrorResult{Err: &appErrors.UnauthorizedError{Msg: "wadus"}}
 		}
 
 		handler := Handler{
@@ -136,7 +137,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 
 	t.Run("Returns 500 when an unhandled error happens", func(t *testing.T) {
 		f := func(w http.ResponseWriter, r *http.Request, h Handler) HandlerResult {
-			return results.ErrorResult{errors.New("wadus")}
+			return results.ErrorResult{Err: errors.New("wadus")}
 		}
 
 		handler := Handler{

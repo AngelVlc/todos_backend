@@ -16,11 +16,7 @@ func NewUpdateListItemService(repo domain.ListsRepository) *UpdateListItemServic
 func (s *UpdateListItemService) UpdateListItem(itemID int32, listID int32, title domain.ItemTitle, description string, userID int32) (*domain.ListItem, error) {
 	foundItem, err := s.repo.FindListItemByID(itemID, listID, userID)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting the list item", InternalError: err}
-	}
-
-	if foundItem == nil {
-		return nil, &appErrors.BadRequestError{Msg: "The list item does not exist"}
+		return nil, err
 	}
 
 	foundItem.Title = title

@@ -29,21 +29,12 @@ func TestGetUserHandler(t *testing.T) {
 	mockedRepo := authRepository.MockedAuthRepository{}
 	h := handler.Handler{AuthRepository: &mockedRepo}
 
-	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {
+	t.Run("Should return an error if the query to find the user fails", func(t *testing.T) {
 		mockedRepo.On("FindUserByID", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := GetUserHandler(httptest.NewRecorder(), request(), h)
 
-		results.CheckUnexpectedErrorResult(t, result, "Error getting user by id")
-		mockedRepo.AssertExpectations(t)
-	})
-
-	t.Run("should return an errorResult with a BadRequestError if the user does not exits", func(t *testing.T) {
-		mockedRepo.On("FindUserByID", int32(1)).Return(nil, nil).Once()
-
-		result := GetUserHandler(httptest.NewRecorder(), request(), h)
-
-		results.CheckBadRequestErrorResult(t, result, "The user does not exist")
+		results.CheckError(t, result, "some error")
 		mockedRepo.AssertExpectations(t)
 	})
 

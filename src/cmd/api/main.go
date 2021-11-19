@@ -111,12 +111,14 @@ func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, db *gorm.DB)
 	repo := wire.InitAuthRepository(db)
 
 	userName := authDomain.UserName("admin")
-	foundAdmin, err := repo.FindUserByName(userName)
+	adminExists, err := repo.ExistsUser(userName)
 	if err != nil {
 		log.Fatal(err)
+
+		return
 	}
 
-	if foundAdmin == nil {
+	if !adminExists {
 		passGen := wire.InitPasswordGenerator()
 		hassedPass, _ := passGen.GenerateFromPassword(cfg.GetAdminPassword())
 

@@ -18,11 +18,7 @@ func NewDeleteUserService(repo domain.AuthRepository) *DeleteUserService {
 func (s *DeleteUserService) DeleteUser(userID int32) error {
 	foundUser, err := s.repo.FindUserByID(userID)
 	if err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error getting user by id", InternalError: err}
-	}
-
-	if foundUser == nil {
-		return &appErrors.BadRequestError{Msg: "The user does not exist"}
+		return err
 	}
 
 	if strings.ToLower(string(foundUser.Name)) == "admin" {

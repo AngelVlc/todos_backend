@@ -3,6 +3,7 @@ package domain
 import "time"
 
 type AuthRepository interface {
+	ExistsUser(userName UserName) (bool, error)
 	FindUserByName(userName UserName) (*User, error)
 	FindUserByID(userID int32) (*User, error)
 	GetAllUsers() ([]User, error)

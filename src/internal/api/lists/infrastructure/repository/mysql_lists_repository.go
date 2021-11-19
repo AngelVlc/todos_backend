@@ -16,12 +16,19 @@ func NewMySqlListsRepository(db *gorm.DB) *MySqlListsRepository {
 	return &MySqlListsRepository{db}
 }
 
-func (r *MySqlListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
-	return r.findList(domain.List{ID: listID, UserID: userID})
+func (r *MySqlListsRepository) ExistsList(name domain.ListName, userID int32) (bool, error) {
+	count := int64(0)
+	err := r.db.Model(&domain.List{}).Where(domain.List{Name: name, UserID: userID}).Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
 
-func (r *MySqlListsRepository) FindListByName(name domain.ListName, userID int32) (*domain.List, error) {
-	return r.findList(domain.List{Name: name, UserID: userID})
+func (r *MySqlListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
+	return r.findList(domain.List{ID: listID, UserID: userID})
 }
 
 func (r *MySqlListsRepository) GetAllLists(userID int32) ([]domain.List, error) {

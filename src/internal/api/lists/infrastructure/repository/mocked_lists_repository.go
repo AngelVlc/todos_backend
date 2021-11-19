@@ -13,16 +13,13 @@ func NewMockedListsRepository() *MockedListsRepository {
 	return &MockedListsRepository{}
 }
 
-func (m *MockedListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
-	args := m.Called(listID, userID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-	return args.Get(0).(*domain.List), args.Error(1)
+func (m *MockedListsRepository) ExistsList(name domain.ListName, userID int32) (bool, error) {
+	args := m.Called(name, userID)
+	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockedListsRepository) FindListByName(name domain.ListName, userID int32) (*domain.List, error) {
-	args := m.Called(name, userID)
+func (m *MockedListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
+	args := m.Called(listID, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

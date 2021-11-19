@@ -34,21 +34,12 @@ func TestDeletesListItemHandler(t *testing.T) {
 	mockedEventBus := events.MockedEventBus{}
 	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
-	t.Run("Should return an errorResult with an UnexpectedError if the query to find the list item fails", func(t *testing.T) {
+	t.Run("Should return an error if the query to find the list item fails", func(t *testing.T) {
 		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
 
-		results.CheckUnexpectedErrorResult(t, result, "Error getting the list item")
-		mockedRepo.AssertExpectations(t)
-	})
-
-	t.Run("should return an errorResult with a BadRequestError if the list item does not exits", func(t *testing.T) {
-		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(nil, nil).Once()
-
-		result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
-
-		results.CheckBadRequestErrorResult(t, result, "The list item does not exist")
+		results.CheckError(t, result, "some error")
 		mockedRepo.AssertExpectations(t)
 	})
 

@@ -85,17 +85,6 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 			WithArgs(listID, userID)
 	}
 
-	t.Run("should not return a list if it does not exist", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns))
-
-		res, err := repo.FindListByID(listID, userID)
-
-		assert.Nil(t, res)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
-
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
@@ -427,17 +416,6 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
-
-		checkMockExpectations(t, mock)
-	})
-
-	t.Run("should not return an item if it does not exist", func(t *testing.T) {
-		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns))
-
-		res, err := repo.FindListItemByID(itemID, listID, userID)
-
-		assert.Nil(t, res)
-		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)
 	})

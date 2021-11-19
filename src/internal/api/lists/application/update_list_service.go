@@ -16,11 +16,7 @@ func NewUpdateListService(repo domain.ListsRepository) *UpdateListService {
 func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userID int32, IDsByPosition []int32) (*domain.List, error) {
 	foundList, err := s.repo.FindListByID(listID, userID)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting the user list", InternalError: err}
-	}
-
-	if foundList == nil {
-		return nil, &appErrors.BadRequestError{Msg: "The list does not exist"}
+		return nil, err
 	}
 
 	if foundList.Name != name {

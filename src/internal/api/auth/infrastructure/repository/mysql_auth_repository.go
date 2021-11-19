@@ -100,10 +100,6 @@ func (r *MySqlAuthRepository) findUser(where domain.User) (*domain.User, error) 
 	foundUser := domain.User{}
 	err := r.db.Where(where).First(&foundUser).Error
 
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
-	}
-
 	if err != nil {
 		return nil, err
 	}

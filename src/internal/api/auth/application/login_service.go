@@ -19,11 +19,7 @@ func NewLoginService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationS
 func (s *LoginService) Login(userName domain.UserName, password domain.UserPassword) (*domain.LoginResponse, error) {
 	foundUser, err := s.repo.FindUserByName(userName)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting user by user name", InternalError: err}
-	}
-
-	if foundUser == nil {
-		return nil, &appErrors.BadRequestError{Msg: "The user does not exist"}
+		return nil, err
 	}
 
 	err = foundUser.HasPassword(password)

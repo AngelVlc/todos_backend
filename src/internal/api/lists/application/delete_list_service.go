@@ -14,13 +14,9 @@ func NewDeleteListService(repo domain.ListsRepository) *DeleteListService {
 }
 
 func (s *DeleteListService) DeleteList(listID int32, userID int32) error {
-	foundList, err := s.repo.FindListByID(listID, userID)
+	_, err := s.repo.FindListByID(listID, userID)
 	if err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error getting the user list", InternalError: err}
-	}
-
-	if foundList == nil {
-		return &appErrors.BadRequestError{Msg: "The list does not exist"}
+		return err
 	}
 
 	err = s.repo.DeleteList(listID, userID)

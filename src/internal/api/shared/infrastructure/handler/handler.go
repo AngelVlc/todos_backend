@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
@@ -12,6 +13,7 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"gorm.io/gorm"
 )
 
 // Handler is the type used to handle the endpoints
@@ -61,10 +63,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			helpers.WriteErrorResponse(r, w, http.StatusInternalServerError, unexErr.Error(), unexErr.InternalError)
 		} else if unauthErr, ok := err.(*appErrors.UnauthorizedError); ok {
 			helpers.WriteErrorResponse(r, w, http.StatusUnauthorized, unauthErr.Error(), unauthErr.InternalError)
-		} else if notFoundErr, ok := err.(*appErrors.NotFoundError); ok {
-			helpers.WriteErrorResponse(r, w, http.StatusNotFound, notFoundErr.Error(), nil)
 		} else if badRequestErr, ok := err.(*appErrors.BadRequestError); ok {
 			helpers.WriteErrorResponse(r, w, http.StatusBadRequest, badRequestErr.Error(), badRequestErr.InternalError)
+		} else if errors.Is(err, gorm.ErrRecordNotFound) {
+			helpers.WriteErrorResponse(r, w, http.StatusNotFound, "Not found", err)
 		} else {
 			helpers.WriteErrorResponse(r, w, http.StatusInternalServerError, "Internal error", err)
 		}

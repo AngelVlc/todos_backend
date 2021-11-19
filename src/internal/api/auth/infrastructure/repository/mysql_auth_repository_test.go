@@ -84,17 +84,6 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 			WithArgs(userID)
 	}
 
-	t.Run("should not return a user if it does not exist", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(userColumns))
-
-		res, err := repo.FindUserByID(userID)
-
-		assert.Nil(t, res)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
-
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
@@ -140,17 +129,6 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`name` = ? ORDER BY `users`.`id` LIMIT 1")).
 			WithArgs("userName")
 	}
-
-	t.Run("should not return a user if it does not exist", func(t *testing.T) {
-		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(userColumns))
-
-		u, err := repo.FindUserByName(userName)
-
-		assert.Nil(t, u)
-		assert.Nil(t, err)
-
-		checkMockExpectations(t, mock)
-	})
 
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByNameQuery().WillReturnError(fmt.Errorf("some error"))

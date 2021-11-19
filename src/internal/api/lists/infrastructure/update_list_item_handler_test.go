@@ -10,7 +10,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
@@ -34,16 +33,10 @@ func TestUpdateListItemHandlerValidations(t *testing.T) {
 
 	h := handler.Handler{}
 
-	t.Run("Should return an errorResult with a BadRequestError if the request does not have body", func(t *testing.T) {
+	t.Run("Should return an error if the request does not have body", func(t *testing.T) {
 		result := UpdateListItemHandler(httptest.NewRecorder(), request(nil), h)
 
-		results.CheckBadRequestErrorResult(t, result, "Invalid body")
-	})
-
-	t.Run("Should return an errorResult with a BadRequestError if the body is not a update list item request", func(t *testing.T) {
-		result := UpdateListItemHandler(httptest.NewRecorder(), request(strings.NewReader("wadus")), h)
-
-		results.CheckBadRequestErrorResult(t, result, "Invalid body")
+		results.CheckError(t, result, "Invalid body")
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the update list item request has an empty Title", func(t *testing.T) {
@@ -81,16 +74,7 @@ func TestUpdateListItemHandler(t *testing.T) {
 
 		result := UpdateListItemHandler(httptest.NewRecorder(), request(), h)
 
-		results.CheckUnexpectedErrorResult(t, result, "Error getting the list item")
-		mockedRepo.AssertExpectations(t)
-	})
-
-	t.Run("should return an errorResult with a BadRequestError if the list item does not exits", func(t *testing.T) {
-		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(nil, nil).Once()
-
-		result := UpdateListItemHandler(httptest.NewRecorder(), request(), h)
-
-		results.CheckBadRequestErrorResult(t, result, "The list item does not exist")
+		results.CheckError(t, result, "some error")
 		mockedRepo.AssertExpectations(t)
 	})
 

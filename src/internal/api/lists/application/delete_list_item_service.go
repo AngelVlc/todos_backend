@@ -14,13 +14,9 @@ func NewDeleteListItemService(repo domain.ListsRepository) *DeleteListItemServic
 }
 
 func (s *DeleteListItemService) DeleteListItem(itemID int32, listID int32, userID int32) error {
-	foundList, err := s.repo.FindListItemByID(itemID, listID, userID)
+	_, err := s.repo.FindListItemByID(itemID, listID, userID)
 	if err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error getting the list item", InternalError: err}
-	}
-
-	if foundList == nil {
-		return &appErrors.BadRequestError{Msg: "The list item does not exist"}
+		return err
 	}
 
 	err = s.repo.DeleteListItem(itemID, listID, userID)

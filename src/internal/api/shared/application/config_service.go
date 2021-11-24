@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
@@ -61,22 +62,20 @@ func (m *MockedConfigurationService) GetRefreshTokenExpirationDate() time.Time {
 	return args.Get(0).(time.Time)
 }
 
-type RealConfigurationService struct {
-	eg EnvGetter
-}
+type RealConfigurationService struct{}
 
-func NewRealConfigurationService(eg EnvGetter) *RealConfigurationService {
-	return &RealConfigurationService{eg}
+func NewRealConfigurationService() *RealConfigurationService {
+	return &RealConfigurationService{}
 }
 
 func (c *RealConfigurationService) GetDatasource() string {
-	host := c.eg.Getenv("MYSQL_HOST")
-	port := c.eg.Getenv("MYSQL_PORT")
-	user := c.eg.Getenv("MYSQL_USER")
-	pass := c.eg.Getenv("MYSQL_PASSWORD")
-	dbname := c.eg.Getenv("MYSQL_DATABASE")
+	host := os.Getenv("MYSQL_HOST")
+	port := os.Getenv("MYSQL_PORT")
+	user := os.Getenv("MYSQL_USER")
+	pass := os.Getenv("MYSQL_PASSWORD")
+	dbname := os.Getenv("MYSQL_DATABASE")
 
-	clearDbUrl := c.eg.Getenv("CLEARDB_DATABASE_URL")
+	clearDbUrl := os.Getenv("CLEARDB_DATABASE_URL")
 	if len(clearDbUrl) > 0 {
 		clearDbUrl = strings.Replace(clearDbUrl, "mysql://", "", 1)
 		clearDbUrl = strings.Replace(clearDbUrl, "?reconnect=true", "", 1)
@@ -94,19 +93,19 @@ func (c *RealConfigurationService) GetDatasource() string {
 }
 
 func (c *RealConfigurationService) GetAdminPassword() string {
-	return c.eg.Getenv("ADMIN_PASSWORD")
+	return os.Getenv("ADMIN_PASSWORD")
 }
 
 func (c *RealConfigurationService) GetPort() string {
-	return c.eg.Getenv("PORT")
+	return os.Getenv("PORT")
 }
 
 func (c *RealConfigurationService) GetJwtSecret() string {
-	return c.eg.Getenv("JWT_SECRET")
+	return os.Getenv("JWT_SECRET")
 }
 
 func (c *RealConfigurationService) GetCorsAllowedOrigins() []string {
-	return strings.Split(c.eg.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	return strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
 }
 
 func (c *RealConfigurationService) GetTokenExpirationDate() time.Time {
@@ -118,6 +117,6 @@ func (c *RealConfigurationService) GetRefreshTokenExpirationDate() time.Time {
 }
 
 func (c *RealConfigurationService) getDurationEnvVar(envVarName string) time.Duration {
-	d, _ := time.ParseDuration(c.eg.Getenv(envVarName))
+	d, _ := time.ParseDuration(os.Getenv(envVarName))
 	return d
 }

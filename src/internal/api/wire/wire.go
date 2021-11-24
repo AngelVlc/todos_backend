@@ -194,12 +194,7 @@ func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
 
-var EnvGetterSet = wire.NewSet(
-	sharedApp.NewOsEnvGetter,
-	wire.Bind(new(sharedApp.EnvGetter), new(*sharedApp.OsEnvGetter)))
-
 var RealConfigurationServiceSet = wire.NewSet(
-	EnvGetterSet,
 	sharedApp.NewRealConfigurationService,
 	wire.Bind(new(sharedApp.ConfigurationService), new(*sharedApp.RealConfigurationService)))
 

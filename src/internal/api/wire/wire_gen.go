@@ -38,8 +38,7 @@ func initLogMiddleware() domain.Middleware {
 }
 
 func initDefaultAuthMiddleware() authmdw.AuthMiddleware {
-	osEnvGetter := application.NewOsEnvGetter()
-	realConfigurationService := application.NewRealConfigurationService(osEnvGetter)
+	realConfigurationService := application.NewRealConfigurationService()
 	realTokenService := domain2.NewRealTokenService(realConfigurationService)
 	realAuthMiddleware := authmdw.NewRealAuthMiddleware(realTokenService)
 	return realAuthMiddleware
@@ -62,8 +61,7 @@ func initRequestCounterMiddleware(db *gorm.DB) domain.Middleware {
 }
 
 func InitConfigurationService() application.ConfigurationService {
-	osEnvGetter := application.NewOsEnvGetter()
-	realConfigurationService := application.NewRealConfigurationService(osEnvGetter)
+	realConfigurationService := application.NewRealConfigurationService()
 	return realConfigurationService
 }
 
@@ -113,8 +111,7 @@ func initMockedTokenService() domain2.TokenService {
 }
 
 func initRealTokenService() domain2.TokenService {
-	osEnvGetter := application.NewOsEnvGetter()
-	realConfigurationService := application.NewRealConfigurationService(osEnvGetter)
+	realConfigurationService := application.NewRealConfigurationService()
 	realTokenService := domain2.NewRealTokenService(realConfigurationService)
 	return realTokenService
 }
@@ -207,10 +204,7 @@ func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
 
-var EnvGetterSet = wire.NewSet(application.NewOsEnvGetter, wire.Bind(new(application.EnvGetter), new(*application.OsEnvGetter)))
-
-var RealConfigurationServiceSet = wire.NewSet(
-	EnvGetterSet, application.NewRealConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.RealConfigurationService)))
+var RealConfigurationServiceSet = wire.NewSet(application.NewRealConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.RealConfigurationService)))
 
 var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurationService, wire.Bind(new(application.ConfigurationService), new(*application.MockedConfigurationService)))
 

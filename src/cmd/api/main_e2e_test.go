@@ -98,8 +98,7 @@ func bufferFromBody(body interface{}) (*bytes.Buffer, error) {
 }
 
 func objFromRes(resBody io.Reader, obj interface{}) error {
-	err := json.NewDecoder(resBody).Decode(obj)
-	return err
+	return json.NewDecoder(resBody).Decode(obj)
 }
 
 func createRequest(t *testing.T, method, url string, body io.Reader, cookies []*http.Cookie) *http.Request {

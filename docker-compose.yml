@@ -30,4 +30,4 @@ services:
       - './src:/go/src'      
     env_file: 
       - ./local.env
-    command: ["go", "test", "--tags=e2e", "./..."]
+    command: ["go", "test", "--tags=e2e", "./cmd/api"]

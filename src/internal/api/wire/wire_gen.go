@@ -56,7 +56,8 @@ func InitRequireAdminMiddleware() domain.Middleware {
 
 func initRequestCounterMiddleware(db *gorm.DB) domain.Middleware {
 	mySqlCountersRepository := infrastructure.NewMySqlCountersRepository(db)
-	requestCounterMiddleware := reqcountermdw.NewRequestCounterMiddleware(mySqlCountersRepository)
+	incrementRequestsCounterService := application.NewIncrementRequestsCounterService(mySqlCountersRepository)
+	requestCounterMiddleware := reqcountermdw.NewRequestCounterMiddleware(incrementRequestsCounterService)
 	return requestCounterMiddleware
 }
 
@@ -211,7 +212,7 @@ var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurati
 var FakeMiddlewareSet = wire.NewSet(fakemdw.NewFakeMiddleware, wire.Bind(new(domain.Middleware), new(*fakemdw.FakeMiddleware)))
 
 var RequestCounterMiddlewareSet = wire.NewSet(
-	MySqlCountersRepositorySet, reqcountermdw.NewRequestCounterMiddleware, wire.Bind(new(domain.Middleware), new(*reqcountermdw.RequestCounterMiddleware)))
+	MySqlCountersRepositorySet, application.NewIncrementRequestsCounterService, reqcountermdw.NewRequestCounterMiddleware, wire.Bind(new(domain.Middleware), new(*reqcountermdw.RequestCounterMiddleware)))
 
 var LogMiddlewareSet = wire.NewSet(logmdw.NewLogMiddleware, wire.Bind(new(domain.Middleware), new(*logmdw.LogMiddleware)))
 

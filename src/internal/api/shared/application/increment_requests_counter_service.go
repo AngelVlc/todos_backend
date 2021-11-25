@@ -2,19 +2,24 @@ package application
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/AngelVlc/todos/internal/api/shared/domain"
 )
 
 type IncrementRequestsCounterService struct {
 	repo domain.CountersRepository
+	mu   sync.Mutex
 }
 
 func NewIncrementRequestsCounterService(repo domain.CountersRepository) *IncrementRequestsCounterService {
-	return &IncrementRequestsCounterService{repo}
+	return &IncrementRequestsCounterService{repo, sync.Mutex{}}
 }
 
 func (s *IncrementRequestsCounterService) IncrementRequestsCounter() (int32, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	foundCounter, err := s.repo.FindByName("requests")
 	if err != nil {
 		return -1, fmt.Errorf("error getting 'requests' counter: %v", err)

@@ -208,6 +208,7 @@ var FakeMiddlewareSet = wire.NewSet(
 
 var RequestCounterMiddlewareSet = wire.NewSet(
 	MySqlCountersRepositorySet,
+	sharedApp.NewIncrementRequestsCounterService,
 	reqcountermdw.NewRequestCounterMiddleware,
 	wire.Bind(new(sharedDomain.Middleware), new(*reqcountermdw.RequestCounterMiddleware)))
 

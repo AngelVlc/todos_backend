@@ -20,6 +20,10 @@ migrate -database "mysql://root:pass@tcp(localhost)/todos" -path src/db/migratio
 migrate -database "mysql://root:pass@tcp(localhost)/todos?query"  -path src/db/migrations force version
 ```
 
+**Load test**
+
+hey -m POST -d '{"username": "admin","password": "893210"}'  http://localhost:5001/auth/login
+
 
 **Profiling**
 

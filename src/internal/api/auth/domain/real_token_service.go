@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"crypto/rand"
 	"fmt"
 	"time"
 
@@ -70,6 +71,9 @@ func (s *RealTokenService) getNewToken(userID int32, userName UserName, userIsAd
 	tc["userId"] = userID
 	tc["exp"] = s.cfgSvc.GetTokenExpirationDate().Unix()
 
+	p, _ := rand.Prime(rand.Reader, 64)
+	tc["rand"] = p
+
 	return t
 }
 
@@ -78,6 +82,9 @@ func (s *RealTokenService) getNewRefreshToken(userID int32, expirationDate time.
 	rtc := s.getTokenClaims(rt)
 	rtc["userId"] = userID
 	rtc["exp"] = expirationDate.Unix()
+
+	p, _ := rand.Prime(rand.Reader, 64)
+	rtc["rand"] = p
 
 	return rt
 }

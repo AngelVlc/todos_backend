@@ -9,7 +9,7 @@ func NewBcryptPasswordGenerator() *BcryptPasswordGenerator {
 }
 
 func (g *BcryptPasswordGenerator) GenerateFromPassword(password string) (string, error) {
-	hasshedPass, err := bcrypt.GenerateFromPassword([]byte(password), 10)
+	hasshedPass, err := bcrypt.GenerateFromPassword([]byte(password), 4)
 	if err != nil {
 		return "", err
 	}

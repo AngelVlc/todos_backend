@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	sharedInfra "github.com/AngelVlc/todos/internal/api/shared/infrastructure"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,8 @@ import (
 
 func TestRequestCounterMiddleware(t *testing.T) {
 	mockedCountersRepo := sharedInfra.MockedCountersRepository{}
-	md := RequestCounterMiddleware{&mockedCountersRepo}
+	incrementReqCountersSrv := sharedApp.NewIncrementRequestsCounterService(&mockedCountersRepo)
+	md := RequestCounterMiddleware{incrementReqCountersSrv}
 
 	nextHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})
 

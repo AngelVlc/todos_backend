@@ -33,9 +33,12 @@ CPU
 	if err != nil {
 		log.Fatal(err)
 	}
+	runtime.SetCPUProfileRate(x)
 	pprof.StartCPUProfile(f)
 	defer pprof.StopCPUProfile()
 ```
+
+go tool pprof cpuprof.prof
 
 MEMORY
 ```

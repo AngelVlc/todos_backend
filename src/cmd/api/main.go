@@ -38,13 +38,6 @@ func main() {
 	authRepo := wire.InitAuthRepository(db)
 	initDeleteExpiredTokensProcess(authRepo)
 
-	countersRepo := wire.InitCountersRepository(db)
-	countSvc := sharedApp.NewInitRequestsCounterService(countersRepo)
-	err = countSvc.InitRequestsCounter()
-	if err != nil {
-		log.Fatal("error checking requests counter: ", err)
-	}
-
 	eb := wire.InitEventBus(map[string]events.DataChannelSlice{})
 
 	s := server.NewServer(db, eb)

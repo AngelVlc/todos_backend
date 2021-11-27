@@ -613,7 +613,7 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 		mock.ExpectBegin()
 		expectedUpdateListItemExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `id` = ? ORDER BY `listItems`.`id` LIMIT 1")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `id` = ? LIMIT 1")).
 			WithArgs(int32(111)).
 			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), int32(11), "title", "desc", 0))
 

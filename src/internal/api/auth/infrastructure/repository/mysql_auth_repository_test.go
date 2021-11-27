@@ -328,7 +328,7 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 		mock.ExpectBegin()
 		expectedUpdateExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `id` = ? ORDER BY `users`.`id` LIMIT 1")).
+		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `id` = ? LIMIT 1")).
 			WithArgs(11).
 			WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user", "", false))
 

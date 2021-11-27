@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"crypto/rand"
 	"fmt"
 	"time"
 
@@ -70,9 +69,6 @@ func (s *RealTokenService) getNewToken(userID int32, userName UserName, userIsAd
 	tc["isAdmin"] = userIsAdmin
 	tc["userId"] = userID
 	tc["exp"] = s.cfgSvc.GetTokenExpirationDate().Unix()
-
-	p, _ := rand.Prime(rand.Reader, 64)
-	tc["rand"] = p
 
 	return t
 }

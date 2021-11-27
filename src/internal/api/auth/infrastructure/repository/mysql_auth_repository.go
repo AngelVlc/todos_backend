@@ -2,18 +2,21 @@ package repository
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type MySqlAuthRepository struct {
 	db *gorm.DB
+	mu sync.Mutex
 }
 
 func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
-	return &MySqlAuthRepository{db}
+	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
 func (r *MySqlAuthRepository) ExistsUser(userName domain.UserName) (bool, error) {
@@ -70,12 +73,18 @@ func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userI
 	return &found, nil
 }
 
-func (r *MySqlAuthRepository) CreateRefreshToken(refreshToken *domain.RefreshToken) error {
-	return r.db.Create(refreshToken).Error
+func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(refreshToken *domain.RefreshToken) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return r.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}, {Name: "userId"}, {Name: "refreshToken"}},
+		DoNothing: true,
+	}).Create(refreshToken).Error
 }
 
 func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) error {
-	if err := r.db.Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error; err != nil {
+	if err := r.db.Debug().Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error; err != nil {
 		return err
 	}
 	return nil

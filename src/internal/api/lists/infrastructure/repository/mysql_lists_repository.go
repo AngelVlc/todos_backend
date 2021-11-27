@@ -99,7 +99,7 @@ func (r *MySqlListsRepository) BulkUpdateListItems(listItems []domain.ListItem) 
 	return r.db.Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"position"}),
-	}).Debug().Create(listItems).Error
+	}).Create(listItems).Error
 }
 
 func (r *MySqlListsRepository) GetListItemsMaxPosition(listID int32, userID int32) (int32, error) {

@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"sync"
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
@@ -9,6 +10,8 @@ import (
 
 type MockedAuthRepository struct {
 	mock.Mock
+	mu sync.Mutex
+	Wg sync.WaitGroup
 }
 
 func NewMockedAuthRepository() *MockedAuthRepository {
@@ -67,7 +70,12 @@ func (m *MockedAuthRepository) FindRefreshTokenForUser(refreshToken string, user
 	return args.Get(0).(*domain.RefreshToken), args.Error(1)
 }
 
-func (m *MockedAuthRepository) CreateRefreshToken(refreshToken *domain.RefreshToken) error {
+func (m *MockedAuthRepository) CreateRefreshTokenIfNotExist(refreshToken *domain.RefreshToken) error {
+	defer m.Wg.Done()
+
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
 	args := m.Called(refreshToken)
 	return args.Error(0)
 }

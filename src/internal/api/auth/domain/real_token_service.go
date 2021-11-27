@@ -83,9 +83,6 @@ func (s *RealTokenService) getNewRefreshToken(userID int32, expirationDate time.
 	rtc["userId"] = userID
 	rtc["exp"] = expirationDate.Unix()
 
-	p, _ := rand.Prime(rand.Reader, 64)
-	rtc["rand"] = p
-
 	return rt
 }
 

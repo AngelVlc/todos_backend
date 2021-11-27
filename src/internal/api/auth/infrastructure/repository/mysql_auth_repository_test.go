@@ -396,7 +396,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 	})
 }
 
-func TestMySqlAuthRepositoryCreateRefreshToken(t *testing.T) {
+func TestMySqlAuthRepositoryCreateRefreshTokenIfNotExist(t *testing.T) {
 	mockDb, mock, err := sqlmock.New()
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
@@ -413,7 +413,7 @@ func TestMySqlAuthRepositoryCreateRefreshToken(t *testing.T) {
 	repo := NewMySqlAuthRepository(db)
 
 	expectedInsertExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?)")).
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `id`=`id`")).
 			WithArgs(rt.UserID, rt.RefreshToken, rt.ExpirationDate)
 	}
 
@@ -422,7 +422,7 @@ func TestMySqlAuthRepositoryCreateRefreshToken(t *testing.T) {
 		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.CreateRefreshToken(&rt)
+		err := repo.CreateRefreshTokenIfNotExist(&rt)
 
 		assert.EqualError(t, err, "some error")
 
@@ -436,7 +436,7 @@ func TestMySqlAuthRepositoryCreateRefreshToken(t *testing.T) {
 		expectedInsertExec().WillReturnResult(result)
 		mock.ExpectCommit()
 
-		err := repo.CreateRefreshToken(&rt)
+		err := repo.CreateRefreshTokenIfNotExist(&rt)
 
 		assert.Nil(t, err)
 

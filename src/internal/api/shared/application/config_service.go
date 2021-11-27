@@ -69,12 +69,13 @@ func NewRealConfigurationService() *RealConfigurationService {
 }
 
 func (c *RealConfigurationService) GetDatasource() string {
-	host := os.Getenv("MYSQL_HOST")
-	port := os.Getenv("MYSQL_PORT")
-	user := os.Getenv("MYSQL_USER")
-	pass := os.Getenv("MYSQL_PASSWORD")
-	dbname := os.Getenv("MYSQL_DATABASE")
+	host := c.getEnvOrFallback("MYSQL_HOST", "localhost")
+	port := c.getEnvOrFallback("MYSQL_PORT", "3306")
+	user := c.getEnvOrFallback("MYSQL_USER", "root")
+	pass := c.getEnvOrFallback("MYSQL_PASSWORD", "pass")
+	dbname := c.getEnvOrFallback("MYSQL_DATABASE", "todos")
 
+	// This env var is set by Heroku
 	clearDbUrl := os.Getenv("CLEARDB_DATABASE_URL")
 	if len(clearDbUrl) > 0 {
 		clearDbUrl = strings.Replace(clearDbUrl, "mysql://", "", 1)
@@ -93,30 +94,37 @@ func (c *RealConfigurationService) GetDatasource() string {
 }
 
 func (c *RealConfigurationService) GetAdminPassword() string {
-	return os.Getenv("ADMIN_PASSWORD")
+	return c.getEnvOrFallback("ADMIN_PASSWORD", "admin")
 }
 
 func (c *RealConfigurationService) GetPort() string {
-	return os.Getenv("PORT")
+	return c.getEnvOrFallback("PORT", "5001")
 }
 
 func (c *RealConfigurationService) GetJwtSecret() string {
-	return os.Getenv("JWT_SECRET")
+	return c.getEnvOrFallback("JWT_SECRET", "mySecret")
 }
 
 func (c *RealConfigurationService) GetCorsAllowedOrigins() []string {
-	return strings.Split(os.Getenv("CORS_ALLOWED_ORIGINS"), ",")
+	return strings.Split(c.getEnvOrFallback("CORS_ALLOWED_ORIGINS", "http://localhost:3000"), ",")
 }
 
 func (c *RealConfigurationService) GetTokenExpirationDate() time.Time {
-	return time.Now().Add(c.getDurationEnvVar("TOKEN_EXPIRATION_DURATION"))
+	return time.Now().Add(c.getDurationEnvVar("TOKEN_EXPIRATION_DURATION", "5m"))
 }
 
 func (c *RealConfigurationService) GetRefreshTokenExpirationDate() time.Time {
-	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_DURATION"))
+	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_DURATION", "24h"))
 }
 
-func (c *RealConfigurationService) getDurationEnvVar(envVarName string) time.Duration {
-	d, _ := time.ParseDuration(os.Getenv(envVarName))
+func (c *RealConfigurationService) getDurationEnvVar(key string, fallback string) time.Duration {
+	d, _ := time.ParseDuration(c.getEnvOrFallback(key, fallback))
 	return d
+}
+
+func (c *RealConfigurationService) getEnvOrFallback(key string, fallback string) string {
+	if value, ok := os.LookupEnv(key); ok {
+		return value
+	}
+	return fallback
 }

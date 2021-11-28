@@ -17,11 +17,15 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/handlers"
+	"github.com/honeybadger-io/honeybadger-go"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
 func main() {
+	initHoneyBadger()
+	defer honeybadger.Monitor()
+
 	cfg := wire.InitConfigurationService()
 
 	db, err := initDb(cfg)
@@ -147,4 +151,12 @@ func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository) {
 			}
 		}
 	}()
+}
+
+func initHoneyBadger() {
+	key, exists := os.LookupEnv("HONEYBADGER_API_KEY")
+	if exists {
+		honeybadger.Configure(honeybadger.Configuration{APIKey: key, Sync: true})
+		log.Println("HoneyBadger configured")
+	}
 }

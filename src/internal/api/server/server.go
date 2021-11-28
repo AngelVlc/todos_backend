@@ -12,6 +12,7 @@ import (
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/recover"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/mux"
 	"gorm.io/gorm"
@@ -46,6 +47,9 @@ func NewServer(db *gorm.DB, eb events.EventBus) *server {
 
 	countersMdw := wire.InitRequestCounterMiddleware(db)
 	router.Use(countersMdw.Middleware)
+
+	recoverMdw := recover.NewRecoverMiddleware()
+	router.Use(recoverMdw.Middleware)
 
 	authMdw := wire.InitAuthMiddleware(db)
 	requireAdminMdw := wire.InitRequireAdminMiddleware()

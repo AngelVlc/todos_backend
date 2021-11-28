@@ -13,6 +13,7 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/honeybadger-io/honeybadger-go"
 	"gorm.io/gorm"
 )
 
@@ -68,6 +69,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if errors.Is(err, gorm.ErrRecordNotFound) {
 			helpers.WriteErrorResponse(r, w, http.StatusNotFound, "Not found", err)
 		} else {
+			honeybadger.Notify(err)
 			helpers.WriteErrorResponse(r, w, http.StatusInternalServerError, "Internal error", err)
 		}
 	} else {

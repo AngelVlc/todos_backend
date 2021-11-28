@@ -126,21 +126,40 @@ func TestLoginHandler(t *testing.T) {
 		mockedTokenSrv.AssertExpectations(t)
 	})
 
-	t.Run("Should return an errorResult with an UnexpectedError if saving the refresh token fails", func(t *testing.T) {
+	t.Run("Should return an okResult with a login response and should create the cookies although save the refresh token fails if the login is ok", func(t *testing.T) {
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
-		foundUser := domain.User{ID: 1, PasswordHash: hashedPass}
+		foundUser := domain.User{ID: 1, Name: domain.UserName("user"), IsAdmin: true, PasswordHash: hashedPass}
 		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
-		mockedTokenSrv.On("GenerateToken", &foundUser).Return("token", nil).Once()
+		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
-		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("refreshToken", nil).Once()
-		mockedRepo.On("CreateRefreshToken", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "refreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
+		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
+		mockedRepo.On("CreateRefreshTokenIfNotExist", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
-		result := LoginHandler(httptest.NewRecorder(), request, h)
+		recorder := httptest.NewRecorder()
 
-		results.CheckUnexpectedErrorResult(t, result, "Error saving the refresh token")
+		mockedRepo.Wg.Add(1)
+		result := LoginHandler(recorder, request, h)
+		mockedRepo.Wg.Wait()
+
+		okRes := results.CheckOkResult(t, result, http.StatusOK)
+		resDto, isOk := okRes.Content.(*domain.LoginResponse)
+		require.Equal(t, true, isOk, "should be a login response")
+		assert.Equal(t, "", resDto.Token)
+		assert.Equal(t, "", resDto.RefreshToken)
+		assert.Equal(t, int32(1), resDto.UserID)
+		assert.Equal(t, "user", resDto.UserName)
+		assert.True(t, resDto.IsAdmin)
+
+		require.Equal(t, 2, len(recorder.Result().Cookies()))
+		assert.Equal(t, "token", recorder.Result().Cookies()[0].Name)
+		assert.Equal(t, "theToken", recorder.Result().Cookies()[0].Value)
+		assert.Equal(t, "refreshToken", recorder.Result().Cookies()[1].Name)
+		assert.Equal(t, "theRefreshToken", recorder.Result().Cookies()[1].Value)
+		assert.True(t, recorder.Result().Cookies()[0].HttpOnly)
+
 		mockedRepo.AssertExpectations(t)
 		mockedCfgSrv.AssertExpectations(t)
 		mockedTokenSrv.AssertExpectations(t)
@@ -155,11 +174,14 @@ func TestLoginHandler(t *testing.T) {
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
-		mockedRepo.On("CreateRefreshToken", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
+		mockedRepo.On("CreateRefreshTokenIfNotExist", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 
 		recorder := httptest.NewRecorder()
+
+		mockedRepo.Wg.Add(1)
 		result := LoginHandler(recorder, request, h)
+		mockedRepo.Wg.Wait()
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
 		resDto, isOk := okRes.Content.(*domain.LoginResponse)

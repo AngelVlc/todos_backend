@@ -1,6 +1,8 @@
 package application
 
 import (
+	"log"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
@@ -39,10 +41,12 @@ func (s *LoginService) Login(userName domain.UserName, password domain.UserPassw
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
 	}
 
-	err = s.repo.CreateRefreshToken(&domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error saving the refresh token", InternalError: err}
-	}
+	go func() {
+		err = s.repo.CreateRefreshTokenIfNotExist(&domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
+		if err != nil {
+			log.Printf("Error saving the refresh token. Error: %v", err)
+		}
+	}()
 
 	res := domain.LoginResponse{Token: token, RefreshToken: refreshToken, UserID: foundUser.ID, UserName: string(foundUser.Name), IsAdmin: foundUser.IsAdmin}
 

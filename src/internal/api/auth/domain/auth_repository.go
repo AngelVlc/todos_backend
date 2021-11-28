@@ -12,7 +12,7 @@ type AuthRepository interface {
 	UpdateUser(user *User) error
 
 	FindRefreshTokenForUser(refreshToken string, userID int32) (*RefreshToken, error)
-	CreateRefreshToken(refreshToken *RefreshToken) error
+	CreateRefreshTokenIfNotExist(refreshToken *RefreshToken) error
 	DeleteExpiredRefreshTokens(expTime time.Time) error
 	GetAllRefreshTokens() ([]RefreshToken, error)
 	DeleteRefreshTokensByID(ids []int32) error

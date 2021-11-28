@@ -32,10 +32,10 @@ func (eb *RealEventBus) Publish(eventName string, data interface{}) {
 
 func (eb *RealEventBus) Subscribe(eventName string, ch DataChannel) {
 	eb.rm.Lock()
+	defer eb.rm.Unlock()
 	if prev, found := eb.subscribers[eventName]; found {
 		eb.subscribers[eventName] = append(prev, ch)
 	} else {
 		eb.subscribers[eventName] = append([]DataChannel{}, ch)
 	}
-	eb.rm.Unlock()
 }

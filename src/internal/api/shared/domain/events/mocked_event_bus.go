@@ -20,14 +20,14 @@ func (m *MockedEventBus) Publish(eventName string, data interface{}) {
 	defer m.Wg.Done()
 
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.Called(eventName, data)
-	m.mu.Unlock()
 }
 
 func (m *MockedEventBus) Subscribe(eventName string, ch DataChannel) {
 	defer m.Wg.Done()
 
 	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.Called(eventName, ch)
-	m.mu.Unlock()
 }

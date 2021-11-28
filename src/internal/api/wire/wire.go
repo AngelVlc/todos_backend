@@ -13,7 +13,6 @@ import (
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	events "github.com/AngelVlc/todos/internal/api/shared/domain/events"
-	sharedInfra "github.com/AngelVlc/todos/internal/api/shared/infrastructure"
 	authMiddleware "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/auth"
 	fakemdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/fake"
 	logMdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/log"
@@ -64,16 +63,16 @@ func InitRequireAdminMiddleware() sharedDomain.Middleware {
 	return nil
 }
 
-func InitRequestCounterMiddleware(db *gorm.DB) sharedDomain.Middleware {
+func InitRequestIdMiddleware(db *gorm.DB) sharedDomain.Middleware {
 	if inTestingMode() {
 		return initFakeMiddleware()
 	} else {
-		return initRequestCounterMiddleware(db)
+		return initRequestIdMiddleware(db)
 	}
 }
 
-func initRequestCounterMiddleware(db *gorm.DB) sharedDomain.Middleware {
-	wire.Build(RequestCounterMiddlewareSet)
+func initRequestIdMiddleware(db *gorm.DB) sharedDomain.Middleware {
+	wire.Build(RequestIdMiddlewareSet)
 	return nil
 }
 
@@ -136,24 +135,6 @@ func initMySqlListsRepository(db *gorm.DB) listsDomain.ListsRepository {
 	return nil
 }
 
-func InitCountersRepository(db *gorm.DB) sharedDomain.CountersRepository {
-	if inTestingMode() {
-		return initMockedCountersRepository()
-	} else {
-		return initMySqlCountersRepository(db)
-	}
-}
-
-func initMockedCountersRepository() sharedDomain.CountersRepository {
-	wire.Build(MockedCountersRepositorySet)
-	return nil
-}
-
-func initMySqlCountersRepository(db *gorm.DB) sharedDomain.CountersRepository {
-	wire.Build(MySqlCountersRepositorySet)
-	return nil
-}
-
 func InitTokenService() authDomain.TokenService {
 	if inTestingMode() {
 		return initMockedTokenService()
@@ -206,11 +187,9 @@ var FakeMiddlewareSet = wire.NewSet(
 	fakemdw.NewFakeMiddleware,
 	wire.Bind(new(sharedDomain.Middleware), new(*fakemdw.FakeMiddleware)))
 
-var RequestCounterMiddlewareSet = wire.NewSet(
-	MySqlCountersRepositorySet,
-	sharedApp.NewIncrementRequestsCounterService,
-	reqcountermdw.NewRequestCounterMiddleware,
-	wire.Bind(new(sharedDomain.Middleware), new(*reqcountermdw.RequestCounterMiddleware)))
+var RequestIdMiddlewareSet = wire.NewSet(
+	reqcountermdw.NewRequestIdMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*reqcountermdw.RequestIdMiddleware)))
 
 var LogMiddlewareSet = wire.NewSet(
 	logMdw.NewLogMiddleware,
@@ -252,14 +231,6 @@ var MySqlListsRepositorySet = wire.NewSet(
 var MockedListsRepositorySet = wire.NewSet(
 	listsRepository.NewMockedListsRepository,
 	wire.Bind(new(listsDomain.ListsRepository), new(*listsRepository.MockedListsRepository)))
-
-var MySqlCountersRepositorySet = wire.NewSet(
-	sharedInfra.NewMySqlCountersRepository,
-	wire.Bind(new(sharedDomain.CountersRepository), new(*sharedInfra.MySqlCountersRepository)))
-
-var MockedCountersRepositorySet = wire.NewSet(
-	sharedInfra.NewMockedCountersRepository,
-	wire.Bind(new(sharedDomain.CountersRepository), new(*sharedInfra.MockedCountersRepository)))
 
 var RealTokenServiceSet = wire.NewSet(
 	RealConfigurationServiceSet,

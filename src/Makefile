@@ -15,3 +15,9 @@ coverage:
 
 coverage-html:
 	go test ./... -cover -coverprofile coverage.out && go tool cover -html=coverage.out
+
+run:
+	go run ./cmd/api/main.go
+
+build:
+	go build ./cmd/api/main.go

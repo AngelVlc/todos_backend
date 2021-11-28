@@ -2,18 +2,21 @@ package repository
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type MySqlAuthRepository struct {
 	db *gorm.DB
+	mu sync.Mutex
 }
 
 func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
-	return &MySqlAuthRepository{db}
+	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
 func (r *MySqlAuthRepository) ExistsUser(userName domain.UserName) (bool, error) {
@@ -57,7 +60,7 @@ func (r *MySqlAuthRepository) UpdateUser(user *domain.User) error {
 
 func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userID int32) (*domain.RefreshToken, error) {
 	found := domain.RefreshToken{}
-	err := r.db.Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).First(&found).Error
+	err := r.db.Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).Take(&found).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -70,15 +73,18 @@ func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userI
 	return &found, nil
 }
 
-func (r *MySqlAuthRepository) CreateRefreshToken(refreshToken *domain.RefreshToken) error {
-	return r.db.Create(refreshToken).Error
+func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(refreshToken *domain.RefreshToken) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	return r.db.Clauses(clause.OnConflict{
+		Columns:   []clause.Column{{Name: "id"}, {Name: "userId"}, {Name: "refreshToken"}},
+		DoNothing: true,
+	}).Create(refreshToken).Error
 }
 
 func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) error {
-	if err := r.db.Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error; err != nil {
-		return err
-	}
-	return nil
+	return r.db.Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error
 }
 
 func (r *MySqlAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, error) {
@@ -98,7 +104,7 @@ func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
 
 func (r *MySqlAuthRepository) findUser(where domain.User) (*domain.User, error) {
 	foundUser := domain.User{}
-	err := r.db.Where(where).First(&foundUser).Error
+	err := r.db.Where(where).Take(&foundUser).Error
 
 	if err != nil {
 		return nil, err

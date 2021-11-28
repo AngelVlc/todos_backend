@@ -33,10 +33,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	createAdminUserIfNotExists(cfg, db)
+	go createAdminUserIfNotExists(cfg, db)
 
 	authRepo := wire.InitAuthRepository(db)
-	initDeleteExpiredTokensProcess(authRepo)
+
+	go initDeleteExpiredTokensProcess(authRepo)
 
 	eb := wire.InitEventBus(map[string]events.DataChannelSlice{})
 
@@ -135,6 +136,7 @@ func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository) {
 	ticker := time.NewTicker(30 * time.Second)
 	done := make(chan bool)
 	go func() {
+		authRepo.DeleteExpiredRefreshTokens(time.Now())
 		for {
 			select {
 			case <-done:

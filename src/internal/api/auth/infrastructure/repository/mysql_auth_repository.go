@@ -84,10 +84,7 @@ func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(refreshToken *domain.
 }
 
 func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) error {
-	if err := r.db.Debug().Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error; err != nil {
-		return err
-	}
-	return nil
+	return r.db.Debug().Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error
 }
 
 func (r *MySqlAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, error) {

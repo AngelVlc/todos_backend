@@ -2,6 +2,7 @@ package server
 
 import (
 	"net/http"
+	"net/http/pprof"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
@@ -83,6 +84,9 @@ func NewServer(db *gorm.DB, eb events.EventBus) *server {
 	authSubRouter.Handle("/login", s.getHandler(authInfra.LoginHandler)).Methods(http.MethodPost)
 	authSubRouter.Handle("/refreshtoken", s.getHandler(authInfra.RefreshTokenHandler)).Methods(http.MethodPost)
 	authSubRouter.Handle("/refreshtoken", s.getHandler(authInfra.RefreshTokenHandler)).Methods(http.MethodDelete)
+
+	pprofSubRouter := router.PathPrefix("/debug/pprof").Subrouter()
+	pprofSubRouter.Handle("/heap", pprof.Handler("heap"))
 
 	logMdw := wire.InitLogMiddleware()
 	router.Use(logMdw.Middleware)

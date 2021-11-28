@@ -60,7 +60,7 @@ func (r *MySqlAuthRepository) UpdateUser(user *domain.User) error {
 
 func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userID int32) (*domain.RefreshToken, error) {
 	found := domain.RefreshToken{}
-	err := r.db.Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).First(&found).Error
+	err := r.db.Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).Take(&found).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -84,7 +84,7 @@ func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(refreshToken *domain.
 }
 
 func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) error {
-	return r.db.Debug().Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error
+	return r.db.Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error
 }
 
 func (r *MySqlAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, error) {
@@ -104,7 +104,7 @@ func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
 
 func (r *MySqlAuthRepository) findUser(where domain.User) (*domain.User, error) {
 	foundUser := domain.User{}
-	err := r.db.Where(where).First(&foundUser).Error
+	err := r.db.Where(where).Take(&foundUser).Error
 
 	if err != nil {
 		return nil, err

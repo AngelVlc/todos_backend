@@ -405,7 +405,7 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 	itemID := int32(111)
 
 	expectedGetItemQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? AND `listItems`.`listId` = ? AND `listItems`.`userId` = ? ORDER BY `listItems`.`id` LIMIT 1")).
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? AND `listItems`.`listId` = ? AND `listItems`.`userId` = ? LIMIT 1")).
 			WithArgs(itemID, listID, userID)
 	}
 

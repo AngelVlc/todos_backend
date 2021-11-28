@@ -27,7 +27,7 @@ func (r *MySqlListsRepository) ExistsList(name domain.ListName, userID int32) (b
 
 func (r *MySqlListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
 	found := domain.List{}
-	err := r.db.Where(domain.List{ID: listID, UserID: userID}).First(&found).Error
+	err := r.db.Where(domain.List{ID: listID, UserID: userID}).Take(&found).Error
 
 	if err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (r *MySqlListsRepository) DecrementListCounter(listID int32) error {
 
 func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
 	found := domain.ListItem{}
-	err := r.db.Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).First(&found).Error
+	err := r.db.Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).Take(&found).Error
 
 	if err != nil {
 		return nil, err

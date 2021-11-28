@@ -8,7 +8,7 @@ import (
 
 type User struct {
 	ID           int32    `gorm:"type:int(32);primary_key"`
-	Name         UserName `gorm:"type:varchar(10);index:idx_users_name"`
+	Name         UserName `gorm:"type:varchar(10);index:idx_users_name,unique"`
 	PasswordHash string   `gorm:"column:passwordHash;type:varchar(100)"`
 	IsAdmin      bool     `gorm:"column:isAdmin;type:tinyint"`
 }

@@ -15,6 +15,8 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/recover"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/mux"
+	"github.com/newrelic/go-agent/v3/integrations/nrgorilla"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"gorm.io/gorm"
 )
 
@@ -27,9 +29,10 @@ type server struct {
 	passGen     passgen.PasswordGenerator
 	eventBus    events.EventBus
 	subscribers []events.Subscriber
+	newRelicApp *newrelic.Application
 }
 
-func NewServer(db *gorm.DB, eb events.EventBus) *server {
+func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Application) *server {
 
 	s := server{
 		authRepo:    wire.InitAuthRepository(db),
@@ -39,9 +42,12 @@ func NewServer(db *gorm.DB, eb events.EventBus) *server {
 		passGen:     wire.InitPasswordGenerator(),
 		eventBus:    eb,
 		subscribers: []events.Subscriber{},
+		newRelicApp: newRelicApp,
 	}
 
 	router := mux.NewRouter()
+
+	router.Use(nrgorilla.Middleware(newRelicApp))
 
 	countersMdw := wire.InitRequestIdMiddleware(db)
 	router.Use(countersMdw.Middleware)
@@ -90,6 +96,7 @@ func NewServer(db *gorm.DB, eb events.EventBus) *server {
 
 	logMdw := wire.InitLogMiddleware()
 	router.Use(logMdw.Middleware)
+
 	s.Handler = router
 
 	s.addSubscriber(listsInfra.NewListItemCreatedEventSubscriber(s.eventBus, s.listsRepo))

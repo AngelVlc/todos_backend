@@ -17,6 +17,8 @@ type ConfigurationService interface {
 	GetCorsAllowedOrigins() []string
 	GetTokenExpirationDate() time.Time
 	GetRefreshTokenExpirationDate() time.Time
+	GetEnvironment() string
+	GetHoneyBadgerApiKey() string
 }
 
 type MockedConfigurationService struct {
@@ -60,6 +62,16 @@ func (m *MockedConfigurationService) GetTokenExpirationDate() time.Time {
 func (m *MockedConfigurationService) GetRefreshTokenExpirationDate() time.Time {
 	args := m.Called()
 	return args.Get(0).(time.Time)
+}
+
+func (m *MockedConfigurationService) GetEnvironment() string {
+	args := m.Called()
+	return args.String(0)
+}
+
+func (m *MockedConfigurationService) GetHoneyBadgerApiKey() string {
+	args := m.Called()
+	return args.String(0)
 }
 
 type RealConfigurationService struct{}
@@ -115,6 +127,18 @@ func (c *RealConfigurationService) GetTokenExpirationDate() time.Time {
 
 func (c *RealConfigurationService) GetRefreshTokenExpirationDate() time.Time {
 	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_DURATION", "24h"))
+}
+
+func (c *RealConfigurationService) GetEnvironment() string {
+	return c.getEnvOrFallback("ENVIRONMENT", "development")
+}
+
+func (c *RealConfigurationService) GetHoneyBadgerApiKey() string {
+	return c.getEnvOrFallback("HONEYBADGER_API_KEY", "development")
+}
+
+func (c *RealConfigurationService) GetDeleteExpiredRefreshTokensInterval() time.Time {
+	return time.Now().Add(c.getDurationEnvVar("DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL", "30s"))
 }
 
 func (c *RealConfigurationService) getDurationEnvVar(key string, fallback string) time.Duration {

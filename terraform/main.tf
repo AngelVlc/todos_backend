@@ -13,7 +13,7 @@ variable "heroku_api_key" {
 }
 
 variable "app_name" {
-  description = "Name of the Heroku app provisioned"
+  description = "Name of the Heroku app to be provisioned"
 }
 
 variable "jwt_secret" {
@@ -28,6 +28,10 @@ variable "cors_allowed_origins" {
   description = "Comma separated CORS allowed domains"
 }
 
+variable "environment" {
+  description = "Name of the environment to be provisioned"
+}
+
 provider "heroku" {
   email   = "${var.heroku_username}"
   api_key = "${var.heroku_api_key}"
@@ -39,9 +43,24 @@ resource "heroku_app" "default" {
   stack  = "container"
 }
 
-resource "heroku_addon" "default" {
+resource "heroku_addon" "database" {
   app    = "${heroku_app.default.name}"
   plan   = "cleardb:ignite"
+}
+
+resource "heroku_addon" "errors" {
+  app    = "${heroku_app.default.name}"
+  plan   = "honeybadger:free"
+}
+
+resource "heroku_addon" "apm" {
+  app    = "${heroku_app.default.name}"
+  plan   = "newrelic:wayne"
+}
+
+resource "heroku_addon" "log" {
+  app    = "${heroku_app.default.name}"
+  plan   = "sumologic:free"
 }
 
 resource "heroku_config" "default" {
@@ -49,8 +68,10 @@ resource "heroku_config" "default" {
     JWT_SECRET = "${var.jwt_secret}"
     ADMIN_PASSWORD = "${var.admin_password}"
     CORS_ALLOWED_ORIGINS = "${var.cors_allowed_origins}"
+    ENVIRONMENT = "${var.environment}"
     TOKEN_EXPIRATION_DURATION = "5m"
     REFRESH_TOKEN_EXPIRATION_DURATION = "24h"
+    DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL = "30s"
   }
 }
 

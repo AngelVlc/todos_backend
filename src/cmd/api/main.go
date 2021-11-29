@@ -23,10 +23,10 @@ import (
 )
 
 func main() {
-	initHoneyBadger()
-	defer honeybadger.Monitor()
-
 	cfg := wire.InitConfigurationService()
+
+	initHoneyBadger(cfg)
+	defer honeybadger.Monitor()
 
 	db, err := initDb(cfg)
 	if err != nil {
@@ -148,10 +148,11 @@ func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository) {
 	}()
 }
 
-func initHoneyBadger() {
-	key, exists := os.LookupEnv("HONEYBADGER_API_KEY")
-	if exists {
-		honeybadger.Configure(honeybadger.Configuration{APIKey: key, Sync: true})
-		log.Println("HoneyBadger configured")
+func initHoneyBadger(cfg sharedApp.ConfigurationService) {
+	configuration := honeybadger.Configuration{
+		APIKey: cfg.GetHoneyBadgerApiKey(),
+		Env:    cfg.GetEnvironment(),
+		Sync:   true,
 	}
+	honeybadger.Configure(configuration)
 }

@@ -63,8 +63,8 @@ func (m *MockedAuthRepository) UpdateUser(ctx context.Context, user *domain.User
 	return args.Error(0)
 }
 
-func (m *MockedAuthRepository) FindRefreshTokenForUser(refreshToken string, userID int32) (*domain.RefreshToken, error) {
-	args := m.Called(refreshToken, userID)
+func (m *MockedAuthRepository) FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*domain.RefreshToken, error) {
+	args := m.Called(ctx, refreshToken, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

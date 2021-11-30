@@ -31,7 +31,7 @@ func (s *LoginService) RefreshToken(ctx context.Context, rt string) (string, err
 		return "", err
 	}
 
-	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(rt, rtInfo.UserID)
+	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(ctx, rt, rtInfo.UserID)
 	if err != nil {
 		return "", &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
 	}

@@ -14,7 +14,7 @@ type AuthRepository interface {
 	DeleteUser(ctx context.Context, userID int32) error
 	UpdateUser(ctx context.Context, user *User) error
 
-	FindRefreshTokenForUser(refreshToken string, userID int32) (*RefreshToken, error)
+	FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*RefreshToken, error)
 	CreateRefreshTokenIfNotExist(refreshToken *RefreshToken) error
 	DeleteExpiredRefreshTokens(expTime time.Time) error
 	GetAllRefreshTokens() ([]RefreshToken, error)

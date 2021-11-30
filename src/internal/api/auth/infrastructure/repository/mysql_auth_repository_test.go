@@ -364,7 +364,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 	t.Run("should not return a refresh token if it does not exist", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(refreshTokenColumns))
 
-		res, err := repo.FindRefreshTokenForUser(rt, userID)
+		res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
 
 		assert.Nil(t, res)
 		assert.Nil(t, err)
@@ -375,7 +375,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.FindRefreshTokenForUser(rt, userID)
+		res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -386,7 +386,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 	t.Run("should return the refresh token if it exists", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(refreshTokenColumns).AddRow(int32(111), userID, rt, time.Now()))
 
-		res, err := repo.FindRefreshTokenForUser(rt, userID)
+		res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
 
 		require.NotNil(t, res)
 		assert.Equal(t, userID, res.UserID)

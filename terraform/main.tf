@@ -46,6 +46,9 @@ resource "heroku_app" "default" {
 resource "heroku_addon" "database" {
   app    = "${heroku_app.default.name}"
   plan   = "cleardb:ignite"
+  lifecycle {
+    prevent_destroy = true
+  }
 }
 
 resource "heroku_addon" "errors" {

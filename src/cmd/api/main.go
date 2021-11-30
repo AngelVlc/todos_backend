@@ -154,13 +154,13 @@ func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository) {
 	ticker := time.NewTicker(30 * time.Second)
 	done := make(chan bool)
 	go func() {
-		authRepo.DeleteExpiredRefreshTokens(time.Now())
+		authRepo.DeleteExpiredRefreshTokens(context.Background(), time.Now())
 		for {
 			select {
 			case <-done:
 				return
 			case t := <-ticker.C:
-				authRepo.DeleteExpiredRefreshTokens(t)
+				authRepo.DeleteExpiredRefreshTokens(context.Background(), t)
 			}
 		}
 	}()

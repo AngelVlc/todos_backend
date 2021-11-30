@@ -469,7 +469,7 @@ func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
 		expectedDelete(now).WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteExpiredRefreshTokens(now)
+		err := repo.DeleteExpiredRefreshTokens(context.Background(), now)
 
 		assert.EqualError(t, err, "some error")
 
@@ -483,7 +483,7 @@ func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
 		expectedDelete(now).WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteExpiredRefreshTokens(now)
+		err := repo.DeleteExpiredRefreshTokens(context.Background(), now)
 
 		assert.Nil(t, err)
 

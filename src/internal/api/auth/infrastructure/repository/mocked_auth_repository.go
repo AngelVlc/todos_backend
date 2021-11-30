@@ -81,8 +81,8 @@ func (m *MockedAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context,
 	return args.Error(0)
 }
 
-func (m *MockedAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) error {
-	args := m.Called(expTime)
+func (m *MockedAuthRepository) DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error {
+	args := m.Called(ctx, expTime)
 	return args.Error(0)
 }
 

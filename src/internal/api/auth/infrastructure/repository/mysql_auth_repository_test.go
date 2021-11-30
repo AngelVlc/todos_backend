@@ -423,7 +423,7 @@ func TestMySqlAuthRepositoryCreateRefreshTokenIfNotExist(t *testing.T) {
 		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.CreateRefreshTokenIfNotExist(&rt)
+		err := repo.CreateRefreshTokenIfNotExist(context.Background(), &rt)
 
 		assert.EqualError(t, err, "some error")
 
@@ -437,7 +437,7 @@ func TestMySqlAuthRepositoryCreateRefreshTokenIfNotExist(t *testing.T) {
 		expectedInsertExec().WillReturnResult(result)
 		mock.ExpectCommit()
 
-		err := repo.CreateRefreshTokenIfNotExist(&rt)
+		err := repo.CreateRefreshTokenIfNotExist(context.Background(), &rt)
 
 		assert.Nil(t, err)
 

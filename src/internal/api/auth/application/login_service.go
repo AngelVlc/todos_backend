@@ -43,7 +43,7 @@ func (s *LoginService) Login(ctx context.Context, userName domain.UserName, pass
 	}
 
 	go func() {
-		err = s.repo.CreateRefreshTokenIfNotExist(&domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
+		err = s.repo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
 		if err != nil {
 			log.Printf("Error saving the refresh token. Error: %v", err)
 		}

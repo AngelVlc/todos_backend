@@ -136,7 +136,7 @@ func TestLoginHandler(t *testing.T) {
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
-		mockedRepo.On("CreateRefreshTokenIfNotExist", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
+		mockedRepo.On("CreateRefreshTokenIfNotExist", request.Context(), &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
 
 		recorder := httptest.NewRecorder()
 
@@ -175,7 +175,7 @@ func TestLoginHandler(t *testing.T) {
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
-		mockedRepo.On("CreateRefreshTokenIfNotExist", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
+		mockedRepo.On("CreateRefreshTokenIfNotExist", request.Context(), &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
 
 		recorder := httptest.NewRecorder()
 

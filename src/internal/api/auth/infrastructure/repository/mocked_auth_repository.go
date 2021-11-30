@@ -71,13 +71,13 @@ func (m *MockedAuthRepository) FindRefreshTokenForUser(ctx context.Context, refr
 	return args.Get(0).(*domain.RefreshToken), args.Error(1)
 }
 
-func (m *MockedAuthRepository) CreateRefreshTokenIfNotExist(refreshToken *domain.RefreshToken) error {
+func (m *MockedAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *domain.RefreshToken) error {
 	defer m.Wg.Done()
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	args := m.Called(refreshToken)
+	args := m.Called(ctx, refreshToken)
 	return args.Error(0)
 }
 

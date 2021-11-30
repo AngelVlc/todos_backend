@@ -74,11 +74,11 @@ func (r *MySqlAuthRepository) FindRefreshTokenForUser(ctx context.Context, refre
 	return &found, nil
 }
 
-func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(refreshToken *domain.RefreshToken) error {
+func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *domain.RefreshToken) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	return r.db.Clauses(clause.OnConflict{
+	return r.db.WithContext(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}, {Name: "userId"}, {Name: "refreshToken"}},
 		DoNothing: true,
 	}).Create(refreshToken).Error

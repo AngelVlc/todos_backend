@@ -34,7 +34,7 @@ func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.User
 		IsAdmin:      isAdmin,
 	}
 
-	err = s.repo.CreateUser(&user)
+	err = s.repo.CreateUser(ctx, &user)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user", InternalError: err}
 	}

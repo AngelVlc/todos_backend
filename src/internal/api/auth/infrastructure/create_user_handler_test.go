@@ -117,7 +117,7 @@ func TestCreateUserHandler(t *testing.T) {
 		hassedPass := "hassed"
 		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
-		mockedRepo.On("CreateUser", &user).Return(fmt.Errorf("some error")).Once()
+		mockedRepo.On("CreateUser", request.Context(), &user).Return(fmt.Errorf("some error")).Once()
 
 		result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -132,8 +132,8 @@ func TestCreateUserHandler(t *testing.T) {
 		hassedPass := "hassed"
 		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
-		mockedRepo.On("CreateUser", &user).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(0).(*domain.User)
+		mockedRepo.On("CreateUser", request.Context(), &user).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*domain.User)
 			*arg = domain.User{ID: int32(1)}
 		})
 

@@ -47,8 +47,8 @@ func (r *MySqlAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, e
 	return res, nil
 }
 
-func (r *MySqlAuthRepository) CreateUser(user *domain.User) error {
-	return r.db.Create(user).Error
+func (r *MySqlAuthRepository) CreateUser(ctx context.Context, user *domain.User) error {
+	return r.db.WithContext(ctx).Create(user).Error
 }
 
 func (r *MySqlAuthRepository) DeleteUser(userID int32) error {

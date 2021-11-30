@@ -48,8 +48,8 @@ func (m *MockedAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, 
 	return args.Get(0).([]domain.User), args.Error(1)
 }
 
-func (m *MockedAuthRepository) CreateUser(user *domain.User) error {
-	args := m.Called(user)
+func (m *MockedAuthRepository) CreateUser(ctx context.Context, user *domain.User) error {
+	args := m.Called(ctx, user)
 	return args.Error(0)
 }
 

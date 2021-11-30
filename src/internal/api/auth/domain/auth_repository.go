@@ -10,7 +10,7 @@ type AuthRepository interface {
 	FindUserByName(ctx context.Context, userName UserName) (*User, error)
 	FindUserByID(ctx context.Context, userID int32) (*User, error)
 	GetAllUsers(ctx context.Context) ([]User, error)
-	CreateUser(user *User) error
+	CreateUser(ctx context.Context, user *User) error
 	DeleteUser(userID int32) error
 	UpdateUser(user *User) error
 

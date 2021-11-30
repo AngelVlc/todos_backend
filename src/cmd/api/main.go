@@ -143,7 +143,7 @@ func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, db *gorm.DB)
 			PasswordHash: hassedPass,
 			IsAdmin:      true,
 		}
-		err = repo.CreateUser(&user)
+		err = repo.CreateUser(context.Background(), &user)
 		if err != nil {
 			log.Fatal(err)
 		}

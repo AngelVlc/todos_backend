@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
@@ -13,8 +15,8 @@ func NewGetAllUsersService(repo domain.AuthRepository) *GetAllUsersService {
 	return &GetAllUsersService{repo}
 }
 
-func (s *GetAllUsersService) GetAllUsers() ([]domain.User, error) {
-	foundUsers, err := s.repo.GetAllUsers()
+func (s *GetAllUsersService) GetAllUsers(ctx context.Context) ([]domain.User, error) {
+	foundUsers, err := s.repo.GetAllUsers(ctx)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
 	}

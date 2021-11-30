@@ -176,7 +176,7 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetUsersQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllUsers()
+		res, err := repo.GetAllUsers(context.Background())
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -187,7 +187,7 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 	t.Run("should return the users", func(t *testing.T) {
 		expectedGetUsersQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
 
-		res, err := repo.GetAllUsers()
+		res, err := repo.GetAllUsers(context.Background())
 
 		assert.Nil(t, err)
 		require.Equal(t, 2, len(res))

@@ -40,8 +40,8 @@ func (m *MockedAuthRepository) FindUserByName(ctx context.Context, userName doma
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
-func (m *MockedAuthRepository) GetAllUsers() ([]domain.User, error) {
-	args := m.Called()
+func (m *MockedAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, error) {
+	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

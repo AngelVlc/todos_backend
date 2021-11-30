@@ -319,7 +319,7 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 		expectedUpdateExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.UpdateUser(&user)
+		err := repo.UpdateUser(context.Background(), &user)
 
 		assert.EqualError(t, err, "some error")
 		checkMockExpectations(t, mock)
@@ -333,7 +333,7 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 			WithArgs(11).
 			WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user", "", false))
 
-		err := repo.UpdateUser(&user)
+		err := repo.UpdateUser(context.Background(), &user)
 
 		assert.Nil(t, err)
 		checkMockExpectations(t, mock)

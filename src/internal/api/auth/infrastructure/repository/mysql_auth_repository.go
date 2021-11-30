@@ -55,8 +55,8 @@ func (r *MySqlAuthRepository) DeleteUser(ctx context.Context, userID int32) erro
 	return r.db.WithContext(ctx).Delete(domain.User{ID: userID}).Error
 }
 
-func (r *MySqlAuthRepository) UpdateUser(user *domain.User) error {
-	return r.db.Save(&user).Error
+func (r *MySqlAuthRepository) UpdateUser(ctx context.Context, user *domain.User) error {
+	return r.db.WithContext(ctx).Save(&user).Error
 }
 
 func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userID int32) (*domain.RefreshToken, error) {

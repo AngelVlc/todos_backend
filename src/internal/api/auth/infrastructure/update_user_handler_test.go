@@ -154,7 +154,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		foundUser := authDomain.User{Name: authDomain.UserName("wadus")}
 		mockedRepo.On("FindUserByID", req.Context(), int32(1)).Return(&foundUser, nil).Once()
 		foundUser.Name = authDomain.UserName("wadusUpdated")
-		mockedRepo.On("UpdateUser", &foundUser).Return(fmt.Errorf("some error")).Once()
+		mockedRepo.On("UpdateUser", req.Context(), &foundUser).Return(fmt.Errorf("some error")).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
@@ -172,7 +172,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		mockedRepo.On("ExistsUser", req.Context(), authDomain.UserName("wadusUpdated")).Return(false, nil).Once()
 		foundUser2 := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		foundUser2.Name = authDomain.UserName("wadusUpdated")
-		mockedRepo.On("UpdateUser", &foundUser2).Return(nil).Once()
+		mockedRepo.On("UpdateUser", req.Context(), &foundUser2).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
@@ -195,7 +195,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		foundUser := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", req.Context(), int32(1)).Return(&foundUser, nil).Once()
 		mockedPassGen.On("GenerateFromPassword", "newPass").Return("hassedPass", nil).Once()
-		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()
+		mockedRepo.On("UpdateUser", req.Context(), &foundUser).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
@@ -218,7 +218,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		foundUser := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		mockedRepo.On("FindUserByID", req.Context(), int32(1)).Return(&foundUser, nil).Once()
 		foundUser.IsAdmin = true
-		mockedRepo.On("UpdateUser", &foundUser).Return(nil).Once()
+		mockedRepo.On("UpdateUser", req.Context(), &foundUser).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 

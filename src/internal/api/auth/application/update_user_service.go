@@ -52,7 +52,7 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 	foundUser.Name = userName
 	foundUser.IsAdmin = isAdmin
 
-	err = s.repo.UpdateUser(foundUser)
+	err = s.repo.UpdateUser(ctx, foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user", InternalError: err}
 	}

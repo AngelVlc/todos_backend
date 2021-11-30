@@ -53,8 +53,8 @@ func (m *MockedAuthRepository) CreateUser(ctx context.Context, user *domain.User
 	return args.Error(0)
 }
 
-func (m *MockedAuthRepository) DeleteUser(userID int32) error {
-	args := m.Called(userID)
+func (m *MockedAuthRepository) DeleteUser(ctx context.Context, userID int32) error {
+	args := m.Called(ctx, userID)
 	return args.Error(0)
 }
 

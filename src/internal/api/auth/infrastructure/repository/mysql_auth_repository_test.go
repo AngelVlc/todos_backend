@@ -276,7 +276,7 @@ func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 		expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteUser(userID)
+		err := repo.DeleteUser(context.Background(), userID)
 
 		assert.EqualError(t, err, "some error")
 		checkMockExpectations(t, mock)
@@ -287,7 +287,7 @@ func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 		expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteUser(userID)
+		err := repo.DeleteUser(context.Background(), userID)
 
 		assert.Nil(t, err)
 		checkMockExpectations(t, mock)

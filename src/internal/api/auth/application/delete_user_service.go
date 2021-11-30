@@ -26,7 +26,7 @@ func (s *DeleteUserService) DeleteUser(ctx context.Context, userID int32) error 
 		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
 	}
 
-	err = s.repo.DeleteUser(userID)
+	err = s.repo.DeleteUser(ctx, userID)
 	if err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting the user", InternalError: err}
 	}

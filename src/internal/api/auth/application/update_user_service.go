@@ -34,7 +34,7 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 	}
 
 	if foundUser.Name != userName {
-		err = userName.CheckIfAlreadyExists(s.repo)
+		err = userName.CheckIfAlreadyExists(ctx, s.repo)
 		if err != nil {
 			return nil, err
 		}

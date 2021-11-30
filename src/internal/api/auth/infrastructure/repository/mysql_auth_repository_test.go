@@ -45,7 +45,7 @@ func TestMySqlAuthRepositoryExistsUser(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedExistsQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.ExistsUser(userName)
+		res, err := repo.ExistsUser(context.Background(), userName)
 
 		assert.False(t, res)
 		assert.EqualError(t, err, "some error")
@@ -56,7 +56,7 @@ func TestMySqlAuthRepositoryExistsUser(t *testing.T) {
 	t.Run("should return true if the user exists", func(t *testing.T) {
 		expectedExistsQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
-		res, err := repo.ExistsUser(userName)
+		res, err := repo.ExistsUser(context.Background(), userName)
 
 		assert.True(t, res)
 		assert.Nil(t, err)

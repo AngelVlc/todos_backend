@@ -20,9 +20,9 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
-func (r *MySqlAuthRepository) ExistsUser(userName domain.UserName) (bool, error) {
+func (r *MySqlAuthRepository) ExistsUser(ctx context.Context, userName domain.UserName) (bool, error) {
 	count := int64(0)
-	err := r.db.Model(&domain.User{}).Where(domain.User{Name: userName}).Count(&count).Error
+	err := r.db.WithContext(ctx).Model(&domain.User{}).Where(domain.User{Name: userName}).Count(&count).Error
 
 	if err != nil {
 		return false, err

@@ -39,7 +39,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewCreateUserService(h.AuthRepository, h.PassGen)
-	newUser, err := srv.CreateUser(userName, password, createReq.IsAdmin)
+	newUser, err := srv.CreateUser(r.Context(), userName, password, createReq.IsAdmin)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

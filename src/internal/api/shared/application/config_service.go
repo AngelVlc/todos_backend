@@ -19,7 +19,7 @@ type ConfigurationService interface {
 	GetRefreshTokenExpirationDate() time.Time
 	GetEnvironment() string
 	GetHoneyBadgerApiKey() string
-	GetNewRelicApiKey() string
+	GetNewRelicLicenseKey() string
 }
 
 type MockedConfigurationService struct {
@@ -75,7 +75,7 @@ func (m *MockedConfigurationService) GetHoneyBadgerApiKey() string {
 	return args.String(0)
 }
 
-func (m *MockedConfigurationService) GetNewRelicApiKey() string {
+func (m *MockedConfigurationService) GetNewRelicLicenseKey() string {
 	args := m.Called()
 	return args.String(0)
 }
@@ -143,8 +143,8 @@ func (c *RealConfigurationService) GetHoneyBadgerApiKey() string {
 	return c.getEnvOrFallback("HONEYBADGER_API_KEY", "apikey")
 }
 
-func (c *RealConfigurationService) GetNewRelicApiKey() string {
-	return c.getEnvOrFallback("NEWRELIC_API_KEY", "apikey")
+func (c *RealConfigurationService) GetNewRelicLicenseKey() string {
+	return c.getEnvOrFallback("NEW_RELIC_LICENSE_KEY", "apikey")
 }
 
 func (c *RealConfigurationService) GetDeleteExpiredRefreshTokensInterval() time.Time {

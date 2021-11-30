@@ -177,5 +177,6 @@ func initHoneyBadger(cfg sharedApp.ConfigurationService) {
 
 func initNewRelic(cfg sharedApp.ConfigurationService) (*newrelic.Application, error) {
 	appName := fmt.Sprintf("todos_backend_%v", newrelic.ConfigAppName("todos_backend_development"))
-	return newrelic.NewApplication(newrelic.ConfigAppName(appName), newrelic.ConfigLicense(cfg.GetNewRelicApiKey()))
+	licenseKey := cfg.GetNewRelicLicenseKey()
+	return newrelic.NewApplication(newrelic.ConfigAppName(appName), newrelic.ConfigLicense(licenseKey))
 }

@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 )
 
@@ -12,6 +14,6 @@ func NewGetUserService(repo domain.AuthRepository) *GetUserService {
 	return &GetUserService{repo}
 }
 
-func (s *GetUserService) GetUser(userID int32) (*domain.User, error) {
-	return s.repo.FindUserByID(userID)
+func (s *GetUserService) GetUser(ctx context.Context, userID int32) (*domain.User, error) {
+	return s.repo.FindUserByID(ctx, userID)
 }

@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"log"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
@@ -18,8 +19,8 @@ func NewLoginService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationS
 	return &LoginService{repo, cfgSvr, tokenSrv}
 }
 
-func (s *LoginService) Login(userName domain.UserName, password domain.UserPassword) (*domain.LoginResponse, error) {
-	foundUser, err := s.repo.FindUserByName(userName)
+func (s *LoginService) Login(ctx context.Context, userName domain.UserName, password domain.UserPassword) (*domain.LoginResponse, error) {
+	foundUser, err := s.repo.FindUserByName(ctx, userName)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
@@ -15,8 +17,8 @@ func NewUpdateUserService(repo domain.AuthRepository, passGen passgen.PasswordGe
 	return &UpdateUserService{repo, passGen}
 }
 
-func (s *UpdateUserService) UpdateUser(userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
-	foundUser, err := s.repo.FindUserByID(userID)
+func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
+	foundUser, err := s.repo.FindUserByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}

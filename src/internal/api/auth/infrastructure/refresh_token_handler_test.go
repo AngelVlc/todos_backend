@@ -59,7 +59,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
-		mockedRepo.On("FindUserByID", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
@@ -76,7 +76,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
-		mockedRepo.On("FindUserByID", int32(1)).Return(&domain.User{}, nil).Once()
+		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(&domain.User{}, nil).Once()
 		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
@@ -94,7 +94,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
-		mockedRepo.On("FindUserByID", int32(1)).Return(&domain.User{}, nil).Once()
+		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(&domain.User{}, nil).Once()
 		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(nil, nil).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
@@ -113,7 +113,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
 		foundUser := domain.User{}
-		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(&foundUser, nil).Once()
 		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("", fmt.Errorf("some error")).Once()
 
@@ -133,7 +133,7 @@ func TestRefreshTokenHandler(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
 		foundUser := domain.User{}
-		mockedRepo.On("FindUserByID", int32(1)).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(&foundUser, nil).Once()
 		mockedRepo.On("FindRefreshTokenForUser", "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 

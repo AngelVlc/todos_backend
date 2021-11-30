@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"time"
@@ -30,12 +31,12 @@ func (r *MySqlAuthRepository) ExistsUser(userName domain.UserName) (bool, error)
 	return count > 0, nil
 }
 
-func (r *MySqlAuthRepository) FindUserByName(userName domain.UserName) (*domain.User, error) {
-	return r.findUser(domain.User{Name: userName})
+func (r *MySqlAuthRepository) FindUserByName(ctx context.Context, userName domain.UserName) (*domain.User, error) {
+	return r.findUser(ctx, domain.User{Name: userName})
 }
 
-func (r *MySqlAuthRepository) FindUserByID(userID int32) (*domain.User, error) {
-	return r.findUser(domain.User{ID: userID})
+func (r *MySqlAuthRepository) FindUserByID(ctx context.Context, userID int32) (*domain.User, error) {
+	return r.findUser(ctx, domain.User{ID: userID})
 }
 
 func (r *MySqlAuthRepository) GetAllUsers() ([]domain.User, error) {
@@ -102,9 +103,9 @@ func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
 	return nil
 }
 
-func (r *MySqlAuthRepository) findUser(where domain.User) (*domain.User, error) {
+func (r *MySqlAuthRepository) findUser(ctx context.Context, where domain.User) (*domain.User, error) {
 	foundUser := domain.User{}
-	err := r.db.Where(where).Take(&foundUser).Error
+	err := r.db.WithContext(ctx).Where(where).Take(&foundUser).Error
 
 	if err != nil {
 		return nil, err

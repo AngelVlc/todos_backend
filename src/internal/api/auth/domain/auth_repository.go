@@ -1,11 +1,14 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type AuthRepository interface {
 	ExistsUser(userName UserName) (bool, error)
-	FindUserByName(userName UserName) (*User, error)
-	FindUserByID(userID int32) (*User, error)
+	FindUserByName(ctx context.Context, userName UserName) (*User, error)
+	FindUserByID(ctx context.Context, userID int32) (*User, error)
 	GetAllUsers() ([]User, error)
 	CreateUser(user *User) error
 	DeleteUser(userID int32) error

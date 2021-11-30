@@ -1,6 +1,7 @@
 package application
 
 import (
+	"context"
 	"strings"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
@@ -15,8 +16,8 @@ func NewDeleteUserService(repo domain.AuthRepository) *DeleteUserService {
 	return &DeleteUserService{repo}
 }
 
-func (s *DeleteUserService) DeleteUser(userID int32) error {
-	foundUser, err := s.repo.FindUserByID(userID)
+func (s *DeleteUserService) DeleteUser(ctx context.Context, userID int32) error {
+	foundUser, err := s.repo.FindUserByID(ctx, userID)
 	if err != nil {
 		return err
 	}

@@ -12,9 +12,9 @@ require (
 	github.com/gorilla/mux v1.7.4
 	github.com/honeybadger-io/honeybadger-go v0.5.0
 	github.com/jinzhu/now v1.1.3 // indirect
-	github.com/newrelic/go-agent v3.15.1+incompatible
 	github.com/newrelic/go-agent/v3 v3.15.1
 	github.com/newrelic/go-agent/v3/integrations/nrgorilla v1.1.1
+	github.com/newrelic/go-agent/v3/integrations/nrmysql v1.2.1
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20211117183948-ae814b36b871
 	gorm.io/driver/mysql v1.2.0

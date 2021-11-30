@@ -3,6 +3,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -87,7 +88,7 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.FindUserByID(userID)
+		res, err := repo.FindUserByID(context.Background(), userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -98,7 +99,7 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 	t.Run("should return the user if it exists", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(userID, "userName", "hash", true))
 
-		res, err := repo.FindUserByID(userID)
+		res, err := repo.FindUserByID(context.Background(), userID)
 
 		require.NotNil(t, res)
 		assert.Equal(t, domain.UserName("userName"), res.Name)
@@ -133,7 +134,7 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByNameQuery().WillReturnError(fmt.Errorf("some error"))
 
-		u, err := repo.FindUserByName(userName)
+		u, err := repo.FindUserByName(context.Background(), userName)
 
 		assert.Nil(t, u)
 		assert.EqualError(t, err, "some error")
@@ -144,7 +145,7 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 	t.Run("should return the user if it exists", func(t *testing.T) {
 		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(int32(1), "userName", "hash", true))
 
-		u, err := repo.FindUserByName(userName)
+		u, err := repo.FindUserByName(context.Background(), userName)
 
 		assert.NotNil(t, u)
 		assert.Equal(t, int32(1), u.ID)

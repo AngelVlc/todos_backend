@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"sync"
 	"time"
 
@@ -23,16 +24,16 @@ func (m *MockedAuthRepository) ExistsUser(userName domain.UserName) (bool, error
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockedAuthRepository) FindUserByID(userID int32) (*domain.User, error) {
-	args := m.Called(userID)
+func (m *MockedAuthRepository) FindUserByID(ctx context.Context, userID int32) (*domain.User, error) {
+	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
-func (m *MockedAuthRepository) FindUserByName(userName domain.UserName) (*domain.User, error) {
-	args := m.Called(userName)
+func (m *MockedAuthRepository) FindUserByName(ctx context.Context, userName domain.UserName) (*domain.User, error) {
+	args := m.Called(ctx, userName)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

@@ -86,8 +86,8 @@ func (m *MockedAuthRepository) DeleteExpiredRefreshTokens(ctx context.Context, e
 	return args.Error(0)
 }
 
-func (m *MockedAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, error) {
-	args := m.Called()
+func (m *MockedAuthRepository) GetAllRefreshTokens(ctx context.Context) ([]domain.RefreshToken, error) {
+	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

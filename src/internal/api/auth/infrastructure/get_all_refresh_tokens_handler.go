@@ -17,7 +17,7 @@ type RefreshTokenResponse struct {
 
 func GetAllRefreshTokensHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	srv := application.NewGetAllRefreshTokensService(h.AuthRepository)
-	found, err := srv.GetAllRefreshTokens()
+	found, err := srv.GetAllRefreshTokens(r.Context())
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

@@ -511,7 +511,7 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllRefreshTokens()
+		res, err := repo.GetAllRefreshTokens(context.Background())
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -524,7 +524,7 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 		now := time.Now()
 		expectedGetQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(11, 1, now))
 
-		res, err := repo.GetAllRefreshTokens()
+		res, err := repo.GetAllRefreshTokens(context.Background())
 
 		assert.Nil(t, err)
 		require.Equal(t, 1, len(res))

@@ -94,7 +94,7 @@ func (m *MockedAuthRepository) GetAllRefreshTokens(ctx context.Context) ([]domai
 	return args.Get(0).([]domain.RefreshToken), args.Error(1)
 }
 
-func (m *MockedAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
-	args := m.Called(ids)
+func (m *MockedAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids []int32) error {
+	args := m.Called(ctx, ids)
 	return args.Error(0)
 }

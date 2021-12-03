@@ -96,8 +96,8 @@ func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context) ([]domain
 	return res, nil
 }
 
-func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
-	if err := r.db.Delete(domain.RefreshToken{}, ids).Error; err != nil {
+func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids []int32) error {
+	if err := r.db.WithContext(ctx).Delete(domain.RefreshToken{}, ids).Error; err != nil {
 		return err
 	}
 	return nil

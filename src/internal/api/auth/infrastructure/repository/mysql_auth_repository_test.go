@@ -567,7 +567,7 @@ func TestMySqlAuthRepositoryDeleteRefreshTokensByID(t *testing.T) {
 		expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteRefreshTokensByID(ids)
+		err := repo.DeleteRefreshTokensByID(context.Background(), ids)
 
 		assert.EqualError(t, err, "some error")
 		checkMockExpectations(t, mock)
@@ -578,7 +578,7 @@ func TestMySqlAuthRepositoryDeleteRefreshTokensByID(t *testing.T) {
 		expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteRefreshTokensByID(ids)
+		err := repo.DeleteRefreshTokensByID(context.Background(), ids)
 
 		assert.Nil(t, err)
 		checkMockExpectations(t, mock)

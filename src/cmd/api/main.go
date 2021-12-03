@@ -41,16 +41,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	txn := newRelicApp.StartTransaction("mysqlQuery")
-	ctx := newrelic.NewContext(context.Background(), txn)
-	db = db.WithContext(ctx)
-
-	createAdminUserIfNotExists(cfg, db)
-	defer txn.End()
+	newRelicApp.WaitForConnection(5 * time.Second)
 
 	authRepo := wire.InitAuthRepository(db)
 
-	go initDeleteExpiredTokensProcess(authRepo)
+	createAdminUserIfNotExists(cfg, authRepo, *newRelicApp)
+
+	go initDeleteExpiredTokensProcess(authRepo, *newRelicApp)
 
 	eb := wire.InitEventBus(map[string]events.DataChannelSlice{})
 
@@ -123,11 +120,13 @@ func initDb(c sharedApp.ConfigurationService, newRelicApp *newrelic.Application)
 	return gormdb, nil
 }
 
-func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, db *gorm.DB) {
-	repo := wire.InitAuthRepository(db)
+func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
+	txn := newRelicApp.StartTransaction("createAdminUserIfNotExists")
+	ctx := newrelic.NewContext(context.Background(), txn)
+	defer txn.End()
 
 	userName := authDomain.UserName("admin")
-	adminExists, err := repo.ExistsUser(context.Background(), userName)
+	adminExists, err := authRepo.ExistsUser(ctx, userName)
 	if err != nil {
 		log.Fatal(err)
 
@@ -143,24 +142,27 @@ func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, db *gorm.DB)
 			PasswordHash: hassedPass,
 			IsAdmin:      true,
 		}
-		err = repo.CreateUser(context.Background(), &user)
+		err = authRepo.CreateUser(ctx, &user)
 		if err != nil {
 			log.Fatal(err)
 		}
 	}
 }
 
-func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository) {
+func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
 	ticker := time.NewTicker(30 * time.Second)
 	done := make(chan bool)
+
 	go func() {
-		authRepo.DeleteExpiredRefreshTokens(context.Background(), time.Now())
 		for {
 			select {
 			case <-done:
 				return
 			case t := <-ticker.C:
-				authRepo.DeleteExpiredRefreshTokens(context.Background(), t)
+				txn := newRelicApp.StartTransaction("deleteExpiredRefreshTokens")
+				ctx := newrelic.NewContext(context.Background(), txn)
+				authRepo.DeleteExpiredRefreshTokens(ctx, t)
+				txn.End()
 			}
 		}
 	}()
@@ -178,5 +180,5 @@ func initHoneyBadger(cfg sharedApp.ConfigurationService) {
 func initNewRelic(cfg sharedApp.ConfigurationService) (*newrelic.Application, error) {
 	appName := fmt.Sprintf("todos_backend_%v", cfg.GetEnvironment())
 	licenseKey := cfg.GetNewRelicLicenseKey()
-	return newrelic.NewApplication(newrelic.ConfigAppName(appName), newrelic.ConfigLicense(licenseKey))
+	return newrelic.NewApplication(newrelic.ConfigAppName(appName), newrelic.ConfigLicense(licenseKey), newrelic.ConfigEnabled(true))
 }

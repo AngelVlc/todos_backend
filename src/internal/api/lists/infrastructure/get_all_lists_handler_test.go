@@ -30,7 +30,7 @@ func TestGetAllListsHandler(t *testing.T) {
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	t.Run("Should return an error result with an unexpected error if the query fails", func(t *testing.T) {
-		mockedRepo.On("GetAllLists", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("GetAllLists", request().Context(), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := GetAllListsHandler(httptest.NewRecorder(), request(), h)
 
@@ -44,7 +44,7 @@ func TestGetAllListsHandler(t *testing.T) {
 			{ID: 12, Name: "list2", ItemsCount: 8},
 		}
 
-		mockedRepo.On("GetAllLists", int32(1)).Return(found, nil)
+		mockedRepo.On("GetAllLists", request().Context(), int32(1)).Return(found, nil)
 
 		result := GetAllListsHandler(httptest.NewRecorder(), request(), h)
 

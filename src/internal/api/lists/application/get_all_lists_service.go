@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
@@ -13,8 +15,8 @@ func NewGetAllListsService(repo domain.ListsRepository) *GetAllListsService {
 	return &GetAllListsService{repo}
 }
 
-func (s *GetAllListsService) GetAllLists(userID int32) ([]domain.List, error) {
-	foundLists, err := s.repo.GetAllLists(userID)
+func (s *GetAllListsService) GetAllLists(ctx context.Context, userID int32) ([]domain.List, error) {
+	foundLists, err := s.repo.GetAllLists(ctx, userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting all user lists", InternalError: err}
 	}

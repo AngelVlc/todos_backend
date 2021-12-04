@@ -38,9 +38,9 @@ func (r *MySqlListsRepository) FindListByID(ctx context.Context, listID int32, u
 	return &found, nil
 }
 
-func (r *MySqlListsRepository) GetAllLists(userID int32) ([]domain.List, error) {
+func (r *MySqlListsRepository) GetAllLists(ctx context.Context, userID int32) ([]domain.List, error) {
 	res := []domain.List{}
-	if err := r.db.Where(domain.List{UserID: userID}).Find(&res).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(domain.List{UserID: userID}).Find(&res).Error; err != nil {
 		return nil, err
 	}
 	return res, nil

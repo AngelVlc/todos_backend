@@ -136,7 +136,7 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetListsQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllLists(userID)
+		res, err := repo.GetAllLists(context.Background(), userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -147,7 +147,7 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 	t.Run("should return the user lists", func(t *testing.T) {
 		expectedGetListsQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(int32(11), "list1", userID, int32(3)).AddRow(int32(12), "list2", userID, int32(4)))
 
-		res, err := repo.GetAllLists(userID)
+		res, err := repo.GetAllLists(context.Background(), userID)
 
 		assert.Nil(t, err)
 		require.NotNil(t, res)

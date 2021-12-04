@@ -28,8 +28,8 @@ func (m *MockedListsRepository) FindListByID(ctx context.Context, listID int32, 
 	return args.Get(0).(*domain.List), args.Error(1)
 }
 
-func (m *MockedListsRepository) GetAllLists(userID int32) ([]domain.List, error) {
-	args := m.Called(userID)
+func (m *MockedListsRepository) GetAllLists(ctx context.Context, userID int32) ([]domain.List, error) {
+	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

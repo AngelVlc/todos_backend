@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
@@ -13,8 +15,8 @@ func NewUpdateListItemService(repo domain.ListsRepository) *UpdateListItemServic
 	return &UpdateListItemService{repo}
 }
 
-func (s *UpdateListItemService) UpdateListItem(itemID int32, listID int32, title domain.ItemTitle, description string, userID int32) (*domain.ListItem, error) {
-	foundItem, err := s.repo.FindListItemByID(itemID, listID, userID)
+func (s *UpdateListItemService) UpdateListItem(ctx context.Context, itemID int32, listID int32, title domain.ItemTitle, description string, userID int32) (*domain.ListItem, error) {
+	foundItem, err := s.repo.FindListItemByID(ctx, itemID, listID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -22,7 +24,7 @@ func (s *UpdateListItemService) UpdateListItem(itemID int32, listID int32, title
 	foundItem.Title = title
 	foundItem.Description = description
 
-	err = s.repo.UpdateListItem(foundItem)
+	err = s.repo.UpdateListItem(ctx, foundItem)
 
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the list item", InternalError: err}

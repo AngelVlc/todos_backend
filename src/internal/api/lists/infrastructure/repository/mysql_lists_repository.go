@@ -66,9 +66,9 @@ func (r *MySqlListsRepository) DecrementListCounter(ctx context.Context, listID 
 	return r.db.WithContext(ctx).Model(domain.List{}).Where(domain.List{ID: listID}).UpdateColumn("itemsCount", gorm.Expr("itemsCount - ?", 1)).Error
 }
 
-func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
+func (r *MySqlListsRepository) FindListItemByID(ctx context.Context, itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
 	found := domain.ListItem{}
-	err := r.db.Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).Take(&found).Error
+	err := r.db.WithContext(ctx).Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).Take(&found).Error
 
 	if err != nil {
 		return nil, err
@@ -77,36 +77,36 @@ func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, user
 	return &found, nil
 }
 
-func (r *MySqlListsRepository) GetAllListItems(listID int32, userID int32) ([]domain.ListItem, error) {
+func (r *MySqlListsRepository) GetAllListItems(ctx context.Context, listID int32, userID int32) ([]domain.ListItem, error) {
 	res := []domain.ListItem{}
-	if err := r.db.Where(domain.ListItem{ListID: listID, UserID: userID}).Order("position").Find(&res).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(domain.ListItem{ListID: listID, UserID: userID}).Order("position").Find(&res).Error; err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (r *MySqlListsRepository) CreateListItem(listItem *domain.ListItem) error {
-	return r.db.Create(listItem).Error
+func (r *MySqlListsRepository) CreateListItem(ctx context.Context, listItem *domain.ListItem) error {
+	return r.db.WithContext(ctx).Create(listItem).Error
 }
 
-func (r *MySqlListsRepository) DeleteListItem(itemID int32, listID int32, userID int32) error {
-	return r.db.Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).Delete(domain.ListItem{}).Error
+func (r *MySqlListsRepository) DeleteListItem(ctx context.Context, itemID int32, listID int32, userID int32) error {
+	return r.db.WithContext(ctx).Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).Delete(domain.ListItem{}).Error
 }
 
-func (r *MySqlListsRepository) UpdateListItem(listItem *domain.ListItem) error {
-	return r.db.Save(&listItem).Error
+func (r *MySqlListsRepository) UpdateListItem(ctx context.Context, listItem *domain.ListItem) error {
+	return r.db.WithContext(ctx).Save(&listItem).Error
 }
 
-func (r *MySqlListsRepository) BulkUpdateListItems(listItems []domain.ListItem) error {
-	return r.db.Clauses(clause.OnConflict{
+func (r *MySqlListsRepository) BulkUpdateListItems(ctx context.Context, listItems []domain.ListItem) error {
+	return r.db.WithContext(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{"position"}),
 	}).Create(listItems).Error
 }
 
-func (r *MySqlListsRepository) GetListItemsMaxPosition(listID int32, userID int32) (int32, error) {
+func (r *MySqlListsRepository) GetListItemsMaxPosition(ctx context.Context, listID int32, userID int32) (int32, error) {
 	res := int32(-1)
-	if err := r.db.Table("listItems").Where(domain.ListItem{ListID: listID, UserID: userID}).Select("MAX(position)").Scan(&res).Error; err != nil {
+	if err := r.db.WithContext(ctx).Table("listItems").Where(domain.ListItem{ListID: listID, UserID: userID}).Select("MAX(position)").Scan(&res).Error; err != nil {
 		return res, err
 	}
 	return res, nil

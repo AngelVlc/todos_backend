@@ -12,11 +12,11 @@ type ListsRepository interface {
 	IncrementListCounter(ctx context.Context, listID int32) error
 	DecrementListCounter(ctx context.Context, listID int32) error
 
-	FindListItemByID(itemID int32, listID int32, userID int32) (*ListItem, error)
-	GetAllListItems(listID int32, userID int32) ([]ListItem, error)
-	CreateListItem(listItem *ListItem) error
-	DeleteListItem(itemID int32, listID int32, userID int32) error
-	UpdateListItem(listItem *ListItem) error
-	BulkUpdateListItems(listItems []ListItem) error
-	GetListItemsMaxPosition(listID int32, userID int32) (int32, error)
+	FindListItemByID(ctx context.Context, itemID int32, listID int32, userID int32) (*ListItem, error)
+	GetAllListItems(ctx context.Context, listID int32, userID int32) ([]ListItem, error)
+	CreateListItem(ctx context.Context, listItem *ListItem) error
+	DeleteListItem(ctx context.Context, itemID int32, listID int32, userID int32) error
+	UpdateListItem(ctx context.Context, listItem *ListItem) error
+	BulkUpdateListItems(ctx context.Context, listItems []ListItem) error
+	GetListItemsMaxPosition(ctx context.Context, listID int32, userID int32) (int32, error)
 }

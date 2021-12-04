@@ -61,44 +61,44 @@ func (m *MockedListsRepository) DecrementListCounter(ctx context.Context, listID
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) GetAllListItems(listID int32, userID int32) ([]domain.ListItem, error) {
-	args := m.Called(listID, userID)
+func (m *MockedListsRepository) GetAllListItems(ctx context.Context, listID int32, userID int32) ([]domain.ListItem, error) {
+	args := m.Called(ctx, listID, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).([]domain.ListItem), args.Error(1)
 }
 
-func (m *MockedListsRepository) FindListItemByID(itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
-	args := m.Called(itemID, listID, userID)
+func (m *MockedListsRepository) FindListItemByID(ctx context.Context, itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
+	args := m.Called(ctx, itemID, listID, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domain.ListItem), args.Error(1)
 }
 
-func (m *MockedListsRepository) CreateListItem(listItem *domain.ListItem) error {
-	args := m.Called(listItem)
+func (m *MockedListsRepository) CreateListItem(ctx context.Context, listItem *domain.ListItem) error {
+	args := m.Called(ctx, listItem)
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) DeleteListItem(itemID int32, listID int32, userID int32) error {
-	args := m.Called(itemID, listID, userID)
+func (m *MockedListsRepository) DeleteListItem(ctx context.Context, itemID int32, listID int32, userID int32) error {
+	args := m.Called(ctx, itemID, listID, userID)
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) UpdateListItem(listItem *domain.ListItem) error {
-	args := m.Called(listItem)
+func (m *MockedListsRepository) UpdateListItem(ctx context.Context, listItem *domain.ListItem) error {
+	args := m.Called(ctx, listItem)
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) BulkUpdateListItems(listItems []domain.ListItem) error {
-	args := m.Called(listItems)
+func (m *MockedListsRepository) BulkUpdateListItems(ctx context.Context, listItems []domain.ListItem) error {
+	args := m.Called(ctx, listItems)
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) GetListItemsMaxPosition(listID int32, userID int32) (int32, error) {
-	args := m.Called(listID, userID)
+func (m *MockedListsRepository) GetListItemsMaxPosition(ctx context.Context, listID int32, userID int32) (int32, error) {
+	args := m.Called(ctx, listID, userID)
 	if args.Get(0) == nil {
 		return -1, args.Error(1)
 	}

@@ -24,7 +24,7 @@ func (s *CreateListItemService) CreateListItem(ctx context.Context, listID int32
 	maxPosition := int32(-1)
 
 	if foundList.ItemsCount > 0 {
-		maxPosition, err = s.repo.GetListItemsMaxPosition(listID, userID)
+		maxPosition, err = s.repo.GetListItemsMaxPosition(ctx, listID, userID)
 		if err != nil {
 			return nil, &appErrors.UnexpectedError{Msg: "Error getting the max position", InternalError: err}
 		}
@@ -38,7 +38,7 @@ func (s *CreateListItemService) CreateListItem(ctx context.Context, listID int32
 		Position:    maxPosition + 1,
 	}
 
-	err = s.repo.CreateListItem(&item)
+	err = s.repo.CreateListItem(ctx, &item)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the list item", InternalError: err}
 	}

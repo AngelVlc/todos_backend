@@ -35,7 +35,7 @@ func TestGetListItemHandler(t *testing.T) {
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	t.Run("Should return an error if the query to find the list item fails", func(t *testing.T) {
-		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindListItemByID", request().Context(), int32(111), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := GetListItemHandler(httptest.NewRecorder(), request(), h)
 
@@ -45,7 +45,7 @@ func TestGetListItemHandler(t *testing.T) {
 
 	t.Run("should return the list", func(t *testing.T) {
 		list := domain.ListItem{ID: 111, ListID: 11, Title: "title", Description: "desc"}
-		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("FindListItemByID", request().Context(), int32(111), int32(11), int32(1)).Return(&list, nil).Once()
 
 		result := GetListItemHandler(httptest.NewRecorder(), request(), h)
 

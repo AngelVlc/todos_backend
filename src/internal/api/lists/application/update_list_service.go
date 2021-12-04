@@ -36,7 +36,7 @@ func (s *UpdateListService) UpdateList(ctx context.Context, listID int32, name d
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}
 	}
 
-	foundItems, err := s.repo.GetAllListItems(listID, userID)
+	foundItems, err := s.repo.GetAllListItems(ctx, listID, userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting all list items", InternalError: err}
 	}
@@ -54,7 +54,7 @@ func (s *UpdateListService) UpdateList(ctx context.Context, listID int32, name d
 		}
 	}
 
-	err = s.repo.BulkUpdateListItems(foundItems)
+	err = s.repo.BulkUpdateListItems(ctx, foundItems)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error bulk updating", InternalError: err}
 	}

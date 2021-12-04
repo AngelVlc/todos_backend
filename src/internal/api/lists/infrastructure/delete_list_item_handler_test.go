@@ -35,7 +35,7 @@ func TestDeletesListItemHandler(t *testing.T) {
 	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
 	t.Run("Should return an error if the query to find the list item fails", func(t *testing.T) {
-		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindListItemByID", request().Context(), int32(111), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
 
@@ -45,8 +45,8 @@ func TestDeletesListItemHandler(t *testing.T) {
 
 	t.Run("Should return an errorResult with an UnexpectedError if the delete fails", func(t *testing.T) {
 		listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
-		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(&listItem, nil).Once()
-		mockedRepo.On("DeleteListItem", int32(111), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindListItemByID", request().Context(), int32(111), int32(11), int32(1)).Return(&listItem, nil).Once()
+		mockedRepo.On("DeleteListItem", request().Context(), int32(111), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
 
 		result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
 
@@ -56,8 +56,8 @@ func TestDeletesListItemHandler(t *testing.T) {
 
 	t.Run("should delete the list item", func(t *testing.T) {
 		listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
-		mockedRepo.On("FindListItemByID", int32(111), int32(11), int32(1)).Return(&listItem, nil).Once()
-		mockedRepo.On("DeleteListItem", int32(111), int32(11), int32(1)).Return(nil).Once()
+		mockedRepo.On("FindListItemByID", request().Context(), int32(111), int32(11), int32(1)).Return(&listItem, nil).Once()
+		mockedRepo.On("DeleteListItem", request().Context(), int32(111), int32(11), int32(1)).Return(nil).Once()
 		mockedEventBus.On("Publish", "listItemDeleted", int32(11))
 
 		mockedEventBus.Wg.Add(1)

@@ -14,7 +14,7 @@ func GetAllListItemsHandler(w http.ResponseWriter, r *http.Request, h handler.Ha
 	userID := helpers.GetUserIDFromContext(r)
 
 	srv := application.NewGetAllListItemsService(h.ListsRepository)
-	foundLists, err := srv.GetAllListItems(listID, userID)
+	foundLists, err := srv.GetAllListItems(r.Context(), listID, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

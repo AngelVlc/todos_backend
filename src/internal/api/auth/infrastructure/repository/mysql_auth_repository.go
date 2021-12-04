@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"sync"
 	"time"
@@ -19,9 +20,9 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
-func (r *MySqlAuthRepository) ExistsUser(userName domain.UserName) (bool, error) {
+func (r *MySqlAuthRepository) ExistsUser(ctx context.Context, userName domain.UserName) (bool, error) {
 	count := int64(0)
-	err := r.db.Model(&domain.User{}).Where(domain.User{Name: userName}).Count(&count).Error
+	err := r.db.WithContext(ctx).Model(&domain.User{}).Where(domain.User{Name: userName}).Count(&count).Error
 
 	if err != nil {
 		return false, err
@@ -30,37 +31,37 @@ func (r *MySqlAuthRepository) ExistsUser(userName domain.UserName) (bool, error)
 	return count > 0, nil
 }
 
-func (r *MySqlAuthRepository) FindUserByName(userName domain.UserName) (*domain.User, error) {
-	return r.findUser(domain.User{Name: userName})
+func (r *MySqlAuthRepository) FindUserByName(ctx context.Context, userName domain.UserName) (*domain.User, error) {
+	return r.findUser(ctx, domain.User{Name: userName})
 }
 
-func (r *MySqlAuthRepository) FindUserByID(userID int32) (*domain.User, error) {
-	return r.findUser(domain.User{ID: userID})
+func (r *MySqlAuthRepository) FindUserByID(ctx context.Context, userID int32) (*domain.User, error) {
+	return r.findUser(ctx, domain.User{ID: userID})
 }
 
-func (r *MySqlAuthRepository) GetAllUsers() ([]domain.User, error) {
+func (r *MySqlAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, error) {
 	res := []domain.User{}
-	if err := r.db.Select("id,name,isAdmin").Find(&res).Error; err != nil {
+	if err := r.db.WithContext(ctx).Select("id,name,isAdmin").Find(&res).Error; err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (r *MySqlAuthRepository) CreateUser(user *domain.User) error {
-	return r.db.Create(user).Error
+func (r *MySqlAuthRepository) CreateUser(ctx context.Context, user *domain.User) error {
+	return r.db.WithContext(ctx).Create(user).Error
 }
 
-func (r *MySqlAuthRepository) DeleteUser(userID int32) error {
-	return r.db.Delete(domain.User{ID: userID}).Error
+func (r *MySqlAuthRepository) DeleteUser(ctx context.Context, userID int32) error {
+	return r.db.WithContext(ctx).Delete(domain.User{ID: userID}).Error
 }
 
-func (r *MySqlAuthRepository) UpdateUser(user *domain.User) error {
-	return r.db.Save(&user).Error
+func (r *MySqlAuthRepository) UpdateUser(ctx context.Context, user *domain.User) error {
+	return r.db.WithContext(ctx).Save(&user).Error
 }
 
-func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userID int32) (*domain.RefreshToken, error) {
+func (r *MySqlAuthRepository) FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*domain.RefreshToken, error) {
 	found := domain.RefreshToken{}
-	err := r.db.Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).Take(&found).Error
+	err := r.db.WithContext(ctx).Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).Take(&found).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -73,38 +74,38 @@ func (r *MySqlAuthRepository) FindRefreshTokenForUser(refreshToken string, userI
 	return &found, nil
 }
 
-func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(refreshToken *domain.RefreshToken) error {
+func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *domain.RefreshToken) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	return r.db.Clauses(clause.OnConflict{
+	return r.db.WithContext(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}, {Name: "userId"}, {Name: "refreshToken"}},
 		DoNothing: true,
 	}).Create(refreshToken).Error
 }
 
-func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(expTime time.Time) error {
-	return r.db.Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error
+func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error {
+	return r.db.WithContext(ctx).Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error
 }
 
-func (r *MySqlAuthRepository) GetAllRefreshTokens() ([]domain.RefreshToken, error) {
+func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context) ([]domain.RefreshToken, error) {
 	res := []domain.RefreshToken{}
-	if err := r.db.Select("id,userId,expirationDate").Find(&res).Error; err != nil {
+	if err := r.db.WithContext(ctx).Select("id,userId,expirationDate").Find(&res).Error; err != nil {
 		return nil, err
 	}
 	return res, nil
 }
 
-func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ids []int32) error {
-	if err := r.db.Delete(domain.RefreshToken{}, ids).Error; err != nil {
+func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids []int32) error {
+	if err := r.db.WithContext(ctx).Delete(domain.RefreshToken{}, ids).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func (r *MySqlAuthRepository) findUser(where domain.User) (*domain.User, error) {
+func (r *MySqlAuthRepository) findUser(ctx context.Context, where domain.User) (*domain.User, error) {
 	foundUser := domain.User{}
-	err := r.db.Where(where).Take(&foundUser).Error
+	err := r.db.WithContext(ctx).Where(where).Take(&foundUser).Error
 
 	if err != nil {
 		return nil, err

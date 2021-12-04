@@ -1,19 +1,22 @@
 package domain
 
-import "time"
+import (
+	"context"
+	"time"
+)
 
 type AuthRepository interface {
-	ExistsUser(userName UserName) (bool, error)
-	FindUserByName(userName UserName) (*User, error)
-	FindUserByID(userID int32) (*User, error)
-	GetAllUsers() ([]User, error)
-	CreateUser(user *User) error
-	DeleteUser(userID int32) error
-	UpdateUser(user *User) error
+	ExistsUser(ctx context.Context, userName UserName) (bool, error)
+	FindUserByName(ctx context.Context, userName UserName) (*User, error)
+	FindUserByID(ctx context.Context, userID int32) (*User, error)
+	GetAllUsers(ctx context.Context) ([]User, error)
+	CreateUser(ctx context.Context, user *User) error
+	DeleteUser(ctx context.Context, userID int32) error
+	UpdateUser(ctx context.Context, user *User) error
 
-	FindRefreshTokenForUser(refreshToken string, userID int32) (*RefreshToken, error)
-	CreateRefreshTokenIfNotExist(refreshToken *RefreshToken) error
-	DeleteExpiredRefreshTokens(expTime time.Time) error
-	GetAllRefreshTokens() ([]RefreshToken, error)
-	DeleteRefreshTokensByID(ids []int32) error
+	FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*RefreshToken, error)
+	CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *RefreshToken) error
+	DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error
+	GetAllRefreshTokens(ctx context.Context) ([]RefreshToken, error)
+	DeleteRefreshTokensByID(ctx context.Context, ids []int32) error
 }

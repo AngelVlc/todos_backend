@@ -4,6 +4,7 @@ package infrastructure
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,6 +18,7 @@ import (
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
@@ -72,8 +74,8 @@ func TestLoginHandler(t *testing.T) {
 	body, _ := json.Marshal(loginReq)
 
 	t.Run("Should return an error if the query to find the user fails", func(t *testing.T) {
-		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(nil, fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
 
@@ -82,9 +84,9 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with a BadRequestError if the password does not match", func(t *testing.T) {
-		foundUser := domain.User{PasswordHash: "hash"}
-		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+		foundUser := domain.User{PasswordHash: "hash"}
+		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(&foundUser, nil).Once()
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
 
@@ -93,13 +95,13 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with an UnexpectedError if generating the token fails", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
 		foundUser := domain.User{ID: 1, PasswordHash: hashedPass}
-		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("", fmt.Errorf("some error")).Once()
 
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 		result := LoginHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error creating jwt token")
@@ -108,16 +110,16 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an errorResult with an UnexpectedError if generating the refresh token fails", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
 		foundUser := domain.User{ID: 1, PasswordHash: hashedPass}
-		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("token", nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("", fmt.Errorf("some error")).Once()
 
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 		result := LoginHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error creating jwt refresh token")
@@ -127,16 +129,17 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an okResult with a login response and should create the cookies although save the refresh token fails if the login is ok", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
 		foundUser := domain.User{ID: 1, Name: domain.UserName("user"), IsAdmin: true, PasswordHash: hashedPass}
-		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
-		mockedRepo.On("CreateRefreshTokenIfNotExist", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+		ctx := newrelic.NewContext(context.Background(), nil)
+		mockedRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
 
 		recorder := httptest.NewRecorder()
 
@@ -166,16 +169,17 @@ func TestLoginHandler(t *testing.T) {
 	})
 
 	t.Run("Should return an okResult with a login response, should create the cookies and should save the refresh token if the login is ok", func(t *testing.T) {
+		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
 		hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 		hashedPass := string(hashedBytes)
 		foundUser := domain.User{ID: 1, Name: domain.UserName("user"), IsAdmin: true, PasswordHash: hashedPass}
-		mockedRepo.On("FindUserByName", domain.UserName("wadus")).Return(&foundUser, nil).Once()
+		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 		mockedCfgSrv.On("GetRefreshTokenExpirationDate").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
-		mockedRepo.On("CreateRefreshTokenIfNotExist", &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+		ctx := newrelic.NewContext(context.Background(), nil)
+		mockedRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
 
 		recorder := httptest.NewRecorder()
 

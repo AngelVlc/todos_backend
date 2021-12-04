@@ -30,7 +30,7 @@ func TestGetUserHandler(t *testing.T) {
 	h := handler.Handler{AuthRepository: &mockedRepo}
 
 	t.Run("Should return an error if the query to find the user fails", func(t *testing.T) {
-		mockedRepo.On("FindUserByID", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindUserByID", request().Context(), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := GetUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -40,7 +40,7 @@ func TestGetUserHandler(t *testing.T) {
 
 	t.Run("should return the user", func(t *testing.T) {
 		user := domain.User{ID: 2, Name: "user1", IsAdmin: true}
-		mockedRepo.On("FindUserByID", int32(1)).Return(&user, nil).Once()
+		mockedRepo.On("FindUserByID", request().Context(), int32(1)).Return(&user, nil).Once()
 
 		result := GetUserHandler(httptest.NewRecorder(), request(), h)
 

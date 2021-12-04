@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
@@ -15,8 +17,8 @@ func NewUpdateUserService(repo domain.AuthRepository, passGen passgen.PasswordGe
 	return &UpdateUserService{repo, passGen}
 }
 
-func (s *UpdateUserService) UpdateUser(userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
-	foundUser, err := s.repo.FindUserByID(userID)
+func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
+	foundUser, err := s.repo.FindUserByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +34,7 @@ func (s *UpdateUserService) UpdateUser(userID int32, userName domain.UserName, p
 	}
 
 	if foundUser.Name != userName {
-		err = userName.CheckIfAlreadyExists(s.repo)
+		err = userName.CheckIfAlreadyExists(ctx, s.repo)
 		if err != nil {
 			return nil, err
 		}
@@ -50,7 +52,7 @@ func (s *UpdateUserService) UpdateUser(userID int32, userName domain.UserName, p
 	foundUser.Name = userName
 	foundUser.IsAdmin = isAdmin
 
-	err = s.repo.UpdateUser(foundUser)
+	err = s.repo.UpdateUser(ctx, foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user", InternalError: err}
 	}

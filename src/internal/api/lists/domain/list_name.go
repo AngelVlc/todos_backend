@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
@@ -14,8 +16,8 @@ func NewListName(name string) (ListName, error) {
 	return ListName(name), nil
 }
 
-func (l ListName) CheckIfAlreadyExists(userID int32, repo ListsRepository) error {
-	existsList, err := repo.ExistsList(l, userID)
+func (l ListName) CheckIfAlreadyExists(ctx context.Context, userID int32, repo ListsRepository) error {
+	existsList, err := repo.ExistsList(ctx, l, userID)
 	if err != nil {
 		return err
 	}

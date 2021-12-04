@@ -1,6 +1,8 @@
 package domain
 
 import (
+	"context"
+
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
@@ -14,8 +16,8 @@ func NewUserName(userName string) (UserName, error) {
 	return UserName(userName), nil
 }
 
-func (u UserName) CheckIfAlreadyExists(repo AuthRepository) error {
-	existsUser, err := repo.ExistsUser(u)
+func (u UserName) CheckIfAlreadyExists(ctx context.Context, repo AuthRepository) error {
+	existsUser, err := repo.ExistsUser(ctx, u)
 	if err != nil {
 		return err
 	}

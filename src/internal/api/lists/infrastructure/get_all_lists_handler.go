@@ -13,7 +13,7 @@ func GetAllListsHandler(w http.ResponseWriter, r *http.Request, h handler.Handle
 	userID := helpers.GetUserIDFromContext(r)
 
 	srv := application.NewGetAllListsService(h.ListsRepository)
-	foundLists, err := srv.GetAllLists(userID)
+	foundLists, err := srv.GetAllLists(r.Context(), userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

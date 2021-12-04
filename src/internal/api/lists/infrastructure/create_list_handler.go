@@ -29,7 +29,7 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewCreateListService(h.ListsRepository)
-	newList, err := srv.CreateList(listName, userID)
+	newList, err := srv.CreateList(r.Context(), listName, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

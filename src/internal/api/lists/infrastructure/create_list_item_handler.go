@@ -31,7 +31,7 @@ func CreateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 	}
 
 	srv := application.NewCreateListItemService(h.ListsRepository)
-	newItem, err := srv.CreateListItem(listID, listTitle, createReq.Description, userID)
+	newItem, err := srv.CreateListItem(r.Context(), listID, listTitle, createReq.Description, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

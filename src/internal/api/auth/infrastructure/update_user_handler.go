@@ -39,7 +39,7 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewUpdateUserService(h.AuthRepository, h.PassGen)
-	user, err := srv.UpdateUser(userID, userName, password, updateReq.IsAdmin)
+	user, err := srv.UpdateUser(r.Context(), userID, userName, password, updateReq.IsAdmin)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

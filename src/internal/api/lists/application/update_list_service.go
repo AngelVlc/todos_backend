@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
@@ -13,14 +15,14 @@ func NewUpdateListService(repo domain.ListsRepository) *UpdateListService {
 	return &UpdateListService{repo}
 }
 
-func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userID int32, IDsByPosition []int32) (*domain.List, error) {
-	foundList, err := s.repo.FindListByID(listID, userID)
+func (s *UpdateListService) UpdateList(ctx context.Context, listID int32, name domain.ListName, userID int32, IDsByPosition []int32) (*domain.List, error) {
+	foundList, err := s.repo.FindListByID(ctx, listID, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	if foundList.Name != name {
-		err = name.CheckIfAlreadyExists(userID, s.repo)
+		err = name.CheckIfAlreadyExists(ctx, userID, s.repo)
 		if err != nil {
 			return nil, err
 		}
@@ -28,13 +30,13 @@ func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userI
 
 	foundList.Name = name
 
-	err = s.repo.UpdateList(foundList)
+	err = s.repo.UpdateList(ctx, foundList)
 
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}
 	}
 
-	foundItems, err := s.repo.GetAllListItems(listID, userID)
+	foundItems, err := s.repo.GetAllListItems(ctx, listID, userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting all list items", InternalError: err}
 	}
@@ -52,7 +54,7 @@ func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userI
 		}
 	}
 
-	err = s.repo.BulkUpdateListItems(foundItems)
+	err = s.repo.BulkUpdateListItems(ctx, foundItems)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error bulk updating", InternalError: err}
 	}

@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
@@ -16,7 +18,7 @@ func NewRefreshTokenService(repo domain.AuthRepository, cfgSvr sharedApp.Configu
 	return &LoginService{repo, cfgSvr, tokenSrv}
 }
 
-func (s *LoginService) RefreshToken(rt string) (string, error) {
+func (s *LoginService) RefreshToken(ctx context.Context, rt string) (string, error) {
 	parsedRt, err := s.tokenSrv.ParseToken(rt)
 	if err != nil {
 		return "", &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}
@@ -24,12 +26,12 @@ func (s *LoginService) RefreshToken(rt string) (string, error) {
 
 	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
-	foundUser, err := s.repo.FindUserByID(rtInfo.UserID)
+	foundUser, err := s.repo.FindUserByID(ctx, rtInfo.UserID)
 	if err != nil {
 		return "", err
 	}
 
-	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(rt, rtInfo.UserID)
+	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(ctx, rt, rtInfo.UserID)
 	if err != nil {
 		return "", &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
 	}

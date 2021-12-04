@@ -26,7 +26,7 @@ func initServer(t *testing.T) *server {
 	mockedEventBus.On("Subscribe", "listItemCreated", mock.AnythingOfType("events.DataChannel")).Once()
 	mockedEventBus.On("Subscribe", "listItemDeleted", mock.AnythingOfType("events.DataChannel")).Once()
 	mockedEventBus.Wg.Add(2)
-	s := NewServer(nil, &mockedEventBus)
+	s := NewServer(nil, &mockedEventBus, nil)
 	mockedEventBus.Wg.Wait()
 	mockedEventBus.AssertExpectations(t)
 

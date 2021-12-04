@@ -35,7 +35,7 @@ jobs:
       image: ubuntu-2004:202111-01
     steps:
       - checkout
-      - run: make build
+      - run: touch local.env && make build
       - run: make test
       - install_terraform
       - init_terraform

@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 )
 
@@ -12,6 +14,6 @@ func NewGetListItemService(repo domain.ListsRepository) *GetListItemService {
 	return &GetListItemService{repo}
 }
 
-func (s *GetListItemService) GetListItem(itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
-	return s.repo.FindListItemByID(itemID, listID, userID)
+func (s *GetListItemService) GetListItem(ctx context.Context, itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
+	return s.repo.FindListItemByID(ctx, itemID, listID, userID)
 }

@@ -76,7 +76,7 @@ func TestUpdateListHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an error  if the query to find the list fails", func(t *testing.T) {
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -86,8 +86,8 @@ func TestUpdateListHandler(t *testing.T) {
 
 	t.Run("should return an errorResult with an UnexpectedError if it is trying to update the list name but the query to find a list by name fails", func(t *testing.T) {
 		list := domain.List{ID: int32(11), Name: domain.ListName("oldName"), UserID: int32(11)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
-		mockedRepo.On("ExistsList", domain.ListName("list1"), int32(1)).Return(false, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("ExistsList", request().Context(), domain.ListName("list1"), int32(1)).Return(false, fmt.Errorf("some error")).Once()
 
 		result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -97,8 +97,8 @@ func TestUpdateListHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an UnexpectedError if updating the user list fails", func(t *testing.T) {
 		list := domain.List{ID: int32(11), Name: domain.ListName("list1"), UserID: int32(11)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
-		mockedRepo.On("UpdateList", &list).Return(fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("UpdateList", request().Context(), &list).Return(fmt.Errorf("some error")).Once()
 
 		result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -108,13 +108,13 @@ func TestUpdateListHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an UnexpectedError if getting the user list items fails", func(t *testing.T) {
 		list := domain.List{ID: int32(11), Name: domain.ListName("originalName"), UserID: int32(1)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
-		mockedRepo.On("ExistsList", domain.ListName("list1"), int32(1)).Return(false, nil).Once()
-		mockedRepo.On("UpdateList", &list).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(0).(*domain.List)
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("ExistsList", request().Context(), domain.ListName("list1"), int32(1)).Return(false, nil).Once()
+		mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*domain.List)
 			*arg = domain.List{Name: "list1"}
 		})
-		mockedRepo.On("GetAllListItems", list.ID, list.UserID).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("GetAllListItems", request().Context(), list.ID, list.UserID).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -124,15 +124,15 @@ func TestUpdateListHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an UnexpectedError if bulk updating the list items fails", func(t *testing.T) {
 		list := domain.List{ID: int32(11), Name: domain.ListName("originalName"), UserID: int32(1)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
-		mockedRepo.On("ExistsList", domain.ListName("list1"), int32(1)).Return(false, nil).Once()
-		mockedRepo.On("UpdateList", &list).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(0).(*domain.List)
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("ExistsList", request().Context(), domain.ListName("list1"), int32(1)).Return(false, nil).Once()
+		mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*domain.List)
 			*arg = domain.List{Name: "list1"}
 		})
 		listItems := []domain.ListItem{{ID: int32(1), Position: int32(0)}, {ID: int32(2), Position: int32(1)}}
-		mockedRepo.On("GetAllListItems", list.ID, list.UserID).Return(listItems, nil).Once()
-		mockedRepo.On("BulkUpdateListItems", listItems).Return(fmt.Errorf("some error")).Once()
+		mockedRepo.On("GetAllListItems", request().Context(), list.ID, list.UserID).Return(listItems, nil).Once()
+		mockedRepo.On("BulkUpdateListItems", request().Context(), listItems).Return(fmt.Errorf("some error")).Once()
 
 		result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -142,16 +142,16 @@ func TestUpdateListHandler(t *testing.T) {
 
 	t.Run("should update the user list and the items position", func(t *testing.T) {
 		list := domain.List{ID: int32(11), Name: domain.ListName("originalName"), UserID: int32(1)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
-		mockedRepo.On("ExistsList", domain.ListName("list1"), int32(1)).Return(false, nil).Once()
-		mockedRepo.On("UpdateList", &list).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(0).(*domain.List)
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("ExistsList", request().Context(), domain.ListName("list1"), int32(1)).Return(false, nil).Once()
+		mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*domain.List)
 			*arg = domain.List{Name: "list1"}
 		})
 		listItems := []domain.ListItem{{ID: int32(1), Position: int32(0)}, {ID: int32(2), Position: int32(1)}}
-		mockedRepo.On("GetAllListItems", list.ID, list.UserID).Return(listItems, nil).Once()
+		mockedRepo.On("GetAllListItems", request().Context(), list.ID, list.UserID).Return(listItems, nil).Once()
 		listItems = []domain.ListItem{{ID: int32(1), Position: int32(1)}, {ID: int32(2), Position: int32(0)}}
-		mockedRepo.On("BulkUpdateListItems", listItems).Return(nil).Once()
+		mockedRepo.On("BulkUpdateListItems", request().Context(), listItems).Return(nil).Once()
 
 		result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 

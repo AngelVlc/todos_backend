@@ -42,8 +42,8 @@ func TestDeleteRefreshTokensHandler(t *testing.T) {
 	body, _ := json.Marshal(ids)
 
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the user fails", func(t *testing.T) {
-		mockedRepo.On("DeleteRefreshTokensByID", ids).Return(fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+		mockedRepo.On("DeleteRefreshTokensByID", request.Context(), ids).Return(fmt.Errorf("some error")).Once()
 
 		result := DeleteRefreshTokensHandler(httptest.NewRecorder(), request, h)
 
@@ -52,8 +52,8 @@ func TestDeleteRefreshTokensHandler(t *testing.T) {
 	})
 
 	t.Run("should return an ok result if the refresh tokens are delete", func(t *testing.T) {
-		mockedRepo.On("DeleteRefreshTokensByID", ids).Return(nil).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+		mockedRepo.On("DeleteRefreshTokensByID", request.Context(), ids).Return(nil).Once()
 
 		result := DeleteRefreshTokensHandler(httptest.NewRecorder(), request, h)
 

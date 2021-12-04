@@ -3,6 +3,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -44,7 +45,7 @@ func TestMySqlAuthRepositoryExistsUser(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedExistsQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.ExistsUser(userName)
+		res, err := repo.ExistsUser(context.Background(), userName)
 
 		assert.False(t, res)
 		assert.EqualError(t, err, "some error")
@@ -55,7 +56,7 @@ func TestMySqlAuthRepositoryExistsUser(t *testing.T) {
 	t.Run("should return true if the user exists", func(t *testing.T) {
 		expectedExistsQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
-		res, err := repo.ExistsUser(userName)
+		res, err := repo.ExistsUser(context.Background(), userName)
 
 		assert.True(t, res)
 		assert.Nil(t, err)
@@ -87,7 +88,7 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.FindUserByID(userID)
+		res, err := repo.FindUserByID(context.Background(), userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -98,7 +99,7 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 	t.Run("should return the user if it exists", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(userID, "userName", "hash", true))
 
-		res, err := repo.FindUserByID(userID)
+		res, err := repo.FindUserByID(context.Background(), userID)
 
 		require.NotNil(t, res)
 		assert.Equal(t, domain.UserName("userName"), res.Name)
@@ -133,7 +134,7 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByNameQuery().WillReturnError(fmt.Errorf("some error"))
 
-		u, err := repo.FindUserByName(userName)
+		u, err := repo.FindUserByName(context.Background(), userName)
 
 		assert.Nil(t, u)
 		assert.EqualError(t, err, "some error")
@@ -144,7 +145,7 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 	t.Run("should return the user if it exists", func(t *testing.T) {
 		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(int32(1), "userName", "hash", true))
 
-		u, err := repo.FindUserByName(userName)
+		u, err := repo.FindUserByName(context.Background(), userName)
 
 		assert.NotNil(t, u)
 		assert.Equal(t, int32(1), u.ID)
@@ -175,7 +176,7 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetUsersQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllUsers()
+		res, err := repo.GetAllUsers(context.Background())
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -186,7 +187,7 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 	t.Run("should return the users", func(t *testing.T) {
 		expectedGetUsersQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
 
-		res, err := repo.GetAllUsers()
+		res, err := repo.GetAllUsers(context.Background())
 
 		assert.Nil(t, err)
 		require.Equal(t, 2, len(res))
@@ -228,7 +229,7 @@ func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
 		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.CreateUser(&user)
+		err := repo.CreateUser(context.Background(), &user)
 
 		assert.EqualError(t, err, "some error")
 
@@ -242,7 +243,7 @@ func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
 		expectedInsertExec().WillReturnResult(result)
 		mock.ExpectCommit()
 
-		err := repo.CreateUser(&user)
+		err := repo.CreateUser(context.Background(), &user)
 
 		assert.Nil(t, err)
 
@@ -275,7 +276,7 @@ func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 		expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteUser(userID)
+		err := repo.DeleteUser(context.Background(), userID)
 
 		assert.EqualError(t, err, "some error")
 		checkMockExpectations(t, mock)
@@ -286,7 +287,7 @@ func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 		expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteUser(userID)
+		err := repo.DeleteUser(context.Background(), userID)
 
 		assert.Nil(t, err)
 		checkMockExpectations(t, mock)
@@ -318,7 +319,7 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 		expectedUpdateExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.UpdateUser(&user)
+		err := repo.UpdateUser(context.Background(), &user)
 
 		assert.EqualError(t, err, "some error")
 		checkMockExpectations(t, mock)
@@ -332,7 +333,7 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 			WithArgs(11).
 			WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user", "", false))
 
-		err := repo.UpdateUser(&user)
+		err := repo.UpdateUser(context.Background(), &user)
 
 		assert.Nil(t, err)
 		checkMockExpectations(t, mock)
@@ -363,7 +364,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 	t.Run("should not return a refresh token if it does not exist", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(refreshTokenColumns))
 
-		res, err := repo.FindRefreshTokenForUser(rt, userID)
+		res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
 
 		assert.Nil(t, res)
 		assert.Nil(t, err)
@@ -374,7 +375,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.FindRefreshTokenForUser(rt, userID)
+		res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -385,7 +386,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 	t.Run("should return the refresh token if it exists", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(refreshTokenColumns).AddRow(int32(111), userID, rt, time.Now()))
 
-		res, err := repo.FindRefreshTokenForUser(rt, userID)
+		res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
 
 		require.NotNil(t, res)
 		assert.Equal(t, userID, res.UserID)
@@ -422,7 +423,7 @@ func TestMySqlAuthRepositoryCreateRefreshTokenIfNotExist(t *testing.T) {
 		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.CreateRefreshTokenIfNotExist(&rt)
+		err := repo.CreateRefreshTokenIfNotExist(context.Background(), &rt)
 
 		assert.EqualError(t, err, "some error")
 
@@ -436,7 +437,7 @@ func TestMySqlAuthRepositoryCreateRefreshTokenIfNotExist(t *testing.T) {
 		expectedInsertExec().WillReturnResult(result)
 		mock.ExpectCommit()
 
-		err := repo.CreateRefreshTokenIfNotExist(&rt)
+		err := repo.CreateRefreshTokenIfNotExist(context.Background(), &rt)
 
 		assert.Nil(t, err)
 
@@ -468,7 +469,7 @@ func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
 		expectedDelete(now).WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteExpiredRefreshTokens(now)
+		err := repo.DeleteExpiredRefreshTokens(context.Background(), now)
 
 		assert.EqualError(t, err, "some error")
 
@@ -482,7 +483,7 @@ func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
 		expectedDelete(now).WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteExpiredRefreshTokens(now)
+		err := repo.DeleteExpiredRefreshTokens(context.Background(), now)
 
 		assert.Nil(t, err)
 
@@ -510,7 +511,7 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllRefreshTokens()
+		res, err := repo.GetAllRefreshTokens(context.Background())
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -523,7 +524,7 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 		now := time.Now()
 		expectedGetQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(11, 1, now))
 
-		res, err := repo.GetAllRefreshTokens()
+		res, err := repo.GetAllRefreshTokens(context.Background())
 
 		assert.Nil(t, err)
 		require.Equal(t, 1, len(res))
@@ -566,7 +567,7 @@ func TestMySqlAuthRepositoryDeleteRefreshTokensByID(t *testing.T) {
 		expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteRefreshTokensByID(ids)
+		err := repo.DeleteRefreshTokensByID(context.Background(), ids)
 
 		assert.EqualError(t, err, "some error")
 		checkMockExpectations(t, mock)
@@ -577,7 +578,7 @@ func TestMySqlAuthRepositoryDeleteRefreshTokensByID(t *testing.T) {
 		expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteRefreshTokensByID(ids)
+		err := repo.DeleteRefreshTokensByID(context.Background(), ids)
 
 		assert.Nil(t, err)
 		checkMockExpectations(t, mock)

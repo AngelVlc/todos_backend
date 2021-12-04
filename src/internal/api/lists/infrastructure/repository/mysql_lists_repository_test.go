@@ -3,6 +3,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -44,7 +45,7 @@ func TestMySqlListsRepositoryExistsList(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedExistsListQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.ExistsList(name, userID)
+		res, err := repo.ExistsList(context.Background(), name, userID)
 
 		assert.False(t, res)
 		assert.EqualError(t, err, "some error")
@@ -55,7 +56,7 @@ func TestMySqlListsRepositoryExistsList(t *testing.T) {
 	t.Run("should return true if the list exists", func(t *testing.T) {
 		expectedExistsListQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
-		res, err := repo.ExistsList(name, userID)
+		res, err := repo.ExistsList(context.Background(), name, userID)
 
 		assert.True(t, res)
 		assert.Nil(t, err)
@@ -88,7 +89,7 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.FindListByID(listID, userID)
+		res, err := repo.FindListByID(context.Background(), listID, userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -99,7 +100,7 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	t.Run("should return the user if it exists", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID, int32(3)))
 
-		res, err := repo.FindListByID(listID, userID)
+		res, err := repo.FindListByID(context.Background(), listID, userID)
 
 		require.NotNil(t, res)
 		assert.Equal(t, listID, res.ID)
@@ -135,7 +136,7 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetListsQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllLists(userID)
+		res, err := repo.GetAllLists(context.Background(), userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -146,7 +147,7 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 	t.Run("should return the user lists", func(t *testing.T) {
 		expectedGetListsQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(int32(11), "list1", userID, int32(3)).AddRow(int32(12), "list2", userID, int32(4)))
 
-		res, err := repo.GetAllLists(userID)
+		res, err := repo.GetAllLists(context.Background(), userID)
 
 		assert.Nil(t, err)
 		require.NotNil(t, res)
@@ -190,7 +191,7 @@ func TestMySqlListsRepositoryCreateList(t *testing.T) {
 		expectedInsertListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.CreateList(&list)
+		err := repo.CreateList(context.Background(), &list)
 
 		assert.EqualError(t, err, "some error")
 
@@ -202,7 +203,7 @@ func TestMySqlListsRepositoryCreateList(t *testing.T) {
 		expectedInsertListExec().WillReturnResult(sqlmock.NewResult(12, 0))
 		mock.ExpectCommit()
 
-		err := repo.CreateList(&list)
+		err := repo.CreateList(context.Background(), &list)
 
 		assert.Nil(t, err)
 
@@ -236,7 +237,7 @@ func TestMySqlListsRepositoryDeleteList(t *testing.T) {
 		expectedRemoveListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteList(listID, userID)
+		err := repo.DeleteList(context.Background(), listID, userID)
 
 		assert.EqualError(t, err, "some error")
 
@@ -248,7 +249,7 @@ func TestMySqlListsRepositoryDeleteList(t *testing.T) {
 		expectedRemoveListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteList(listID, userID)
+		err := repo.DeleteList(context.Background(), listID, userID)
 
 		assert.Nil(t, err)
 
@@ -281,7 +282,7 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 		expectedUpdateListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.UpdateList(&list)
+		err := repo.UpdateList(context.Background(), &list)
 
 		assert.EqualError(t, err, "some error")
 
@@ -293,7 +294,7 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.UpdateList(&list)
+		err := repo.UpdateList(context.Background(), &list)
 
 		assert.Nil(t, err)
 
@@ -324,7 +325,7 @@ func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
 		expectedUpdateListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.IncrementListCounter(int32(11))
+		err := repo.IncrementListCounter(context.Background(), int32(11))
 
 		assert.EqualError(t, err, "some error")
 
@@ -336,7 +337,7 @@ func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
 		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.IncrementListCounter(int32(11))
+		err := repo.IncrementListCounter(context.Background(), int32(11))
 
 		assert.Nil(t, err)
 
@@ -367,7 +368,7 @@ func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
 		expectedUpdateListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DecrementListCounter(int32(11))
+		err := repo.DecrementListCounter(context.Background(), int32(11))
 
 		assert.EqualError(t, err, "some error")
 
@@ -379,7 +380,7 @@ func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
 		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DecrementListCounter(int32(11))
+		err := repo.DecrementListCounter(context.Background(), int32(11))
 
 		assert.Nil(t, err)
 
@@ -412,7 +413,7 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetItemQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.FindListItemByID(itemID, listID, userID)
+		res, err := repo.FindListItemByID(context.Background(), itemID, listID, userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -423,7 +424,7 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 	t.Run("should get an item", func(t *testing.T) {
 		expectedGetItemQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(itemID, listID, "title", "description", 0))
 
-		res, err := repo.FindListItemByID(itemID, listID, userID)
+		res, err := repo.FindListItemByID(context.Background(), itemID, listID, userID)
 
 		require.NotNil(t, res)
 		assert.Equal(t, domain.ItemTitle("title"), res.Title)
@@ -458,7 +459,7 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetAllItemsQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllListItems(listID, userID)
+		res, err := repo.GetAllListItems(context.Background(), listID, userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -469,7 +470,7 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 	t.Run("should get all the items", func(t *testing.T) {
 		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), listID, "title1", "desc1", 0).AddRow(int32(112), listID, "title2", "desc2", 1))
 
-		res, err := repo.GetAllListItems(listID, userID)
+		res, err := repo.GetAllListItems(context.Background(), listID, userID)
 
 		require.NotNil(t, res)
 		require.Equal(t, 2, len(res))
@@ -510,7 +511,7 @@ func TestMySqlListsRepositoryCreateListItem(t *testing.T) {
 		expectedInsertListItemExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.CreateListItem(&item)
+		err := repo.CreateListItem(context.Background(), &item)
 
 		assert.EqualError(t, err, "some error")
 
@@ -522,7 +523,7 @@ func TestMySqlListsRepositoryCreateListItem(t *testing.T) {
 		expectedInsertListItemExec().WillReturnResult(sqlmock.NewResult(12, 0))
 		mock.ExpectCommit()
 
-		err := repo.CreateListItem(&item)
+		err := repo.CreateListItem(context.Background(), &item)
 
 		assert.Nil(t, err)
 
@@ -557,7 +558,7 @@ func TestMySqlListsRepositoryDeleteListItem(t *testing.T) {
 		expectedRemoveListItemExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteListItem(itemID, listID, userID)
+		err := repo.DeleteListItem(context.Background(), itemID, listID, userID)
 
 		assert.EqualError(t, err, "some error")
 
@@ -569,7 +570,7 @@ func TestMySqlListsRepositoryDeleteListItem(t *testing.T) {
 		expectedRemoveListItemExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteListItem(itemID, listID, userID)
+		err := repo.DeleteListItem(context.Background(), itemID, listID, userID)
 
 		assert.Nil(t, err)
 
@@ -602,7 +603,7 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 		expectedUpdateListItemExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.UpdateListItem(&item)
+		err := repo.UpdateListItem(context.Background(), &item)
 
 		assert.EqualError(t, err, "some error")
 
@@ -617,7 +618,7 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 			WithArgs(int32(111)).
 			WillReturnRows(sqlmock.NewRows(listItemsColumns).AddRow(int32(111), int32(11), "title", "desc", 0))
 
-		err := repo.UpdateListItem(&item)
+		err := repo.UpdateListItem(context.Background(), &item)
 
 		assert.Nil(t, err)
 
@@ -653,7 +654,7 @@ func TestBulkUpdateListItems(t *testing.T) {
 		expectedUpdateListItemsExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.BulkUpdateListItems(items)
+		err := repo.BulkUpdateListItems(context.Background(), items)
 
 		assert.EqualError(t, err, "some error")
 
@@ -665,7 +666,7 @@ func TestBulkUpdateListItems(t *testing.T) {
 		expectedUpdateListItemsExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.BulkUpdateListItems(items)
+		err := repo.BulkUpdateListItems(context.Background(), items)
 		assert.Nil(t, err)
 
 		checkMockExpectations(t, mock)
@@ -696,7 +697,7 @@ func TestGetListItemsMaxPosition(t *testing.T) {
 	t.Run("should return an error if the get fails", func(t *testing.T) {
 		expectedGetAllItemsQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetListItemsMaxPosition(listID, userID)
+		res, err := repo.GetListItemsMaxPosition(context.Background(), listID, userID)
 
 		assert.Equal(t, int32(-1), res)
 		assert.EqualError(t, err, "some error; some error")
@@ -707,7 +708,7 @@ func TestGetListItemsMaxPosition(t *testing.T) {
 	t.Run("should get the max position", func(t *testing.T) {
 		expectedGetAllItemsQuery().WillReturnRows(sqlmock.NewRows([]string{""}).AddRow(int32(3)))
 
-		res, err := repo.GetListItemsMaxPosition(listID, userID)
+		res, err := repo.GetListItemsMaxPosition(context.Background(), listID, userID)
 
 		require.NotNil(t, res)
 		require.Equal(t, int32(3), res)

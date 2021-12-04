@@ -16,7 +16,7 @@ func DeleteRefreshTokensHandler(w http.ResponseWriter, r *http.Request, h handle
 	}
 
 	srv := application.NewDeleteRefreshTokensService(h.AuthRepository)
-	err = srv.DeleteRefreshTokens(req)
+	err = srv.DeleteRefreshTokens(r.Context(), req)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

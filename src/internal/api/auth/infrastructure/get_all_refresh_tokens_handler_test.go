@@ -22,8 +22,8 @@ func TestGetAllRefreshTokensHandler(t *testing.T) {
 	h := handler.Handler{AuthRepository: &mockedRepo}
 
 	t.Run("Should return an error result with an unexpected error if the query fails", func(t *testing.T) {
-		mockedRepo.On("GetAllRefreshTokens").Return(nil, fmt.Errorf("some error")).Once()
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
+		mockedRepo.On("GetAllRefreshTokens", request.Context()).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := GetAllRefreshTokensHandler(httptest.NewRecorder(), request, h)
 
@@ -39,8 +39,8 @@ func TestGetAllRefreshTokensHandler(t *testing.T) {
 			{ID: 5, UserID: 3, ExpirationDate: time2},
 		}
 
-		mockedRepo.On("GetAllRefreshTokens").Return(found, nil)
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
+		mockedRepo.On("GetAllRefreshTokens", request.Context()).Return(found, nil)
 		result := GetAllRefreshTokensHandler(httptest.NewRecorder(), request, h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)

@@ -33,7 +33,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) han
 	}
 
 	srv := application.NewLoginService(h.AuthRepository, h.CfgSrv, h.TokenSrv)
-	res, err := srv.Login(userName, password)
+	res, err := srv.Login(r.Context(), userName, password)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

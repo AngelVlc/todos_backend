@@ -15,7 +15,7 @@ func DeleteListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 	userID := helpers.GetUserIDFromContext(r)
 
 	srv := application.NewDeleteListItemService(h.ListsRepository)
-	err := srv.DeleteListItem(itemID, listID, userID)
+	err := srv.DeleteListItem(r.Context(), itemID, listID, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

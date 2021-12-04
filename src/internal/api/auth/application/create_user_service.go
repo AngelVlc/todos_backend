@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
@@ -15,8 +17,8 @@ func NewCreateUserService(repo domain.AuthRepository, passGen passgen.PasswordGe
 	return &CreateUserService{repo, passGen}
 }
 
-func (s *CreateUserService) CreateUser(userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
-	err := userName.CheckIfAlreadyExists(s.repo)
+func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
+	err := userName.CheckIfAlreadyExists(ctx, s.repo)
 	if err != nil {
 		return nil, err
 	}
@@ -32,7 +34,7 @@ func (s *CreateUserService) CreateUser(userName domain.UserName, password domain
 		IsAdmin:      isAdmin,
 	}
 
-	err = s.repo.CreateUser(&user)
+	err = s.repo.CreateUser(ctx, &user)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user", InternalError: err}
 	}

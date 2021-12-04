@@ -58,4 +58,5 @@ jobs:
       image: ubuntu-2004:202111-01
     steps:
       - checkout
-      - run: HEROKU_URL=`heroku apps:info -a $APP_NAME -s | sed -n 's/.*web_url=//p' | sed 's/\/\([^\/]*\)$/\1/'` && docker-compose run --rm -e BASE_URL=$HEROKU_URL -e ADMIN_PASSWORD=$ADMIN_PASSWORD app-e2e
+      - run: docker-compose -f docker-compose-e2e.yml build app-e2e
+      - run: HEROKU_URL=`heroku apps:info -a $APP_NAME -s | sed -n 's/.*web_url=//p' | sed 's/\/\([^\/]*\)$/\1/'` && docker-compose -f docker-compose-e2e.yml run --rm -e BASE_URL=$HEROKU_URL -e ADMIN_PASSWORD=$ADMIN_PASSWORD app-e2e

@@ -21,11 +21,3 @@ services:
       MYSQL_ROOT_PASSWORD: 'pass'
     ports:
       - '3306:3306'
-
-  app-e2e:
-    build:
-      context: ./src/
-      target: base
-    volumes:
-      - './src:/go/src'      
-    command: ["go", "test", "--tags=e2e", "./cmd/api"]

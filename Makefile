@@ -33,4 +33,4 @@ test:
 	docker-compose run --rm app go test --race ./...
 
 test-e2e:
-	docker-compose run --rm -e BASE_URL=http://app:5001 app-e2e
+	docker-compose -f docker-compose-e2e.yml run --rm -e BASE_URL=http://app:5001 app-e2e

@@ -1,0 +1,9 @@
+version: '3.7'
+services:
+  app-e2e:
+    build:
+      context: ./src/
+      target: base
+    volumes:
+      - './src:/go/src'      
+    command: ["go", "test", "--tags=e2e", "./cmd/api"]

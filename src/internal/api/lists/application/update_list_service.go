@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
@@ -13,14 +15,14 @@ func NewUpdateListService(repo domain.ListsRepository) *UpdateListService {
 	return &UpdateListService{repo}
 }
 
-func (s *UpdateListService) UpdateList(listID int32, name domain.ListName, userID int32, IDsByPosition []int32) (*domain.List, error) {
+func (s *UpdateListService) UpdateList(ctx context.Context, listID int32, name domain.ListName, userID int32, IDsByPosition []int32) (*domain.List, error) {
 	foundList, err := s.repo.FindListByID(listID, userID)
 	if err != nil {
 		return nil, err
 	}
 
 	if foundList.Name != name {
-		err = name.CheckIfAlreadyExists(userID, s.repo)
+		err = name.CheckIfAlreadyExists(ctx, userID, s.repo)
 		if err != nil {
 			return nil, err
 		}

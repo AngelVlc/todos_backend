@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
@@ -13,8 +15,8 @@ func NewCreateListService(repo domain.ListsRepository) *CreateListService {
 	return &CreateListService{repo}
 }
 
-func (s *CreateListService) CreateList(name domain.ListName, userID int32) (*domain.List, error) {
-	err := name.CheckIfAlreadyExists(userID, s.repo)
+func (s *CreateListService) CreateList(ctx context.Context, name domain.ListName, userID int32) (*domain.List, error) {
+	err := name.CheckIfAlreadyExists(ctx, userID, s.repo)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/stretchr/testify/mock"
 )
@@ -13,8 +15,8 @@ func NewMockedListsRepository() *MockedListsRepository {
 	return &MockedListsRepository{}
 }
 
-func (m *MockedListsRepository) ExistsList(name domain.ListName, userID int32) (bool, error) {
-	args := m.Called(name, userID)
+func (m *MockedListsRepository) ExistsList(ctx context.Context, name domain.ListName, userID int32) (bool, error) {
+	args := m.Called(ctx, name, userID)
 	return args.Bool(0), args.Error(1)
 }
 

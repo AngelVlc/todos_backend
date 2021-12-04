@@ -1,6 +1,8 @@
 package repository
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -14,9 +16,9 @@ func NewMySqlListsRepository(db *gorm.DB) *MySqlListsRepository {
 	return &MySqlListsRepository{db}
 }
 
-func (r *MySqlListsRepository) ExistsList(name domain.ListName, userID int32) (bool, error) {
+func (r *MySqlListsRepository) ExistsList(ctx context.Context, name domain.ListName, userID int32) (bool, error) {
 	count := int64(0)
-	err := r.db.Model(&domain.List{}).Where(domain.List{Name: name, UserID: userID}).Count(&count).Error
+	err := r.db.WithContext(ctx).Model(&domain.List{}).Where(domain.List{Name: name, UserID: userID}).Count(&count).Error
 
 	if err != nil {
 		return false, err

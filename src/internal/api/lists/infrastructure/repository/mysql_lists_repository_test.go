@@ -3,6 +3,7 @@
 package repository
 
 import (
+	"context"
 	"fmt"
 	"regexp"
 	"testing"
@@ -44,7 +45,7 @@ func TestMySqlListsRepositoryExistsList(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedExistsListQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.ExistsList(name, userID)
+		res, err := repo.ExistsList(context.Background(), name, userID)
 
 		assert.False(t, res)
 		assert.EqualError(t, err, "some error")
@@ -55,7 +56,7 @@ func TestMySqlListsRepositoryExistsList(t *testing.T) {
 	t.Run("should return true if the list exists", func(t *testing.T) {
 		expectedExistsListQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
-		res, err := repo.ExistsList(name, userID)
+		res, err := repo.ExistsList(context.Background(), name, userID)
 
 		assert.True(t, res)
 		assert.Nil(t, err)

@@ -28,6 +28,4 @@ services:
       target: base
     volumes:
       - './src:/go/src'      
-    env_file: 
-      - ./local.env
     command: ["go", "test", "--tags=e2e", "./cmd/api"]

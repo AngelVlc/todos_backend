@@ -92,7 +92,7 @@ func TestCreateListHandler(t *testing.T) {
 	t.Run("Should return an error result with an UnexpectedError if create user list fails", func(t *testing.T) {
 		mockedRepo.On("ExistsList", request().Context(), domain.ListName("list1"), int32(1)).Return(false, nil).Once()
 		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1)}
-		mockedRepo.On("CreateList", &list).Return(fmt.Errorf("some error")).Once()
+		mockedRepo.On("CreateList", request().Context(), &list).Return(fmt.Errorf("some error")).Once()
 
 		result := CreateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -103,8 +103,8 @@ func TestCreateListHandler(t *testing.T) {
 	t.Run("should create the new user list", func(t *testing.T) {
 		mockedRepo.On("ExistsList", request().Context(), domain.ListName("list1"), int32(1)).Return(false, nil).Once()
 		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1)}
-		mockedRepo.On("CreateList", &list).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(0).(*domain.List)
+		mockedRepo.On("CreateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
+			arg := args.Get(1).(*domain.List)
 			*arg = domain.List{ID: int32(1)}
 		})
 

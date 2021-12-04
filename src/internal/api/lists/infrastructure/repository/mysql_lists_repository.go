@@ -46,8 +46,8 @@ func (r *MySqlListsRepository) GetAllLists(ctx context.Context, userID int32) ([
 	return res, nil
 }
 
-func (r *MySqlListsRepository) CreateList(list *domain.List) error {
-	return r.db.Create(list).Error
+func (r *MySqlListsRepository) CreateList(ctx context.Context, list *domain.List) error {
+	return r.db.WithContext(ctx).Create(list).Error
 }
 
 func (r *MySqlListsRepository) DeleteList(listID int32, userID int32) error {

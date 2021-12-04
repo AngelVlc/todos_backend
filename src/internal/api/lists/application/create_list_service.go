@@ -26,7 +26,7 @@ func (s *CreateListService) CreateList(ctx context.Context, name domain.ListName
 		UserID: userID,
 	}
 
-	err = s.repo.CreateList(&list)
+	err = s.repo.CreateList(ctx, &list)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user list", InternalError: err}
 	}

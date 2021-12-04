@@ -36,8 +36,8 @@ func (m *MockedListsRepository) GetAllLists(ctx context.Context, userID int32) (
 	return args.Get(0).([]domain.List), args.Error(1)
 }
 
-func (m *MockedListsRepository) CreateList(list *domain.List) error {
-	args := m.Called(list)
+func (m *MockedListsRepository) CreateList(ctx context.Context, list *domain.List) error {
+	args := m.Called(ctx, list)
 	return args.Error(0)
 }
 

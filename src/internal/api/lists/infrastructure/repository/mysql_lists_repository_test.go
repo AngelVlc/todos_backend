@@ -191,7 +191,7 @@ func TestMySqlListsRepositoryCreateList(t *testing.T) {
 		expectedInsertListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.CreateList(&list)
+		err := repo.CreateList(context.Background(), &list)
 
 		assert.EqualError(t, err, "some error")
 
@@ -203,7 +203,7 @@ func TestMySqlListsRepositoryCreateList(t *testing.T) {
 		expectedInsertListExec().WillReturnResult(sqlmock.NewResult(12, 0))
 		mock.ExpectCommit()
 
-		err := repo.CreateList(&list)
+		err := repo.CreateList(context.Background(), &list)
 
 		assert.Nil(t, err)
 

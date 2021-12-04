@@ -35,8 +35,8 @@ jobs:
       image: ubuntu-2004:202111-01
     steps:
       - checkout
-      - run: touch local.env && make build
-      - run: make test
+      - run: docker-compose -f docker-compose-ci.yml build test
+      - run: docker-compose -f docker-compose-ci.yml run --rm test go test --race ./...
       - install_terraform
       - init_terraform
       - run: cd terraform && terraform plan -var heroku_username=$HEROKU_USERNAME -var heroku_api_key=$HEROKU_API_KEY -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production
@@ -58,5 +58,5 @@ jobs:
       image: ubuntu-2004:202111-01
     steps:
       - checkout
-      - run: docker-compose -f docker-compose-e2e.yml build app-e2e
-      - run: HEROKU_URL=`heroku apps:info -a $APP_NAME -s | sed -n 's/.*web_url=//p' | sed 's/\/\([^\/]*\)$/\1/'` && docker-compose -f docker-compose-e2e.yml run --rm -e BASE_URL=$HEROKU_URL -e ADMIN_PASSWORD=$ADMIN_PASSWORD app-e2e
+      - run: docker-compose -f docker-compose-ci.yml build test
+      - run: HEROKU_URL=`heroku apps:info -a $APP_NAME -s | sed -n 's/.*web_url=//p' | sed 's/\/\([^\/]*\)$/\1/'` && docker-compose -f docker-compose-ci.yml run --rm -e BASE_URL=$HEROKU_URL -e ADMIN_PASSWORD=$ADMIN_PASSWORD test go test --tags=e2e ./cmd/api

@@ -4,7 +4,7 @@ import "context"
 
 type ListsRepository interface {
 	ExistsList(ctx context.Context, name ListName, userID int32) (bool, error)
-	FindListByID(listID int32, userID int32) (*List, error)
+	FindListByID(ctx context.Context, listID int32, userID int32) (*List, error)
 	GetAllLists(userID int32) ([]List, error)
 	CreateList(list *List) error
 	DeleteList(listID int32, userID int32) error

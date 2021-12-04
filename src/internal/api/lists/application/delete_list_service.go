@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
@@ -13,8 +15,8 @@ func NewDeleteListService(repo domain.ListsRepository) *DeleteListService {
 	return &DeleteListService{repo}
 }
 
-func (s *DeleteListService) DeleteList(listID int32, userID int32) error {
-	_, err := s.repo.FindListByID(listID, userID)
+func (s *DeleteListService) DeleteList(ctx context.Context, listID int32, userID int32) error {
+	_, err := s.repo.FindListByID(ctx, listID, userID)
 	if err != nil {
 		return err
 	}

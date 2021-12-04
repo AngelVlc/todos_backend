@@ -1,6 +1,8 @@
 package application
 
 import (
+	"context"
+
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
@@ -13,8 +15,8 @@ func NewCreateListItemService(repo domain.ListsRepository) *CreateListItemServic
 	return &CreateListItemService{repo}
 }
 
-func (s *CreateListItemService) CreateListItem(listID int32, title domain.ItemTitle, description string, userID int32) (*domain.ListItem, error) {
-	foundList, err := s.repo.FindListByID(listID, userID)
+func (s *CreateListItemService) CreateListItem(ctx context.Context, listID int32, title domain.ItemTitle, description string, userID int32) (*domain.ListItem, error) {
+	foundList, err := s.repo.FindListByID(ctx, listID, userID)
 	if err != nil {
 		return nil, err
 	}

@@ -27,9 +27,9 @@ func (r *MySqlListsRepository) ExistsList(ctx context.Context, name domain.ListN
 	return count > 0, nil
 }
 
-func (r *MySqlListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
+func (r *MySqlListsRepository) FindListByID(ctx context.Context, listID int32, userID int32) (*domain.List, error) {
 	found := domain.List{}
-	err := r.db.Where(domain.List{ID: listID, UserID: userID}).Take(&found).Error
+	err := r.db.WithContext(ctx).Where(domain.List{ID: listID, UserID: userID}).Take(&found).Error
 
 	if err != nil {
 		return nil, err

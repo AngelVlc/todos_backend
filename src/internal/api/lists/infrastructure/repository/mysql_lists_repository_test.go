@@ -89,7 +89,7 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.FindListByID(listID, userID)
+		res, err := repo.FindListByID(context.Background(), listID, userID)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -100,7 +100,7 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 	t.Run("should return the user if it exists", func(t *testing.T) {
 		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID, int32(3)))
 
-		res, err := repo.FindListByID(listID, userID)
+		res, err := repo.FindListByID(context.Background(), listID, userID)
 
 		require.NotNil(t, res)
 		assert.Equal(t, listID, res.ID)

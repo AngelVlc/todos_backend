@@ -81,7 +81,7 @@ func TestCreateListItemHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an error if the query to find the list fails", func(t *testing.T) {
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
 
@@ -91,7 +91,7 @@ func TestCreateListItemHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an UnexpectedError if create list item fails", func(t *testing.T) {
 		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
 		listItem := domain.ListItem{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc"}
 		mockedRepo.On("CreateListItem", &listItem).Return(fmt.Errorf("some error")).Once()
 
@@ -103,7 +103,7 @@ func TestCreateListItemHandler(t *testing.T) {
 
 	t.Run("should create the new list item when the list does not have any items yet", func(t *testing.T) {
 		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1), ItemsCount: int32(0)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
 		listItem := domain.ListItem{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc", Position: int32(0)}
 		mockedRepo.On("CreateListItem", &listItem).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(0).(*domain.ListItem)
@@ -127,7 +127,7 @@ func TestCreateListItemHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an UnexpectedError if the list has some item but get max position fails", func(t *testing.T) {
 		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1), ItemsCount: int32(3)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
 		mockedRepo.On("GetListItemsMaxPosition", int32(11), int32(1)).Return(int32(-1), fmt.Errorf("some error")).Once()
 
 		result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
@@ -138,7 +138,7 @@ func TestCreateListItemHandler(t *testing.T) {
 
 	t.Run("should create the new list item when the list already has some item", func(t *testing.T) {
 		list := domain.List{Name: domain.ListName("list1"), UserID: int32(1), ItemsCount: int32(2)}
-		mockedRepo.On("FindListByID", int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
 		mockedRepo.On("GetListItemsMaxPosition", int32(11), int32(1)).Return(int32(2), nil).Once()
 		listItem := domain.ListItem{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc", Position: int32(3)}
 		mockedRepo.On("CreateListItem", &listItem).Return(nil).Once().Run(func(args mock.Arguments) {

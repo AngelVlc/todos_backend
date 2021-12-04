@@ -20,8 +20,8 @@ func (m *MockedListsRepository) ExistsList(ctx context.Context, name domain.List
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockedListsRepository) FindListByID(listID int32, userID int32) (*domain.List, error) {
-	args := m.Called(listID, userID)
+func (m *MockedListsRepository) FindListByID(ctx context.Context, listID int32, userID int32) (*domain.List, error) {
+	args := m.Called(ctx, listID, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

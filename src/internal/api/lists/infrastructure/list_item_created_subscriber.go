@@ -1,31 +1,35 @@
 package infrastructure
 
 import (
+	"context"
 	"log"
 
 	"github.com/AngelVlc/todos/internal/api/lists/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 type ListItemCreatedEventSubscriber struct {
-	eventName string
-	eventBus  events.EventBus
-	channel   chan events.DataEvent
-	listsRepo domain.ListsRepository
-	doneFunc  func(listID int32)
+	eventName   string
+	eventBus    events.EventBus
+	channel     chan events.DataEvent
+	listsRepo   domain.ListsRepository
+	doneFunc    func(listID int32)
+	newRelicApp *newrelic.Application
 }
 
-func NewListItemCreatedEventSubscriber(eventBus events.EventBus, listsRepo domain.ListsRepository) *ListItemCreatedEventSubscriber {
+func NewListItemCreatedEventSubscriber(eventBus events.EventBus, listsRepo domain.ListsRepository, newRelicApp *newrelic.Application) *ListItemCreatedEventSubscriber {
 	doneFunc := func(listID int32) {
-		log.Printf("Increment items counter for list with ID %v\n", listID)
+		log.Printf("Incremented items counter for list with ID %v\n", listID)
 	}
 
 	return &ListItemCreatedEventSubscriber{
-		eventName: "listItemCreated",
-		eventBus:  eventBus,
-		channel:   make(chan events.DataEvent),
-		listsRepo: listsRepo,
-		doneFunc:  doneFunc,
+		eventName:   "listItemCreated",
+		eventBus:    eventBus,
+		channel:     make(chan events.DataEvent),
+		listsRepo:   listsRepo,
+		doneFunc:    doneFunc,
+		newRelicApp: newRelicApp,
 	}
 }
 
@@ -38,7 +42,10 @@ func (s *ListItemCreatedEventSubscriber) Start() {
 		select {
 		case d := <-s.channel:
 			listID, _ := d.Data.(int32)
-			s.listsRepo.IncrementListCounter(listID)
+			txn := s.newRelicApp.StartTransaction("incrementListCounter")
+			ctx := newrelic.NewContext(context.Background(), txn)
+			s.listsRepo.IncrementListCounter(ctx, listID)
+			txn.End()
 			s.doneFunc(listID)
 		}
 	}

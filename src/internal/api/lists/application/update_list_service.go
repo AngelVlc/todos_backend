@@ -30,7 +30,7 @@ func (s *UpdateListService) UpdateList(ctx context.Context, listID int32, name d
 
 	foundList.Name = name
 
-	err = s.repo.UpdateList(foundList)
+	err = s.repo.UpdateList(ctx, foundList)
 
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}

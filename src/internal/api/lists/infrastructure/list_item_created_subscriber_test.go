@@ -3,16 +3,19 @@
 package infrastructure
 
 import (
+	"context"
 	"testing"
 
 	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 func TestListItemCreatedEventSubscriber(t *testing.T) {
 	ch := make(chan events.DataEvent)
 	mockedRepo := listsRepository.MockedListsRepository{}
-	mockedRepo.On("IncrementListCounter", int32(11)).Return(nil).Once()
+	ctx := newrelic.NewContext(context.Background(), nil)
+	mockedRepo.On("IncrementListCounter", ctx, int32(11)).Return(nil).Once()
 
 	doneChan := make(chan bool)
 	f := func(listID int32) {

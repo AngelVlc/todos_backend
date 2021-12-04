@@ -41,23 +41,23 @@ func (m *MockedListsRepository) CreateList(ctx context.Context, list *domain.Lis
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) DeleteList(listID int32, userID int32) error {
-	args := m.Called(listID, userID)
+func (m *MockedListsRepository) DeleteList(ctx context.Context, listID int32, userID int32) error {
+	args := m.Called(ctx, listID, userID)
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) UpdateList(list *domain.List) error {
-	args := m.Called(list)
+func (m *MockedListsRepository) UpdateList(ctx context.Context, list *domain.List) error {
+	args := m.Called(ctx, list)
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) IncrementListCounter(listID int32) error {
-	args := m.Called(listID)
+func (m *MockedListsRepository) IncrementListCounter(ctx context.Context, listID int32) error {
+	args := m.Called(ctx, listID)
 	return args.Error(0)
 }
 
-func (m *MockedListsRepository) DecrementListCounter(listID int32) error {
-	args := m.Called(listID)
+func (m *MockedListsRepository) DecrementListCounter(ctx context.Context, listID int32) error {
+	args := m.Called(ctx, listID)
 	return args.Error(0)
 }
 

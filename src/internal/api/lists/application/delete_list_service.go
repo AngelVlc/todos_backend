@@ -21,7 +21,7 @@ func (s *DeleteListService) DeleteList(ctx context.Context, listID int32, userID
 		return err
 	}
 
-	err = s.repo.DeleteList(listID, userID)
+	err = s.repo.DeleteList(ctx, listID, userID)
 	if err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting the user list", InternalError: err}
 	}

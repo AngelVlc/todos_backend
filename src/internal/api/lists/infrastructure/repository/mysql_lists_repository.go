@@ -50,20 +50,20 @@ func (r *MySqlListsRepository) CreateList(ctx context.Context, list *domain.List
 	return r.db.WithContext(ctx).Create(list).Error
 }
 
-func (r *MySqlListsRepository) DeleteList(listID int32, userID int32) error {
-	return r.db.Where(domain.List{ID: listID, UserID: userID}).Delete(domain.List{}).Error
+func (r *MySqlListsRepository) DeleteList(ctx context.Context, listID int32, userID int32) error {
+	return r.db.WithContext(ctx).Where(domain.List{ID: listID, UserID: userID}).Delete(domain.List{}).Error
 }
 
-func (r *MySqlListsRepository) UpdateList(list *domain.List) error {
-	return r.db.Model(list).Updates(domain.List{Name: list.Name}).Error
+func (r *MySqlListsRepository) UpdateList(ctx context.Context, list *domain.List) error {
+	return r.db.WithContext(ctx).Model(list).Updates(domain.List{Name: list.Name}).Error
 }
 
-func (r *MySqlListsRepository) IncrementListCounter(listID int32) error {
-	return r.db.Model(domain.List{}).Where(domain.List{ID: listID}).UpdateColumn("itemsCount", gorm.Expr("itemsCount + ?", 1)).Error
+func (r *MySqlListsRepository) IncrementListCounter(ctx context.Context, listID int32) error {
+	return r.db.WithContext(ctx).Model(domain.List{}).Where(domain.List{ID: listID}).UpdateColumn("itemsCount", gorm.Expr("itemsCount + ?", 1)).Error
 }
 
-func (r *MySqlListsRepository) DecrementListCounter(listID int32) error {
-	return r.db.Model(domain.List{}).Where(domain.List{ID: listID}).UpdateColumn("itemsCount", gorm.Expr("itemsCount - ?", 1)).Error
+func (r *MySqlListsRepository) DecrementListCounter(ctx context.Context, listID int32) error {
+	return r.db.WithContext(ctx).Model(domain.List{}).Where(domain.List{ID: listID}).UpdateColumn("itemsCount", gorm.Expr("itemsCount - ?", 1)).Error
 }
 
 func (r *MySqlListsRepository) FindListItemByID(itemID int32, listID int32, userID int32) (*domain.ListItem, error) {

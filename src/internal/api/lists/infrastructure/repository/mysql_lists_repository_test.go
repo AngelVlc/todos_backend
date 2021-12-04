@@ -237,7 +237,7 @@ func TestMySqlListsRepositoryDeleteList(t *testing.T) {
 		expectedRemoveListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DeleteList(listID, userID)
+		err := repo.DeleteList(context.Background(), listID, userID)
 
 		assert.EqualError(t, err, "some error")
 
@@ -249,7 +249,7 @@ func TestMySqlListsRepositoryDeleteList(t *testing.T) {
 		expectedRemoveListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DeleteList(listID, userID)
+		err := repo.DeleteList(context.Background(), listID, userID)
 
 		assert.Nil(t, err)
 
@@ -282,7 +282,7 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 		expectedUpdateListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.UpdateList(&list)
+		err := repo.UpdateList(context.Background(), &list)
 
 		assert.EqualError(t, err, "some error")
 
@@ -294,7 +294,7 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.UpdateList(&list)
+		err := repo.UpdateList(context.Background(), &list)
 
 		assert.Nil(t, err)
 
@@ -325,7 +325,7 @@ func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
 		expectedUpdateListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.IncrementListCounter(int32(11))
+		err := repo.IncrementListCounter(context.Background(), int32(11))
 
 		assert.EqualError(t, err, "some error")
 
@@ -337,7 +337,7 @@ func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
 		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.IncrementListCounter(int32(11))
+		err := repo.IncrementListCounter(context.Background(), int32(11))
 
 		assert.Nil(t, err)
 
@@ -368,7 +368,7 @@ func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
 		expectedUpdateListExec().WillReturnError(fmt.Errorf("some error"))
 		mock.ExpectRollback()
 
-		err := repo.DecrementListCounter(int32(11))
+		err := repo.DecrementListCounter(context.Background(), int32(11))
 
 		assert.EqualError(t, err, "some error")
 
@@ -380,7 +380,7 @@ func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
 		expectedUpdateListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 		mock.ExpectCommit()
 
-		err := repo.DecrementListCounter(int32(11))
+		err := repo.DecrementListCounter(context.Background(), int32(11))
 
 		assert.Nil(t, err)
 

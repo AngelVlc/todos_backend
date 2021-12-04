@@ -99,8 +99,8 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 
 	s.Handler = router
 
-	s.addSubscriber(listsInfra.NewListItemCreatedEventSubscriber(s.eventBus, s.listsRepo))
-	s.addSubscriber(listsInfra.NewListItemDeletedEventSubscriber(s.eventBus, s.listsRepo))
+	s.addSubscriber(listsInfra.NewListItemCreatedEventSubscriber(s.eventBus, s.listsRepo, s.newRelicApp))
+	s.addSubscriber(listsInfra.NewListItemDeletedEventSubscriber(s.eventBus, s.listsRepo, s.newRelicApp))
 
 	s.startSubscribers()
 

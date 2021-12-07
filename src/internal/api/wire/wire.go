@@ -17,7 +17,7 @@ import (
 	fakemdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/fake"
 	logMdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/log"
 	reqadminmdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqadmin"
-	reqcountermdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqcounter"
+	reqid "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqid"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 )
@@ -188,8 +188,8 @@ var FakeMiddlewareSet = wire.NewSet(
 	wire.Bind(new(sharedDomain.Middleware), new(*fakemdw.FakeMiddleware)))
 
 var RequestIdMiddlewareSet = wire.NewSet(
-	reqcountermdw.NewRequestIdMiddleware,
-	wire.Bind(new(sharedDomain.Middleware), new(*reqcountermdw.RequestIdMiddleware)))
+	reqid.NewRequestIdMiddleware,
+	wire.Bind(new(sharedDomain.Middleware), new(*reqid.RequestIdMiddleware)))
 
 var LogMiddlewareSet = wire.NewSet(
 	logMdw.NewLogMiddleware,

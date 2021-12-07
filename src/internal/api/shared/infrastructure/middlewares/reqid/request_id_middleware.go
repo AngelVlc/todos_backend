@@ -1,4 +1,4 @@
-package reqcountermdw
+package reqid
 
 import (
 	"context"

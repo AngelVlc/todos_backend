@@ -18,7 +18,7 @@ import (
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/fake"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/log"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqadmin"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqcounter"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqid"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 	"os"
@@ -54,7 +54,7 @@ func InitRequireAdminMiddleware() domain.Middleware {
 }
 
 func initRequestIdMiddleware(db *gorm.DB) domain.Middleware {
-	requestIdMiddleware := reqcountermdw.NewRequestIdMiddleware()
+	requestIdMiddleware := reqid.NewRequestIdMiddleware()
 	return requestIdMiddleware
 }
 
@@ -190,7 +190,7 @@ var MockedConfigurationServiceSet = wire.NewSet(application.NewMockedConfigurati
 
 var FakeMiddlewareSet = wire.NewSet(fakemdw.NewFakeMiddleware, wire.Bind(new(domain.Middleware), new(*fakemdw.FakeMiddleware)))
 
-var RequestIdMiddlewareSet = wire.NewSet(reqcountermdw.NewRequestIdMiddleware, wire.Bind(new(domain.Middleware), new(*reqcountermdw.RequestIdMiddleware)))
+var RequestIdMiddlewareSet = wire.NewSet(reqid.NewRequestIdMiddleware, wire.Bind(new(domain.Middleware), new(*reqid.RequestIdMiddleware)))
 
 var LogMiddlewareSet = wire.NewSet(logmdw.NewLogMiddleware, wire.Bind(new(domain.Middleware), new(*logmdw.LogMiddleware)))
 

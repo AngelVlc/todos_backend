@@ -1,0 +1,1 @@
+CREATE INDEX idx_expiration_date ON refresh_tokens (expirationDate);

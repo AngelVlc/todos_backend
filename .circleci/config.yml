@@ -28,6 +28,13 @@ commands:
   init_terraform:
     steps:
     - run: cd terraform && terraform init -input=false -backend-config="conn_str=$TERRAFORM_BACKEND"
+  plan_or_apply_terraform:
+    parameters:
+      command:
+        description: the terraform command to execute
+        type: string
+    steps:
+    - run: cd terraform && terraform <<parameters.command>> -var heroku_username=$HEROKU_USERNAME -var heroku_api_key=$HEROKU_API_KEY -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production
 
 jobs:
   test:
@@ -39,7 +46,8 @@ jobs:
       - run: docker-compose -f docker-compose-ci.yml run --rm test go test --race ./...
       - install_terraform
       - init_terraform
-      - run: cd terraform && terraform plan -var heroku_username=$HEROKU_USERNAME -var heroku_api_key=$HEROKU_API_KEY -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production
+      - plan_or_apply_terraform:
+          command: plan
   deploy:
     machine:
       image: ubuntu-2004:202111-01
@@ -48,7 +56,8 @@ jobs:
       - install_terraform
       - run: heroku container:login
       - init_terraform
-      - run: cd terraform && terraform apply -input=false -auto-approve -var heroku_username=$HEROKU_USERNAME -var heroku_api_key=$HEROKU_API_KEY -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production
+      - plan_or_apply_terraform:
+          command: apply -input=false -auto-approve
       - run: docker build -t todos-release --target release ./src
       - run: docker tag todos-release registry.heroku.com/$APP_NAME/web
       - run: docker push registry.heroku.com/$APP_NAME/web

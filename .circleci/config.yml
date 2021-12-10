@@ -19,6 +19,9 @@ workflows:
                 only: master
 
 commands:
+  build_test_image:
+    steps:
+      - run: docker build --target base -t todos-test src/
   install_terraform:
     steps:
     - run: curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.12/terraform_0.12.12_linux_amd64.zip
@@ -42,8 +45,8 @@ jobs:
       image: ubuntu-2004:202111-01
     steps:
       - checkout
-      - run: docker-compose -f docker-compose-ci.yml build test
-      - run: docker-compose -f docker-compose-ci.yml run --rm test go test --race ./...
+      - build_test_image
+      - run: docker run --rm todos-test go test --race ./...
       - install_terraform
       - init_terraform
       - plan_or_apply_terraform:
@@ -58,7 +61,7 @@ jobs:
       - init_terraform
       - plan_or_apply_terraform:
           command: apply -input=false -auto-approve
-      - run: docker build -t todos-release --target release ./src
+      - run: docker build --target release -t todos-release -f src/Dockerfile src/
       - run: docker tag todos-release registry.heroku.com/$APP_NAME/web
       - run: docker push registry.heroku.com/$APP_NAME/web
       - run: heroku container:release --app $APP_NAME web
@@ -67,5 +70,5 @@ jobs:
       image: ubuntu-2004:202111-01
     steps:
       - checkout
-      - run: docker-compose -f docker-compose-ci.yml build test
-      - run: HEROKU_URL=`heroku apps:info -a $APP_NAME -s | sed -n 's/.*web_url=//p' | sed 's/\/\([^\/]*\)$/\1/'` && docker-compose -f docker-compose-ci.yml run --rm -e BASE_URL=$HEROKU_URL -e ADMIN_PASSWORD=$ADMIN_PASSWORD test go test --tags=e2e ./cmd/api
+      - build_test_image
+      - run: HEROKU_URL=`heroku apps:info -a $APP_NAME -s | sed -n 's/.*web_url=//p' | sed 's/\/\([^\/]*\)$/\1/'` && docker run --rm -e BASE_URL=$HEROKU_URL -e ADMIN_PASSWORD=$ADMIN_PASSWORD todos-test go test --tags=e2e ./cmd/api

@@ -13,13 +13,15 @@ RUN go mod download
 
 COPY . $APP
 
+FROM base as build
+
 RUN CGO_ENABLED=0 GOOS=linux go build -o /go/bin/app ./cmd/api/main.go
 
 FROM alpine as release
 
-COPY --from=base /go/src/start.sh /app/
-COPY --from=base /go/bin/app /app/
-COPY --from=base /bin/migrate.linux-amd64 /app/
-COPY --from=base /go/src/db/migrations /app/db/migrations/
+COPY --from=build /go/src/start.sh /app/
+COPY --from=build /go/bin/app /app/
+COPY --from=build /bin/migrate.linux-amd64 /app/
+COPY --from=build /go/src/db/migrations /app/db/migrations/
 
 CMD [ "bin/sh", "/app/start.sh" ]

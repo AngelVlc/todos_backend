@@ -1,9 +1,0 @@
-version: '3.7'
-services:
-  test:
-    build:
-      context: ./src/
-      target: base
-    volumes:
-      - './src:/go/src'
-    init: true

@@ -33,18 +33,18 @@ variable "environment" {
 }
 
 provider "heroku" {
-  email   = "${var.heroku_username}"
-  api_key = "${var.heroku_api_key}"
+  email   = var.heroku_username
+  api_key = var.heroku_api_key
 }
 
 resource "heroku_app" "default" {
-  name   = "${var.app_name}"
+  name   = var.app_name
   region = "eu"
   stack  = "container"
 }
 
 resource "heroku_addon" "database" {
-  app    = "${heroku_app.default.name}"
+  app    = heroku_app.default.name
   plan   = "cleardb:ignite"
   lifecycle {
     prevent_destroy = true
@@ -52,26 +52,26 @@ resource "heroku_addon" "database" {
 }
 
 resource "heroku_addon" "errors" {
-  app    = "${heroku_app.default.name}"
+  app    = heroku_app.default.name
   plan   = "honeybadger:free"
 }
 
 resource "heroku_addon" "apm" {
-  app    = "${heroku_app.default.name}"
+  app    = heroku_app.default.name
   plan   = "newrelic:wayne"
 }
 
 resource "heroku_addon" "log" {
-  app    = "${heroku_app.default.name}"
+  app    = heroku_app.default.name
   plan   = "sumologic:free"
 }
 
 resource "heroku_config" "default" {
   sensitive_vars = {
-    JWT_SECRET = "${var.jwt_secret}"
-    ADMIN_PASSWORD = "${var.admin_password}"
-    CORS_ALLOWED_ORIGINS = "${var.cors_allowed_origins}"
-    ENVIRONMENT = "${var.environment}"
+    JWT_SECRET = var.jwt_secret
+    ADMIN_PASSWORD = var.admin_password
+    CORS_ALLOWED_ORIGINS = var.cors_allowed_origins
+    ENVIRONMENT = var.environment
     TOKEN_EXPIRATION_DURATION = "5m"
     REFRESH_TOKEN_EXPIRATION_DURATION = "24h"
     DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL = "30s"
@@ -79,7 +79,7 @@ resource "heroku_config" "default" {
 }
 
 resource "heroku_app_config_association" "default" {
-  app_id = "${heroku_app.default.id}"
+  app_id = heroku_app.default.id
 
-  sensitive_vars = "${heroku_config.default.sensitive_vars}"
+  sensitive_vars = heroku_config.default.sensitive_vars
 }

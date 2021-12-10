@@ -24,7 +24,7 @@ commands:
       - run: docker build --target base -t todos-test src/
   install_terraform:
     steps:
-    - run: curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.12/terraform_0.12.12_linux_amd64.zip
+    - run: curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip
     - run: unzip /tmp/terraform.zip -d /tmp
     - run: mv /tmp/terraform ~/bin
     - run: export PATH="~/bin:$PATH"

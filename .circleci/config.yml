@@ -24,7 +24,7 @@ commands:
       - run: docker build --target base -t todos-test src/
   install_terraform:
     steps:
-    - run: curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.12.31/terraform_0.12.31_linux_amd64.zip
+    - run: curl -sLo /tmp/terraform.zip https://releases.hashicorp.com/terraform/0.13.7/terraform_0.13.7_linux_amd64.zip
     - run: unzip /tmp/terraform.zip -d /tmp
     - run: mv /tmp/terraform ~/bin
     - run: export PATH="~/bin:$PATH"
@@ -37,7 +37,7 @@ commands:
         description: the terraform command to execute
         type: string
     steps:
-    - run: cd terraform && terraform <<parameters.command>> -var heroku_username=$HEROKU_USERNAME -var heroku_api_key=$HEROKU_API_KEY -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production
+    - run: cd terraform && terraform <<parameters.command>> -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var admin_password=$ADMIN_PASSWORD -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production
 
 jobs:
   test:

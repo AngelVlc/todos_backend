@@ -65,6 +65,7 @@ jobs:
       - run: docker tag todos-release registry.heroku.com/$APP_NAME/web
       - run: docker push registry.heroku.com/$APP_NAME/web
       - run: heroku container:release --app $APP_NAME web
+      - run: curl --data "deploy[environment]=production&deploy[local_username]=$HEROKU_EMAIL&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$(heroku config:get -a abh-todos-backend HONEYBADGER_API_KEY)" "https://api.honeybadger.io/v1/deploys"
   smoke:
     machine:
       image: ubuntu-2004:202111-01

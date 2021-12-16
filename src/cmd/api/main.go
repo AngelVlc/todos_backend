@@ -45,8 +45,6 @@ func main() {
 
 	authRepo := wire.InitAuthRepository(db)
 
-	createAdminUserIfNotExists(cfg, authRepo, *newRelicApp)
-
 	go initDeleteExpiredTokensProcess(authRepo, *newRelicApp)
 
 	eb := wire.InitEventBus(map[string]events.DataChannelSlice{})
@@ -118,35 +116,6 @@ func initDb(c sharedApp.ConfigurationService, newRelicApp *newrelic.Application)
 	}
 
 	return gormdb, nil
-}
-
-func createAdminUserIfNotExists(cfg sharedApp.ConfigurationService, authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
-	txn := newRelicApp.StartTransaction("createAdminUserIfNotExists")
-	ctx := newrelic.NewContext(context.Background(), txn)
-	defer txn.End()
-
-	userName := authDomain.UserName("admin")
-	adminExists, err := authRepo.ExistsUser(ctx, userName)
-	if err != nil {
-		log.Fatal(err)
-
-		return
-	}
-
-	if !adminExists {
-		passGen := wire.InitPasswordGenerator()
-		hassedPass, _ := passGen.GenerateFromPassword(cfg.GetAdminPassword())
-
-		user := authDomain.User{
-			Name:         "admin",
-			PasswordHash: hassedPass,
-			IsAdmin:      true,
-		}
-		err = authRepo.CreateUser(ctx, &user)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}
 }
 
 func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {

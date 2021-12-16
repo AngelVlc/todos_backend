@@ -43,6 +43,7 @@ func TestServerPublicRoutes(t *testing.T) {
 	}{
 		{"/auth/login", http.MethodPost, http.StatusBadRequest},
 		{"/auth/refreshtoken", http.MethodPost, http.StatusBadRequest},
+		{"/auth/createadmin", http.MethodPost, http.StatusBadRequest},
 	}
 
 	for _, r := range publicRoutes {

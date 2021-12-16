@@ -89,7 +89,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	authSubRouter := router.PathPrefix("/auth").Subrouter()
 	authSubRouter.Handle("/login", s.getHandler(authInfra.LoginHandler)).Methods(http.MethodPost)
 	authSubRouter.Handle("/refreshtoken", s.getHandler(authInfra.RefreshTokenHandler)).Methods(http.MethodPost)
-	authSubRouter.Handle("/refreshtoken", s.getHandler(authInfra.RefreshTokenHandler)).Methods(http.MethodDelete)
+	authSubRouter.Handle("/createadmin", s.getHandler(authInfra.CreateUserHandler)).Methods(http.MethodPost)
 
 	pprofSubRouter := router.PathPrefix("/debug/pprof").Subrouter()
 	pprofSubRouter.Handle("/heap", pprof.Handler("heap"))

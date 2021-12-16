@@ -12,10 +12,6 @@ variable "jwt_secret" {
   description = "JWT secret"
 }
 
-variable "admin_password" {
-  description = "Password for admin"
-}
-
 variable "cors_allowed_origins" {
   description = "Comma separated CORS allowed domains"
 }
@@ -65,7 +61,6 @@ resource "heroku_addon" "log" {
 resource "heroku_config" "default" {
   sensitive_vars = {
     JWT_SECRET = var.jwt_secret
-    ADMIN_PASSWORD = var.admin_password
     CORS_ALLOWED_ORIGINS = var.cors_allowed_origins
     ENVIRONMENT = var.environment
     TOKEN_EXPIRATION_DURATION = "5m"

@@ -40,6 +40,17 @@ func TestCreateUserHandlerValidations(t *testing.T) {
 		results.CheckBadRequestErrorResult(t, result, "Invalid body")
 	})
 
+	t.Run("Should return an errorResult with a BadRequestError if its a create admin request with a user name different from admin", func(t *testing.T) {
+		createReq := createUserRequest{Name: "another"}
+		body, _ := json.Marshal(createReq)
+		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+		request.RequestURI = "/auth/createadmin"
+
+		result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+		results.CheckBadRequestErrorResult(t, result, "/auth/createadmin only can be used to create the admin user")
+	})
+
 	t.Run("Should return an errorResult with a BadRequestError if the create user request has an empty userName", func(t *testing.T) {
 		createReq := createUserRequest{Name: ""}
 		body, _ := json.Marshal(createReq)

@@ -11,7 +11,6 @@ import (
 
 type ConfigurationService interface {
 	GetDatasource() string
-	GetAdminPassword() string
 	GetPort() string
 	GetJwtSecret() string
 	GetCorsAllowedOrigins() []string
@@ -31,11 +30,6 @@ func NewMockedConfigurationService() *MockedConfigurationService {
 }
 
 func (m *MockedConfigurationService) GetDatasource() string {
-	args := m.Called()
-	return args.String(0)
-}
-
-func (m *MockedConfigurationService) GetAdminPassword() string {
 	args := m.Called()
 	return args.String(0)
 }
@@ -109,10 +103,6 @@ func (c *RealConfigurationService) GetDatasource() string {
 	}
 
 	return fmt.Sprintf("%v:%v@(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, dbname)
-}
-
-func (c *RealConfigurationService) GetAdminPassword() string {
-	return c.getEnvOrFallback("ADMIN_PASSWORD", "admin")
 }
 
 func (c *RealConfigurationService) GetPort() string {

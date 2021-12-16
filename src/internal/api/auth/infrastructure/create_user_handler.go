@@ -24,6 +24,10 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
+	if r.RequestURI == "/auth/createadmin" && createReq.Name != "admin" {
+		return results.ErrorResult{Err: &appErrors.BadRequestError{Msg: "/auth/createadmin only can be used to create the admin user"}}
+	}
+
 	userName, err := domain.NewUserName(createReq.Name)
 	if err != nil {
 		return results.ErrorResult{Err: err}

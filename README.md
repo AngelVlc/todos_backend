@@ -23,6 +23,8 @@ migrate -database "mysql://root:pass@tcp(localhost)/todos?query"  -path src/db/m
 **Load test**
 
 hey -m POST -d '{"username": "admin","password": "893210"}'  http://localhost:5001/auth/login
+hey -m POST -H "Cookie: refreshToken=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MzkzMDIzNjgsInVzZXJJZCI6MX0.B7PUbsOGDaKPf7Hrhd6Z69JqXMc4QliNsPT0YQjIhc4; Path=/auth; Secure; HttpOnly;"  http://localhost:5001/auth/refreshtoken
+hey -m GET -H "Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2MzkyMTY2MjMsImlzQWRtaW4iOnRydWUsInVzZXJJZCI6MSwidXNlck5hbWUiOiJhZG1pbiJ9.hHU76wcuSeyAvJjDKK5mMEONnSssy4YUCCUDu6lDxbE; Path=/; Secure; HttpOnly;"  http://localhost:5001/lists
 
 
 **Profiling**

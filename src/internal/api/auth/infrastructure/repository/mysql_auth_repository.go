@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -88,9 +89,14 @@ func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(ctx context.Context, ex
 	return r.db.WithContext(ctx).Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error
 }
 
-func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context) ([]domain.RefreshToken, error) {
+func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]domain.RefreshToken, error) {
 	res := []domain.RefreshToken{}
-	if err := r.db.WithContext(ctx).Select("id,userId,expirationDate").Find(&res).Error; err != nil {
+	if err := r.db.WithContext(ctx).
+		Select("id,userId,expirationDate").
+		Limit(paginationInfo.Limit).Offset(paginationInfo.Offset).
+		Order(paginationInfo.Order).
+		Find(&res).
+		Error; err != nil {
 		return nil, err
 	}
 	return res, nil

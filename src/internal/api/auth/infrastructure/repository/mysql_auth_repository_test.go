@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -497,6 +498,8 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
 	}
 
+	paginationInfo := sharedDomain.NewPaginationInfo(10, 10, "expirationDate", sharedDomain.OrderAsc)
+
 	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
@@ -505,13 +508,13 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 	repo := NewMySqlAuthRepository(db)
 
 	expectedGetQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,userId,expirationDate FROM `refresh_tokens`"))
+		return mock.ExpectQuery("SELECT id,userId,expirationDate FROM `refresh_tokens` ORDER BY expirationDate asc LIMIT 10 OFFSET 10")
 	}
 
 	t.Run("should return an error if the query fails", func(t *testing.T) {
 		expectedGetQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.GetAllRefreshTokens(context.Background())
+		res, err := repo.GetAllRefreshTokens(context.Background(), paginationInfo)
 
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
@@ -524,7 +527,7 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 		now := time.Now()
 		expectedGetQuery().WillReturnRows(sqlmock.NewRows(columns).AddRow(11, 1, now))
 
-		res, err := repo.GetAllRefreshTokens(context.Background())
+		res, err := repo.GetAllRefreshTokens(context.Background(), paginationInfo)
 
 		assert.Nil(t, err)
 		require.Equal(t, 1, len(res))

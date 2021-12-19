@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -86,8 +87,8 @@ func (m *MockedAuthRepository) DeleteExpiredRefreshTokens(ctx context.Context, e
 	return args.Error(0)
 }
 
-func (m *MockedAuthRepository) GetAllRefreshTokens(ctx context.Context) ([]domain.RefreshToken, error) {
-	args := m.Called(ctx)
+func (m *MockedAuthRepository) GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]domain.RefreshToken, error) {
+	args := m.Called(ctx, paginationInfo)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

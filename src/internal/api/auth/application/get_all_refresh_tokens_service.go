@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
 )
 
@@ -15,8 +16,8 @@ func NewGetAllRefreshTokensService(repo domain.AuthRepository) *GetAllRefreshTok
 	return &GetAllRefreshTokensService{repo}
 }
 
-func (s *GetAllRefreshTokensService) GetAllRefreshTokens(ctx context.Context) ([]domain.RefreshToken, error) {
-	found, err := s.repo.GetAllRefreshTokens(ctx)
+func (s *GetAllRefreshTokensService) GetAllRefreshTokens(ctx context.Context, pagInfo *sharedDomain.PaginationInfo) ([]domain.RefreshToken, error) {
+	found, err := s.repo.GetAllRefreshTokens(ctx, pagInfo)
 
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting refresh tokens", InternalError: err}

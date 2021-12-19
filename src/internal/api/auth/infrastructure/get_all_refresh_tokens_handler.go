@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/AngelVlc/todos/internal/api/auth/application"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 )
@@ -16,8 +17,10 @@ type RefreshTokenResponse struct {
 }
 
 func GetAllRefreshTokensHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+	pagInfo := sharedDomain.NewPaginationInfoFromUrl(r.URL)
+
 	srv := application.NewGetAllRefreshTokensService(h.AuthRepository)
-	found, err := srv.GetAllRefreshTokens(r.Context())
+	found, err := srv.GetAllRefreshTokens(r.Context(), pagInfo)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

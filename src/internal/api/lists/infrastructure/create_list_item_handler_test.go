@@ -116,7 +116,7 @@ func TestCreateListItemHandler(t *testing.T) {
 		result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
 		mockedEventBus.Wg.Wait()
 
-		okRes := results.CheckOkResult(t, result, http.StatusOK)
+		okRes := results.CheckOkResult(t, result, http.StatusCreated)
 		res, isOk := okRes.Content.(ListItemResponse)
 		require.Equal(t, true, isOk, "should be a ListItemResponse")
 		assert.Equal(t, int32(1), res.ID)
@@ -152,7 +152,7 @@ func TestCreateListItemHandler(t *testing.T) {
 		result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
 		mockedEventBus.Wg.Wait()
 
-		okRes := results.CheckOkResult(t, result, http.StatusOK)
+		okRes := results.CheckOkResult(t, result, http.StatusCreated)
 		res, isOk := okRes.Content.(ListItemResponse)
 		require.Equal(t, true, isOk, "should be a ListItemResponse")
 		assert.Equal(t, int32(1), res.ID)

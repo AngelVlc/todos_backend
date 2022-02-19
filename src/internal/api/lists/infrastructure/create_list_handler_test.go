@@ -110,7 +110,7 @@ func TestCreateListHandler(t *testing.T) {
 
 		result := CreateListHandler(httptest.NewRecorder(), request(), h)
 
-		okRes := results.CheckOkResult(t, result, http.StatusOK)
+		okRes := results.CheckOkResult(t, result, http.StatusCreated)
 		res, isOk := okRes.Content.(ListResponse)
 		require.Equal(t, true, isOk, "should be a ListResponse")
 		assert.Equal(t, int32(1), res.ID)

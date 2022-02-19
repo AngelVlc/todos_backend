@@ -14,11 +14,11 @@ type RefreshTokenService struct {
 	tokenSrv domain.TokenService
 }
 
-func NewRefreshTokenService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *LoginService {
-	return &LoginService{repo, cfgSvr, tokenSrv}
+func NewRefreshTokenService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *RefreshTokenService {
+	return &RefreshTokenService{repo, cfgSvr, tokenSrv}
 }
 
-func (s *LoginService) RefreshToken(ctx context.Context, rt string) (string, error) {
+func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (string, error) {
 	parsedRt, err := s.tokenSrv.ParseToken(rt)
 	if err != nil {
 		return "", &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}

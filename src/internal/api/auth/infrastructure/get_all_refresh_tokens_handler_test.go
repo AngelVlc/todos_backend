@@ -11,6 +11,7 @@ import (
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
 	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
+	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,8 @@ func TestGetAllRefreshTokensHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an unexpected error if the query fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
-		mockedRepo.On("GetAllRefreshTokens", request.Context()).Return(nil, fmt.Errorf("some error")).Once()
+		paginatedOptions := sharedDomain.NewPaginationInfo(10, 0, "id", sharedDomain.OrderAsc)
+		mockedRepo.On("GetAllRefreshTokens", request.Context(), paginatedOptions).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := GetAllRefreshTokensHandler(httptest.NewRecorder(), request, h)
 
@@ -40,7 +42,8 @@ func TestGetAllRefreshTokensHandler(t *testing.T) {
 		}
 
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
-		mockedRepo.On("GetAllRefreshTokens", request.Context()).Return(found, nil)
+		paginatedOptions := sharedDomain.NewPaginationInfo(10, 0, "id", sharedDomain.OrderAsc)
+		mockedRepo.On("GetAllRefreshTokens", request.Context(), paginatedOptions).Return(found, nil)
 		result := GetAllRefreshTokensHandler(httptest.NewRecorder(), request, h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)

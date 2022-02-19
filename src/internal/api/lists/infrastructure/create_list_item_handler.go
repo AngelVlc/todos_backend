@@ -45,5 +45,5 @@ func CreateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 		ListID:      newItem.ListID,
 	}
 
-	return results.OkResult{Content: res, StatusCode: http.StatusOK}
+	return results.OkResult{Content: res, StatusCode: http.StatusCreated}
 }

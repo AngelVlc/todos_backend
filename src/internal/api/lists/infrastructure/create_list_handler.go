@@ -40,5 +40,5 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		ItemsCount: newList.ItemsCount,
 	}
 
-	return results.OkResult{Content: res, StatusCode: http.StatusOK}
+	return results.OkResult{Content: res, StatusCode: http.StatusCreated}
 }

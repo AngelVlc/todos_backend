@@ -67,7 +67,7 @@ func TestEndtoEnd(t *testing.T) {
 	req = createRequest(t, "POST", baseURL+"/lists", strings.NewReader(listBody), loginResCookies)
 	res, err = client.Do(req)
 	require.Nil(t, err)
-	require.Equal(t, 200, res.StatusCode)
+	require.Equal(t, 201, res.StatusCode)
 	createdRes := listsDomain.List{}
 	err = objFromRes(res.Body, &createdRes)
 	require.Nil(t, err)

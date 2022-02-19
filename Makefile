@@ -33,4 +33,4 @@ test:
 	docker-compose run --rm app go test --race ./...
 
 test-e2e:
-	docker-compose run --rm -e BASE_URL=http://app:5001 app-e2e go test --tags=e2e ./cmd/api
+	docker-compose run --rm -e BASE_URL=http://app:5001 app go test --tags=e2e ./cmd/api

@@ -50,6 +50,12 @@ func (m *MockedConfigurationService) GetRefreshTokenExpirationDuration() time.Ti
 	return args.Get(0).(time.Time)
 }
 
+func (m *MockedConfigurationService) GetDeleteExpiredTokensIntervalTime() time.Duration {
+	args := m.Called()
+
+	return args.Get(0).(time.Duration)
+}
+
 func (m *MockedConfigurationService) GetEnvironment() string {
 	args := m.Called()
 	return args.String(0)

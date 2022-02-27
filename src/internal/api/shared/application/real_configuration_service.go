@@ -58,6 +58,10 @@ func (c *RealConfigurationService) GetRefreshTokenExpirationDuration() time.Time
 	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_DURATION", "24h"))
 }
 
+func (c *RealConfigurationService) GetDeleteExpiredTokensIntervalTime() time.Duration {
+	return c.getDurationEnvVar("DELETE_EXPIRED_TOKENS_INTERVAL", "30s")
+}
+
 func (c *RealConfigurationService) GetEnvironment() string {
 	return c.getEnvOrFallback("ENVIRONMENT", "development")
 }
@@ -76,6 +80,7 @@ func (c *RealConfigurationService) GetDeleteExpiredRefreshTokensInterval() time.
 
 func (c *RealConfigurationService) getDurationEnvVar(key string, fallback string) time.Duration {
 	d, _ := time.ParseDuration(c.getEnvOrFallback(key, fallback))
+
 	return d
 }
 

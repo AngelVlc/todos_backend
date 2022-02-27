@@ -9,6 +9,7 @@ type ConfigurationService interface {
 	GetCorsAllowedOrigins() []string
 	GetTokenExpirationDuration() time.Time
 	GetRefreshTokenExpirationDuration() time.Time
+	GetDeleteExpiredTokensIntervalTime() time.Duration
 	GetEnvironment() string
 	GetHoneyBadgerApiKey() string
 	GetNewRelicLicenseKey() string

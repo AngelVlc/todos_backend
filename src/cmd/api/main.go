@@ -45,7 +45,7 @@ func main() {
 
 	authRepo := wire.InitAuthRepository(db)
 
-	go initDeleteExpiredTokensProcess(authRepo, *newRelicApp)
+	go initDeleteExpiredTokensProcess(cfg, authRepo, *newRelicApp)
 
 	eb := wire.InitEventBus(map[string]events.DataChannelSlice{})
 
@@ -119,8 +119,8 @@ func initDb(c sharedApp.ConfigurationService, newRelicApp *newrelic.Application)
 	return gormdb, nil
 }
 
-func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
-	ticker := time.NewTicker(30 * time.Second)
+func initDeleteExpiredTokensProcess(cfg sharedApp.ConfigurationService, authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
+	ticker := time.NewTicker(cfg.GetDeleteExpiredTokensIntervalTime())
 	done := make(chan bool)
 
 	go func() {

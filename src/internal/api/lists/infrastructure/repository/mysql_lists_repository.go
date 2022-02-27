@@ -82,6 +82,7 @@ func (r *MySqlListsRepository) GetAllListItems(ctx context.Context, listID int32
 	if err := r.db.WithContext(ctx).Where(domain.ListItem{ListID: listID, UserID: userID}).Order("position").Find(&res).Error; err != nil {
 		return nil, err
 	}
+
 	return res, nil
 }
 
@@ -109,5 +110,6 @@ func (r *MySqlListsRepository) GetListItemsMaxPosition(ctx context.Context, list
 	if err := r.db.WithContext(ctx).Table("listItems").Where(domain.ListItem{ListID: listID, UserID: userID}).Select("MAX(position)").Scan(&res).Error; err != nil {
 		return res, err
 	}
+
 	return res, nil
 }

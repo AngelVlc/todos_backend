@@ -21,5 +21,6 @@ func CheckOkResult(t *testing.T, result interface{}, expectedStatus int) *OkResu
 	okRes, isOkResult := result.(OkResult)
 	require.Equal(t, true, isOkResult, "should be an ok result")
 	assert.Equal(t, expectedStatus, okRes.StatusCode)
+
 	return &okRes
 }

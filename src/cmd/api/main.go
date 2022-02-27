@@ -13,9 +13,9 @@ import (
 	"time"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
-	"github.com/AngelVlc/todos/internal/api/server"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/server"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/handlers"
 	"github.com/honeybadger-io/honeybadger-go"
@@ -45,7 +45,7 @@ func main() {
 
 	authRepo := wire.InitAuthRepository(db)
 
-	go initDeleteExpiredTokensProcess(authRepo, *newRelicApp)
+	go initDeleteExpiredTokensProcess(cfg, authRepo, *newRelicApp)
 
 	eb := wire.InitEventBus(map[string]events.DataChannelSlice{})
 
@@ -72,6 +72,7 @@ func main() {
 
 	go func() {
 		log.Printf("Listening on port %v ...\n", port)
+
 		if err = http.ListenAndServe(address, handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods, allowCredentials)(server)); err != nil {
 			log.Fatalf("could not listen on port %v %v", port, err)
 		}
@@ -95,9 +96,9 @@ func main() {
 		log.Printf("shutdown error: %v\n", err)
 		defer os.Exit(1)
 		return
-	} else {
-		log.Println("gracefully stopped")
 	}
+
+	log.Println("gracefully stopped")
 
 	cancel()
 
@@ -118,8 +119,8 @@ func initDb(c sharedApp.ConfigurationService, newRelicApp *newrelic.Application)
 	return gormdb, nil
 }
 
-func initDeleteExpiredTokensProcess(authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
-	ticker := time.NewTicker(30 * time.Second)
+func initDeleteExpiredTokensProcess(cfg sharedApp.ConfigurationService, authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
+	ticker := time.NewTicker(cfg.GetDeleteExpiredTokensIntervalTime())
 	done := make(chan bool)
 
 	go func() {
@@ -149,5 +150,6 @@ func initHoneyBadger(cfg sharedApp.ConfigurationService) {
 func initNewRelic(cfg sharedApp.ConfigurationService) (*newrelic.Application, error) {
 	appName := fmt.Sprintf("todos_backend_%v", cfg.GetEnvironment())
 	licenseKey := cfg.GetNewRelicLicenseKey()
+
 	return newrelic.NewApplication(newrelic.ConfigAppName(appName), newrelic.ConfigLicense(licenseKey), newrelic.ConfigEnabled(true))
 }

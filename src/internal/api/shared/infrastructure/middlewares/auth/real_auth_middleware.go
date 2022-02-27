@@ -2,6 +2,7 @@ package authmdw
 
 import (
 	"context"
+	"log"
 	"net/http"
 
 	"github.com/AngelVlc/todos/internal/api/auth/domain"
@@ -34,10 +35,13 @@ func (m *RealAuthMiddleware) Middleware(next http.Handler) http.Handler {
 
 		tokenInfo := m.tokenSrv.GetTokenInfo(parsedToken)
 
+		log.Printf("[%v] User: name %q, id %v, isAdmin: %v", helpers.GetRequestIDFromContext(r), tokenInfo.UserName, tokenInfo.UserID, tokenInfo.IsAdmin)
+
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, tokenInfo.UserID)
 		ctx = context.WithValue(ctx, consts.ReqContextUserNameKey, tokenInfo.UserName)
 		ctx = context.WithValue(ctx, consts.ReqContextUserIsAdminKey, tokenInfo.IsAdmin)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

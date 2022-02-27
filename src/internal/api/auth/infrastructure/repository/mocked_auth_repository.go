@@ -22,6 +22,7 @@ func NewMockedAuthRepository() *MockedAuthRepository {
 
 func (m *MockedAuthRepository) ExistsUser(ctx context.Context, userName domain.UserName) (bool, error) {
 	args := m.Called(ctx, userName)
+
 	return args.Bool(0), args.Error(1)
 }
 
@@ -38,6 +39,7 @@ func (m *MockedAuthRepository) FindUserByName(ctx context.Context, userName doma
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
+
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
@@ -46,21 +48,25 @@ func (m *MockedAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, 
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
+
 	return args.Get(0).([]domain.User), args.Error(1)
 }
 
 func (m *MockedAuthRepository) CreateUser(ctx context.Context, user *domain.User) error {
 	args := m.Called(ctx, user)
+
 	return args.Error(0)
 }
 
 func (m *MockedAuthRepository) DeleteUser(ctx context.Context, userID int32) error {
 	args := m.Called(ctx, userID)
+
 	return args.Error(0)
 }
 
 func (m *MockedAuthRepository) UpdateUser(ctx context.Context, user *domain.User) error {
 	args := m.Called(ctx, user)
+
 	return args.Error(0)
 }
 
@@ -69,6 +75,7 @@ func (m *MockedAuthRepository) FindRefreshTokenForUser(ctx context.Context, refr
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
+
 	return args.Get(0).(*domain.RefreshToken), args.Error(1)
 }
 
@@ -79,11 +86,13 @@ func (m *MockedAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context,
 	defer m.mu.Unlock()
 
 	args := m.Called(ctx, refreshToken)
+
 	return args.Error(0)
 }
 
 func (m *MockedAuthRepository) DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error {
 	args := m.Called(ctx, expTime)
+
 	return args.Error(0)
 }
 
@@ -92,10 +101,12 @@ func (m *MockedAuthRepository) GetAllRefreshTokens(ctx context.Context, paginati
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
+
 	return args.Get(0).([]domain.RefreshToken), args.Error(1)
 }
 
 func (m *MockedAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids []int32) error {
 	args := m.Called(ctx, ids)
+
 	return args.Error(0)
 }

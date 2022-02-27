@@ -18,7 +18,6 @@ func NewGetAllRefreshTokensService(repo domain.AuthRepository) *GetAllRefreshTok
 
 func (s *GetAllRefreshTokensService) GetAllRefreshTokens(ctx context.Context, pagInfo *sharedDomain.PaginationInfo) ([]domain.RefreshToken, error) {
 	found, err := s.repo.GetAllRefreshTokens(ctx, pagInfo)
-
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting refresh tokens", InternalError: err}
 	}

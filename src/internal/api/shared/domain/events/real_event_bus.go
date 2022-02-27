@@ -16,6 +16,7 @@ func NewRealEventBus(subscribers map[string]DataChannelSlice) *RealEventBus {
 
 func (eb *RealEventBus) Publish(eventName string, data interface{}) {
 	eb.rm.RLock()
+
 	if chans, found := eb.subscribers[eventName]; found {
 		// this is done because the slices refer to same array even though they are passed by value
 		// thus we are creating a new slice with our elements thus preserve locking correctly.
@@ -27,12 +28,14 @@ func (eb *RealEventBus) Publish(eventName string, data interface{}) {
 			}
 		}(DataEvent{Data: data, Topic: eventName}, channels)
 	}
+
 	eb.rm.RUnlock()
 }
 
 func (eb *RealEventBus) Subscribe(eventName string, ch DataChannel) {
 	eb.rm.Lock()
 	defer eb.rm.Unlock()
+
 	if prev, found := eb.subscribers[eventName]; found {
 		eb.subscribers[eventName] = append(prev, ch)
 	} else {

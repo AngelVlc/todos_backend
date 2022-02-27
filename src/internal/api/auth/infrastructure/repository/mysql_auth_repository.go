@@ -99,6 +99,7 @@ func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context, paginatio
 		Error; err != nil {
 		return nil, err
 	}
+
 	return res, nil
 }
 
@@ -106,6 +107,7 @@ func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids [
 	if err := r.db.WithContext(ctx).Delete(domain.RefreshToken{}, ids).Error; err != nil {
 		return err
 	}
+
 	return nil
 }
 

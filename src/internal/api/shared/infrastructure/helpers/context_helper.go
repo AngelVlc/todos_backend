@@ -2,6 +2,7 @@ package helpers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
 )
@@ -20,4 +21,12 @@ func GetRequestIDFromContext(r *http.Request) string {
 	requestID, _ := requestIDRaw.(string)
 
 	return requestID
+}
+
+func GetRequestStartTimeFromContext(r *http.Request) time.Time {
+	requestIDRaw := r.Context().Value(consts.ReqContextStartTime)
+
+	startTime, _ := requestIDRaw.(time.Time)
+
+	return startTime
 }

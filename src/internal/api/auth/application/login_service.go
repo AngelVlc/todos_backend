@@ -36,7 +36,7 @@ func (s *LoginService) Login(ctx context.Context, userName domain.UserName, pass
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	refreshTokenExpDate := s.cfgSvr.GetRefreshTokenExpirationDate()
+	refreshTokenExpDate := s.cfgSvr.GetRefreshTokenExpirationDuration()
 
 	refreshToken, err := s.tokenSrv.GenerateRefreshToken(foundUser, refreshTokenExpDate)
 	if err != nil {

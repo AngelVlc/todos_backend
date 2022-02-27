@@ -13,9 +13,9 @@ import (
 	"time"
 
 	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
-	"github.com/AngelVlc/todos/internal/api/server"
 	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
+	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/server"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/handlers"
 	"github.com/honeybadger-io/honeybadger-go"

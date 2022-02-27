@@ -23,5 +23,6 @@ func (u *User) HasPassword(value UserPassword) error {
 
 func (u *User) IsTheAdminUser() bool {
 	userNameLowerCase := strings.ToLower(string(u.Name))
+
 	return userNameLowerCase == "admin"
 }

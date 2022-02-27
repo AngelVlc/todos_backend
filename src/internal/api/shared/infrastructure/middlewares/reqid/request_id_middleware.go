@@ -25,6 +25,7 @@ func (m *RequestIdMiddleware) Middleware(next http.Handler) http.Handler {
 
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextRequestKey, reqId)
+
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

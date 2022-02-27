@@ -21,6 +21,7 @@ func (m *MockedEventBus) Publish(eventName string, data interface{}) {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	m.Called(eventName, data)
 }
 
@@ -29,5 +30,6 @@ func (m *MockedEventBus) Subscribe(eventName string, ch DataChannel) {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
 	m.Called(eventName, ch)
 }

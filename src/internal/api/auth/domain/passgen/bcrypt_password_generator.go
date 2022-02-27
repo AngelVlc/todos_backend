@@ -13,5 +13,6 @@ func (g *BcryptPasswordGenerator) GenerateFromPassword(password string) (string,
 	if err != nil {
 		return "", err
 	}
+
 	return string(hasshedPass), nil
 }

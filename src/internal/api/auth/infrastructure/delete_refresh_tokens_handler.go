@@ -20,5 +20,6 @@ func DeleteRefreshTokensHandler(w http.ResponseWriter, r *http.Request, h handle
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
+
 	return results.OkResult{Content: nil, StatusCode: http.StatusNoContent}
 }

@@ -56,6 +56,7 @@ func addTokenCookie(w http.ResponseWriter, token string) {
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
+
 	http.SetCookie(w, &rfCookie)
 }
 
@@ -68,5 +69,6 @@ func addRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {
 		SameSite: http.SameSiteNoneMode,
 		Secure:   true,
 	}
+
 	http.SetCookie(w, &rfCookie)
 }

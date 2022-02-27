@@ -72,6 +72,7 @@ func main() {
 
 	go func() {
 		log.Printf("Listening on port %v ...\n", port)
+
 		if err = http.ListenAndServe(address, handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods, allowCredentials)(server)); err != nil {
 			log.Fatalf("could not listen on port %v %v", port, err)
 		}
@@ -95,9 +96,9 @@ func main() {
 		log.Printf("shutdown error: %v\n", err)
 		defer os.Exit(1)
 		return
-	} else {
-		log.Println("gracefully stopped")
 	}
+
+	log.Println("gracefully stopped")
 
 	cancel()
 
@@ -149,5 +150,6 @@ func initHoneyBadger(cfg sharedApp.ConfigurationService) {
 func initNewRelic(cfg sharedApp.ConfigurationService) (*newrelic.Application, error) {
 	appName := fmt.Sprintf("todos_backend_%v", cfg.GetEnvironment())
 	licenseKey := cfg.GetNewRelicLicenseKey()
+
 	return newrelic.NewApplication(newrelic.ConfigAppName(appName), newrelic.ConfigLicense(licenseKey), newrelic.ConfigEnabled(true))
 }

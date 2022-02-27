@@ -31,31 +31,37 @@ func NewMockedConfigurationService() *MockedConfigurationService {
 
 func (m *MockedConfigurationService) GetDatasource() string {
 	args := m.Called()
+
 	return args.String(0)
 }
 
 func (m *MockedConfigurationService) GetPort() string {
 	args := m.Called()
+
 	return args.String(0)
 }
 
 func (m *MockedConfigurationService) GetJwtSecret() string {
 	args := m.Called()
+
 	return args.String(0)
 }
 
 func (m *MockedConfigurationService) GetCorsAllowedOrigins() []string {
 	args := m.Called()
+
 	return args.Get(0).([]string)
 }
 
 func (m *MockedConfigurationService) GetTokenExpirationDate() time.Time {
 	args := m.Called()
+
 	return args.Get(0).(time.Time)
 }
 
 func (m *MockedConfigurationService) GetRefreshTokenExpirationDate() time.Time {
 	args := m.Called()
+
 	return args.Get(0).(time.Time)
 }
 
@@ -66,11 +72,13 @@ func (m *MockedConfigurationService) GetEnvironment() string {
 
 func (m *MockedConfigurationService) GetHoneyBadgerApiKey() string {
 	args := m.Called()
+
 	return args.String(0)
 }
 
 func (m *MockedConfigurationService) GetNewRelicLicenseKey() string {
 	args := m.Called()
+
 	return args.String(0)
 }
 
@@ -150,5 +158,6 @@ func (c *RealConfigurationService) getEnvOrFallback(key string, fallback string)
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
+
 	return fallback
 }

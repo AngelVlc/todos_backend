@@ -17,5 +17,6 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
+
 	return results.OkResult{Content: nil, StatusCode: http.StatusNoContent}
 }

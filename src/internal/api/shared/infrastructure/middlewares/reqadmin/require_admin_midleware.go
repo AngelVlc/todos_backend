@@ -20,6 +20,7 @@ func (m *RequireAdminMiddleware) Middleware(next http.Handler) http.Handler {
 			helpers.WriteErrorResponse(r, w, http.StatusForbidden, "Access forbidden", nil)
 			return
 		}
+
 		next.ServeHTTP(w, r)
 	})
 }

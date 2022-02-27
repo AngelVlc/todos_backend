@@ -44,6 +44,7 @@ func NewPaginationInfoFromUrl(url *url.URL) *PaginationInfo {
 	}
 
 	paginationOrder := OrderDesc
+
 	if order != "desc" {
 		paginationOrder = OrderAsc
 	}

@@ -87,16 +87,6 @@ func TestEndtoEnd(t *testing.T) {
 	require.Equal(t, 204, res.StatusCode)
 }
 
-func bufferFromBody(body interface{}) (*bytes.Buffer, error) {
-	buf := new(bytes.Buffer)
-	if body == nil {
-		return buf, nil
-	}
-
-	err := json.NewEncoder(buf).Encode(body)
-	return buf, err
-}
-
 func objFromRes(resBody io.Reader, obj interface{}) error {
 	return json.NewDecoder(resBody).Decode(obj)
 }

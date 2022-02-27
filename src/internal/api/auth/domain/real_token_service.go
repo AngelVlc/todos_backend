@@ -18,12 +18,14 @@ func NewRealTokenService(cfgSvc sharedApp.ConfigurationService) *RealTokenServic
 
 func (s *RealTokenService) GenerateToken(user *User) (string, error) {
 	t := s.getNewToken(user.ID, user.Name, user.IsAdmin)
+
 	return s.signToken(t, s.cfgSvc.GetJwtSecret())
 
 }
 
 func (s *RealTokenService) GenerateRefreshToken(user *User, expirationDate time.Time) (string, error) {
 	rt := s.getNewRefreshToken(user.ID, expirationDate)
+
 	return s.signToken(rt, s.cfgSvc.GetJwtSecret())
 }
 
@@ -33,7 +35,9 @@ func (s *RealTokenService) ParseToken(tokenString string) (*jwt.Token, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
 		}
+
 		secret := s.cfgSvc.GetJwtSecret()
+
 		return []byte(secret), nil
 	})
 }
@@ -58,6 +62,7 @@ func (s *RealTokenService) GetRefreshTokenInfo(refreshToken *jwt.Token) *Refresh
 	info := RefreshTokenClaimsInfo{
 		UserID: s.parseInt32Claim(claims["userId"]),
 	}
+
 	return &info
 }
 
@@ -99,15 +104,18 @@ func (s *RealTokenService) signToken(token *jwt.Token, secret string) (string, e
 
 func (s *RealTokenService) parseStringClaim(value interface{}) string {
 	result, _ := value.(string)
+
 	return result
 }
 
 func (s *RealTokenService) parseInt32Claim(value interface{}) int32 {
 	result, _ := value.(float64)
+
 	return int32(result)
 }
 
 func (s *RealTokenService) parseBoolClaim(value interface{}) bool {
 	result, _ := value.(bool)
+
 	return result
 }

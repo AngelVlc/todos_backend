@@ -5,82 +5,7 @@ import (
 	"os"
 	"strings"
 	"time"
-
-	"github.com/stretchr/testify/mock"
 )
-
-type ConfigurationService interface {
-	GetDatasource() string
-	GetPort() string
-	GetJwtSecret() string
-	GetCorsAllowedOrigins() []string
-	GetTokenExpirationDate() time.Time
-	GetRefreshTokenExpirationDate() time.Time
-	GetEnvironment() string
-	GetHoneyBadgerApiKey() string
-	GetNewRelicLicenseKey() string
-}
-
-type MockedConfigurationService struct {
-	mock.Mock
-}
-
-func NewMockedConfigurationService() *MockedConfigurationService {
-	return &MockedConfigurationService{}
-}
-
-func (m *MockedConfigurationService) GetDatasource() string {
-	args := m.Called()
-
-	return args.String(0)
-}
-
-func (m *MockedConfigurationService) GetPort() string {
-	args := m.Called()
-
-	return args.String(0)
-}
-
-func (m *MockedConfigurationService) GetJwtSecret() string {
-	args := m.Called()
-
-	return args.String(0)
-}
-
-func (m *MockedConfigurationService) GetCorsAllowedOrigins() []string {
-	args := m.Called()
-
-	return args.Get(0).([]string)
-}
-
-func (m *MockedConfigurationService) GetTokenExpirationDate() time.Time {
-	args := m.Called()
-
-	return args.Get(0).(time.Time)
-}
-
-func (m *MockedConfigurationService) GetRefreshTokenExpirationDate() time.Time {
-	args := m.Called()
-
-	return args.Get(0).(time.Time)
-}
-
-func (m *MockedConfigurationService) GetEnvironment() string {
-	args := m.Called()
-	return args.String(0)
-}
-
-func (m *MockedConfigurationService) GetHoneyBadgerApiKey() string {
-	args := m.Called()
-
-	return args.String(0)
-}
-
-func (m *MockedConfigurationService) GetNewRelicLicenseKey() string {
-	args := m.Called()
-
-	return args.String(0)
-}
 
 type RealConfigurationService struct{}
 
@@ -125,11 +50,11 @@ func (c *RealConfigurationService) GetCorsAllowedOrigins() []string {
 	return strings.Split(c.getEnvOrFallback("CORS_ALLOWED_ORIGINS", "http://localhost:3000"), ",")
 }
 
-func (c *RealConfigurationService) GetTokenExpirationDate() time.Time {
+func (c *RealConfigurationService) GetTokenExpirationDuration() time.Time {
 	return time.Now().Add(c.getDurationEnvVar("TOKEN_EXPIRATION_DURATION", "5m"))
 }
 
-func (c *RealConfigurationService) GetRefreshTokenExpirationDate() time.Time {
+func (c *RealConfigurationService) GetRefreshTokenExpirationDuration() time.Time {
 	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_DURATION", "24h"))
 }
 

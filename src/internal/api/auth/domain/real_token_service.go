@@ -73,7 +73,7 @@ func (s *RealTokenService) getNewToken(userID int32, userName UserName, userIsAd
 	tc["userName"] = userName
 	tc["isAdmin"] = userIsAdmin
 	tc["userId"] = userID
-	tc["exp"] = s.cfgSvc.GetTokenExpirationDate().Unix()
+	tc["exp"] = s.cfgSvc.GetTokenExpirationDuration().Unix()
 
 	return t
 }

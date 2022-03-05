@@ -120,8 +120,10 @@ func initDb(c sharedApp.ConfigurationService, newRelicApp *newrelic.Application)
 }
 
 func initDeleteExpiredTokensProcess(cfg sharedApp.ConfigurationService, authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
-	ticker := time.NewTicker(cfg.GetDeleteExpiredTokensIntervalTime())
+	duration := cfg.GetDeleteExpiredRefreshTokensIntervalDuration()
+	ticker := time.NewTicker(duration)
 	done := make(chan bool)
+	log.Printf("Delete expired token process set every %v", duration)
 
 	go func() {
 		for {

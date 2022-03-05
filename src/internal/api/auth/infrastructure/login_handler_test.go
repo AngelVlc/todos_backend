@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package infrastructure
 
@@ -117,7 +118,7 @@ func TestLoginHandler(t *testing.T) {
 		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("token", nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
-		mockedCfgSrv.On("GetRefreshTokenExpirationDuration").Return(expDate).Once()
+		mockedCfgSrv.On("GetRefreshTokenExpirationTime").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("", fmt.Errorf("some error")).Once()
 
 		result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -136,7 +137,7 @@ func TestLoginHandler(t *testing.T) {
 		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
-		mockedCfgSrv.On("GetRefreshTokenExpirationDuration").Return(expDate).Once()
+		mockedCfgSrv.On("GetRefreshTokenExpirationTime").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
 		ctx := newrelic.NewContext(context.Background(), nil)
 		mockedRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
@@ -176,7 +177,7 @@ func TestLoginHandler(t *testing.T) {
 		mockedRepo.On("FindUserByName", request.Context(), domain.UserName("wadus")).Return(&foundUser, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 		expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
-		mockedCfgSrv.On("GetRefreshTokenExpirationDuration").Return(expDate).Once()
+		mockedCfgSrv.On("GetRefreshTokenExpirationTime").Return(expDate).Once()
 		mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
 		ctx := newrelic.NewContext(context.Background(), nil)
 		mockedRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()

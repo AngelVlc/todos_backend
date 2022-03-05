@@ -7,9 +7,9 @@ type ConfigurationService interface {
 	GetPort() string
 	GetJwtSecret() string
 	GetCorsAllowedOrigins() []string
-	GetTokenExpirationDuration() time.Time
-	GetRefreshTokenExpirationDuration() time.Time
-	GetDeleteExpiredTokensIntervalTime() time.Duration
+	GetTokenExpirationTime() time.Time
+	GetRefreshTokenExpirationTime() time.Time
+	GetDeleteExpiredRefreshTokensIntervalDuration() time.Duration
 	GetEnvironment() string
 	GetHoneyBadgerApiKey() string
 	GetNewRelicLicenseKey() string

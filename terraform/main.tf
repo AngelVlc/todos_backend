@@ -63,8 +63,8 @@ resource "heroku_config" "default" {
     JWT_SECRET = var.jwt_secret
     CORS_ALLOWED_ORIGINS = var.cors_allowed_origins
     ENVIRONMENT = var.environment
-    TOKEN_EXPIRATION_DURATION = "5m"
-    REFRESH_TOKEN_EXPIRATION_DURATION = "24h"
+    TOKEN_EXPIRATION_TIME = "5m"
+    REFRESH_TOKEN_EXPIRATION_TIME = "24h"
     DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL = "30s"
   }
 }

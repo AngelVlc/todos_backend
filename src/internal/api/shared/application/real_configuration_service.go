@@ -50,16 +50,16 @@ func (c *RealConfigurationService) GetCorsAllowedOrigins() []string {
 	return strings.Split(c.getEnvOrFallback("CORS_ALLOWED_ORIGINS", "http://localhost:3000"), ",")
 }
 
-func (c *RealConfigurationService) GetTokenExpirationDuration() time.Time {
-	return time.Now().Add(c.getDurationEnvVar("TOKEN_EXPIRATION_DURATION", "5m"))
+func (c *RealConfigurationService) GetTokenExpirationTime() time.Time {
+	return time.Now().Add(c.getDurationEnvVar("TOKEN_EXPIRATION_TIME", "5m"))
 }
 
-func (c *RealConfigurationService) GetRefreshTokenExpirationDuration() time.Time {
-	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_DURATION", "24h"))
+func (c *RealConfigurationService) GetRefreshTokenExpirationTime() time.Time {
+	return time.Now().Add(c.getDurationEnvVar("REFRESH_TOKEN_EXPIRATION_TIME", "24h"))
 }
 
-func (c *RealConfigurationService) GetDeleteExpiredTokensIntervalTime() time.Duration {
-	return c.getDurationEnvVar("DELETE_EXPIRED_TOKENS_INTERVAL", "30s")
+func (c *RealConfigurationService) GetDeleteExpiredRefreshTokensIntervalDuration() time.Duration {
+	return c.getDurationEnvVar("DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL", "30s")
 }
 
 func (c *RealConfigurationService) GetEnvironment() string {
@@ -72,10 +72,6 @@ func (c *RealConfigurationService) GetHoneyBadgerApiKey() string {
 
 func (c *RealConfigurationService) GetNewRelicLicenseKey() string {
 	return c.getEnvOrFallback("NEW_RELIC_LICENSE_KEY", "apikey")
-}
-
-func (c *RealConfigurationService) GetDeleteExpiredRefreshTokensInterval() time.Time {
-	return time.Now().Add(c.getDurationEnvVar("DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL", "30s"))
 }
 
 func (c *RealConfigurationService) getDurationEnvVar(key string, fallback string) time.Duration {

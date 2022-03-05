@@ -38,19 +38,19 @@ func (m *MockedConfigurationService) GetCorsAllowedOrigins() []string {
 	return args.Get(0).([]string)
 }
 
-func (m *MockedConfigurationService) GetTokenExpirationDuration() time.Time {
+func (m *MockedConfigurationService) GetTokenExpirationTime() time.Time {
 	args := m.Called()
 
 	return args.Get(0).(time.Time)
 }
 
-func (m *MockedConfigurationService) GetRefreshTokenExpirationDuration() time.Time {
+func (m *MockedConfigurationService) GetRefreshTokenExpirationTime() time.Time {
 	args := m.Called()
 
 	return args.Get(0).(time.Time)
 }
 
-func (m *MockedConfigurationService) GetDeleteExpiredTokensIntervalTime() time.Duration {
+func (m *MockedConfigurationService) GetDeleteExpiredRefreshTokensIntervalDuration() time.Duration {
 	args := m.Called()
 
 	return args.Get(0).(time.Duration)

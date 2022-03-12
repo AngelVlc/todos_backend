@@ -111,6 +111,8 @@ func initDb(c sharedApp.ConfigurationService, newRelicApp *newrelic.Application)
 		return nil, err
 	}
 
+	sqlDb.SetConnMaxLifetime(60 * time.Second)
+
 	gormdb, err := gorm.Open(mysql.New(mysql.Config{Conn: sqlDb}), &gorm.Config{})
 	if err != nil {
 		return nil, err

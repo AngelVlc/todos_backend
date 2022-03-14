@@ -58,6 +58,8 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	authMdw := wire.InitAuthMiddleware(db)
 	requireAdminMdw := wire.InitRequireAdminMiddleware()
 
+	router.HandleFunc("/", rootHandler).Methods(http.MethodGet)
+
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
 	listsSubRouter.Handle("", s.getHandler(listsInfra.GetAllListsHandler)).Methods(http.MethodGet)
 	listsSubRouter.Handle("", s.getHandler(listsInfra.CreateListHandler)).Methods(http.MethodPost)
@@ -120,4 +122,8 @@ func (s *server) startSubscribers() {
 		subscriber.Subscribe()
 		go subscriber.Start()
 	}
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK"))
 }

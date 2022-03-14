@@ -11,6 +11,12 @@ workflows:
             filters:
               branches:
                 only: master
+        - deploy-aws:
+            requires:
+              - test
+            filters:
+              branches:
+                only: aws
         - smoke:
             requires:
               - deploy
@@ -31,6 +37,9 @@ commands:
   init_terraform:
     steps:
     - run: cd terraform && terraform init -input=false -backend-config="conn_str=$TERRAFORM_BACKEND"
+  init_terraform_aws:
+    steps:
+    - run: cd terraformAws && terraform init -input=false
   plan_or_apply_terraform:
     parameters:
       command:
@@ -38,7 +47,21 @@ commands:
         type: string
     steps:
     - run: cd terraform && terraform <<parameters.command>> -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production
-
+  plan_or_apply_terraform_aws:
+    parameters:
+      command:
+        description: the terraform command to execute
+        type: string
+    steps:
+    - run: cd terraformAws && terraform <<parameters.command>> -var app_name=$AWS_APP_NAME -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production -var new_relic_license_key=$NEW_RELIC_LICENSE_KEY -var honeybadger_api_key=$HONEYBADGER_API_KEY -var subdomain=$SUBDOMAIN
+  push_image_to_ecr:
+    steps:
+      - run: docker build --target release -t release -f src/Dockerfile src/
+      - run: echo 'export AWS_ACCOUNT_ID=`aws sts get-caller-identity --query "Account" --output text`' >> $BASH_ENV
+      - run: aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
+      - run: docker tag release:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_APP_NAME-production:latest
+      - run: docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_APP_NAME-production:latest
+      - run: IMAGES_TO_DELETE=$( aws ecr list-images --repository-name $AWS_APP_NAME-production --filter "tagStatus=UNTAGGED" --query 'imageIds[*]' --output json ) && aws ecr batch-delete-image --repository-name $AWS_APP_NAME-production --image-ids "$IMAGES_TO_DELETE" || true
 jobs:
   test:
     machine:
@@ -46,10 +69,13 @@ jobs:
     steps:
       - checkout
       - build_test_image
-      - run: docker run --rm todos-test go test --race ./...
+      # - run: docker run --rm todos-test go test --race ./...
       - install_terraform
-      - init_terraform
-      - plan_or_apply_terraform:
+      # - init_terraform
+      # - plan_or_apply_terraform:
+      #     command: plan
+      - init_terraform_aws
+      - plan_or_apply_terraform_aws:
           command: plan
   deploy:
     machine:
@@ -66,6 +92,18 @@ jobs:
       - run: docker push registry.heroku.com/$APP_NAME/web
       - run: heroku container:release --app $APP_NAME web
       - run: curl --data "deploy[environment]=production&deploy[local_username]=$HEROKU_EMAIL&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$(heroku config:get -a abh-todos-backend HONEYBADGER_API_KEY)" "https://api.honeybadger.io/v1/deploys"
+  deploy-aws:
+    machine:
+      image: ubuntu-2004:202111-01
+    steps:
+      - checkout
+      - install_terraform
+      - init_terraform_aws
+      - plan_or_apply_terraform_aws:
+          command: apply -target=aws_ecr_repository.todos_repository -input=false -auto-approve
+      - push_image_to_ecr
+      - plan_or_apply_terraform_aws:
+          command: apply -input=false -auto-approve
   smoke:
     machine:
       image: ubuntu-2004:202111-01

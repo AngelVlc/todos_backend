@@ -9,7 +9,7 @@ module "aurora_mysql" {
   tags              = local.tags
   database_name     = local.database_name
 
-  subnets                 = data.aws_subnet_ids.default.ids
+  subnets                 = data.aws_subnets.default.ids
   create_security_group   = true
   allowed_security_groups = [aws_security_group.ecs_security_group.id]
 

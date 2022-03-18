@@ -73,6 +73,18 @@ func (m *MockedConfigurationService) GetNewRelicLicenseKey() string {
 	return args.String(0)
 }
 
+func (m *MockedConfigurationService) GetDns() string {
+	args := m.Called()
+
+	return args.String(0)
+}
+
+func (m *MockedConfigurationService) GetBucketName() string {
+	args := m.Called()
+
+	return args.String(0)
+}
+
 func (m *MockedConfigurationService) InProduction() bool {
 	args := m.Called()
 

@@ -13,5 +13,7 @@ type ConfigurationService interface {
 	GetEnvironment() string
 	GetHoneyBadgerApiKey() string
 	GetNewRelicLicenseKey() string
+	GetDns() string
+	GetBucketName() string
 	InProduction() bool
 }

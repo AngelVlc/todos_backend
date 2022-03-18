@@ -30,7 +30,9 @@ resource "aws_ecs_task_definition" "main" {
         { name : "HONEYBADGER_API_KEY", value : var.honeybadger_api_key },
         { name : "ENVIRONMENT", value : var.environment },
         { name : "CLEARDB_DATABASE_URL", value : "mysql://${module.aurora_mysql.cluster_master_username}:${module.aurora_mysql.cluster_master_password}@${module.aurora_mysql.cluster_endpoint}/${local.database_name}" },
-        { name : "DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL", value : "24h" }
+        { name : "DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL", value : "24h" },
+        { name : "DNS", value : var.dns },
+        { name : "BUCKET_NAME", value: aws_s3_bucket.bucket.id }
       ]
       portMappings = [{
         protocol      = "tcp"
@@ -52,7 +54,7 @@ resource "aws_ecs_task_definition" "main" {
       essential = false
       environment = [
         { name : "CLUSTER_NAME", value : aws_ecs_cluster.main.name },
-        { name : "SUBDOMAIN", value : var.subdomain },
+        { name : "DNS", value : var.dns },
       ]
       logConfiguration = {
         logDriver = "awslogs"
@@ -111,9 +113,9 @@ resource "aws_iam_role" "ecs_task_role" {
 EOF
 }
 
-resource "aws_iam_policy" "ecr" {
-  name        = "${local.name}-task-policy-ecr"
-  description = "Policy that allows access to ECR"
+resource "aws_iam_policy" "ecs" {
+  name        = "${local.name}-task-policy-ecs"
+  description = "Policy for ECS"
 
   policy = <<EOF
 {
@@ -127,7 +129,8 @@ resource "aws_iam_policy" "ecr" {
                "ecs:DescribeTasks",
                "ec2:DescribeNetworkInterfaces",
                "route53:ListHostedZones",
-               "route53:ChangeResourceRecordSets"
+               "route53:ChangeResourceRecordSets",
+               "s3:*"
            ],
            "Resource": "*"
        }
@@ -138,7 +141,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "ecs-task-role-policy-attachment" {
   role       = aws_iam_role.ecs_task_role.name
-  policy_arn = aws_iam_policy.ecr.arn
+  policy_arn = aws_iam_policy.ecs.arn
 }
 
 resource "aws_ecs_service" "main" {
@@ -155,7 +158,7 @@ resource "aws_ecs_service" "main" {
 
   network_configuration {
     security_groups  = [aws_security_group.ecs_security_group.id]
-    subnets          = data.aws_subnet_ids.default.ids
+    subnets          = data.aws_subnets.default.ids
     assign_public_ip = true
   }
 
@@ -173,6 +176,15 @@ resource "aws_security_group" "ecs_security_group" {
     description      = "API port"
     from_port        = local.port
     to_port          = local.port
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  ingress {
+    description      = "API TLS port"
+    from_port        = 443
+    to_port          = 443
     protocol         = "tcp"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]

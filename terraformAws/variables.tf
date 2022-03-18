@@ -22,6 +22,6 @@ variable "honeybadger_api_key" {
   description = "HoneyBadger api key"
 }
 
-variable "subdomain" {
-  description = "Subdomain"
+variable "dns" {
+  description = "Dns"
 }

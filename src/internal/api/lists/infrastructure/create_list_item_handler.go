@@ -3,11 +3,11 @@ package infrastructure
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos/internal/api/lists/application"
-	"github.com/AngelVlc/todos/internal/api/lists/domain"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/application"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
 )
 
 type createListItemRequest struct {

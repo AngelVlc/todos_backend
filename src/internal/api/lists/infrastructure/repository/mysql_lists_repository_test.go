@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package repository
 
@@ -8,7 +9,7 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

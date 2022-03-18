@@ -3,10 +3,10 @@ package infrastructure
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos/internal/api/auth/application"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/application"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
 )
 
 func GetUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {

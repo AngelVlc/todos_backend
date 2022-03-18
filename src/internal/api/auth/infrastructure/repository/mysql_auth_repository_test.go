@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package repository
 
@@ -9,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	sharedDomain "github.com/AngelVlc/todos_backend/internal/api/shared/domain"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

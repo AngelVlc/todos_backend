@@ -11,9 +11,9 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/server"
-	"github.com/AngelVlc/todos/internal/api/wire"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/server"
+	"github.com/AngelVlc/todos_backend/internal/api/wire"
 	"github.com/gorilla/handlers"
 	"github.com/honeybadger-io/honeybadger-go"
 	_ "github.com/newrelic/go-agent/v3/integrations/nrmysql"

@@ -1,23 +1,24 @@
-//+build wireinject
+//go:build wireinject
+// +build wireinject
 
 package wire
 
 import (
 	"os"
 
-	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
-	passgen "github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
-	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
-	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
-	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
-	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
-	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
-	events "github.com/AngelVlc/todos/internal/api/shared/domain/events"
-	authMiddleware "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/auth"
-	fakemdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/fake"
-	logMdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/log"
-	reqadminmdw "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqadmin"
-	reqid "github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/reqid"
+	authDomain "github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	passgen "github.com/AngelVlc/todos_backend/internal/api/auth/domain/passgen"
+	authRepository "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/repository"
+	listsDomain "github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	listsRepository "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/repository"
+	sharedApp "github.com/AngelVlc/todos_backend/internal/api/shared/application"
+	sharedDomain "github.com/AngelVlc/todos_backend/internal/api/shared/domain"
+	events "github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
+	authMiddleware "github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/middlewares/auth"
+	fakemdw "github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/middlewares/fake"
+	logMdw "github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/middlewares/log"
+	reqadminmdw "github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/middlewares/reqadmin"
+	reqid "github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/middlewares/reqid"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 )

@@ -3,7 +3,7 @@ package repository
 import (
 	"context"
 
-	"github.com/AngelVlc/todos/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
 	"github.com/stretchr/testify/mock"
 )
 

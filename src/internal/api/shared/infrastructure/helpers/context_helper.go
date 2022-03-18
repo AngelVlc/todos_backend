@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
 )
 
 func GetUserIDFromContext(r *http.Request) int32 {

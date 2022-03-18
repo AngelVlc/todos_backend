@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
 	"github.com/google/uuid"
 )
 

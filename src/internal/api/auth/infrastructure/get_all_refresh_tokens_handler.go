@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/AngelVlc/todos/internal/api/auth/application"
-	sharedDomain "github.com/AngelVlc/todos/internal/api/shared/domain"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/application"
+	sharedDomain "github.com/AngelVlc/todos_backend/internal/api/shared/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
 )
 
 type RefreshTokenResponse struct {

@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package infrastructure
 
@@ -8,10 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	authRepository "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

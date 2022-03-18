@@ -1,4 +1,5 @@
-//+build e2e
+//go:build e2e
+// +build e2e
 
 package main
 
@@ -12,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
-	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
-	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
+	authDomain "github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	authInfra "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure"
+	listsDomain "github.com/AngelVlc/todos_backend/internal/api/lists/domain"
 	"github.com/stretchr/testify/require"
 )
 

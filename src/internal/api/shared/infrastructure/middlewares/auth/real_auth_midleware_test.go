@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package authmdw
 
@@ -8,8 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
 	"github.com/golang-jwt/jwt"
 
 	"github.com/stretchr/testify/assert"

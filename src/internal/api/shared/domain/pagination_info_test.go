@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package domain_test
 
@@ -7,7 +8,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/shared/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/domain"
 	"github.com/stretchr/testify/require"
 )
 

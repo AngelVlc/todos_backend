@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package infrastructure
 
@@ -11,11 +12,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
-	authRepository "github.com/AngelVlc/todos/internal/api/auth/infrastructure/repository"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/domain/passgen"
+	authRepository "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"

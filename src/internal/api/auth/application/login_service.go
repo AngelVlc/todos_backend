@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 
-	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	sharedApp "github.com/AngelVlc/todos_backend/internal/api/shared/application"
+	appErrors "github.com/AngelVlc/todos_backend/internal/api/shared/domain/errors"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 

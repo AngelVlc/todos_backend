@@ -13,4 +13,5 @@ type ConfigurationService interface {
 	GetEnvironment() string
 	GetHoneyBadgerApiKey() string
 	GetNewRelicLicenseKey() string
+	InProduction() bool
 }

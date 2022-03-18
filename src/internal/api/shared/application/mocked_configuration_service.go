@@ -72,3 +72,9 @@ func (m *MockedConfigurationService) GetNewRelicLicenseKey() string {
 
 	return args.String(0)
 }
+
+func (m *MockedConfigurationService) InProduction() bool {
+	args := m.Called()
+
+	return args.Bool(0)
+}

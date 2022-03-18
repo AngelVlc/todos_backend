@@ -74,6 +74,10 @@ func (c *RealConfigurationService) GetNewRelicLicenseKey() string {
 	return c.getEnvOrFallback("NEW_RELIC_LICENSE_KEY", "apikey")
 }
 
+func (c *RealConfigurationService) InProduction() bool {
+	return c.GetEnvironment() == "production"
+}
+
 func (c *RealConfigurationService) getDurationEnvVar(key string, fallback string) time.Duration {
 	d, _ := time.ParseDuration(c.getEnvOrFallback(key, fallback))
 

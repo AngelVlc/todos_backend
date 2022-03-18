@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"net"
@@ -12,17 +11,12 @@ import (
 	"syscall"
 	"time"
 
-	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
-	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
 	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/server"
 	"github.com/AngelVlc/todos/internal/api/wire"
 	"github.com/gorilla/handlers"
 	"github.com/honeybadger-io/honeybadger-go"
 	_ "github.com/newrelic/go-agent/v3/integrations/nrmysql"
-	"github.com/newrelic/go-agent/v3/newrelic"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 func main() {
@@ -36,16 +30,14 @@ func main() {
 		log.Fatal(err)
 	}
 
-	db, err := initDb(cfg, newRelicApp)
+	db, err := initDb(cfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	newRelicApp.WaitForConnection(5 * time.Second)
-
 	authRepo := wire.InitAuthRepository(db)
 
-	go initDeleteExpiredTokensProcess(cfg, authRepo, *newRelicApp)
+	go initDeleteExpiredTokensProcess(cfg, authRepo, newRelicApp)
 
 	eb := wire.InitEventBus(map[string]events.DataChannelSlice{})
 
@@ -103,57 +95,4 @@ func main() {
 	cancel()
 
 	defer os.Exit(0)
-}
-
-func initDb(c sharedApp.ConfigurationService, newRelicApp *newrelic.Application) (*gorm.DB, error) {
-	sqlDb, err := sql.Open("nrmysql", c.GetDatasource())
-	if err != nil {
-		return nil, err
-	}
-
-	sqlDb.SetConnMaxLifetime(60 * time.Second)
-
-	gormdb, err := gorm.Open(mysql.New(mysql.Config{Conn: sqlDb}), &gorm.Config{})
-	if err != nil {
-		return nil, err
-	}
-
-	return gormdb, nil
-}
-
-func initDeleteExpiredTokensProcess(cfg sharedApp.ConfigurationService, authRepo authDomain.AuthRepository, newRelicApp newrelic.Application) {
-	duration := cfg.GetDeleteExpiredRefreshTokensIntervalDuration()
-	ticker := time.NewTicker(duration)
-	done := make(chan bool)
-	log.Printf("Delete expired token process set every %v", duration)
-
-	go func() {
-		for {
-			select {
-			case <-done:
-				return
-			case t := <-ticker.C:
-				txn := newRelicApp.StartTransaction("deleteExpiredRefreshTokens")
-				ctx := newrelic.NewContext(context.Background(), txn)
-				authRepo.DeleteExpiredRefreshTokens(ctx, t)
-				txn.End()
-			}
-		}
-	}()
-}
-
-func initHoneyBadger(cfg sharedApp.ConfigurationService) {
-	configuration := honeybadger.Configuration{
-		APIKey: cfg.GetHoneyBadgerApiKey(),
-		Env:    cfg.GetEnvironment(),
-		Sync:   true,
-	}
-	honeybadger.Configure(configuration)
-}
-
-func initNewRelic(cfg sharedApp.ConfigurationService) (*newrelic.Application, error) {
-	appName := fmt.Sprintf("todos_backend_%v", cfg.GetEnvironment())
-	licenseKey := cfg.GetNewRelicLicenseKey()
-
-	return newrelic.NewApplication(newrelic.ConfigAppName(appName), newrelic.ConfigLicense(licenseKey), newrelic.ConfigEnabled(true))
 }

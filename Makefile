@@ -9,7 +9,7 @@ up:
 	docker-compose up -d app mysql
 
 run:
-	docker-compose run --rm -p 5001:5001 app go run cmd/api/main.go
+	docker-compose run --rm -p 5001:5001 app go run ./...
 
 console:
 	docker-compose run --rm -p 5001:5001 app bash

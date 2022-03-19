@@ -74,8 +74,8 @@ func (c *RealConfigurationService) GetNewRelicLicenseKey() string {
 	return c.getEnvOrFallback("NEW_RELIC_LICENSE_KEY", "apikey")
 }
 
-func (c *RealConfigurationService) GetDns() string {
-	return c.getEnvOrFallback("DNS", "dns")
+func (c *RealConfigurationService) GetDomain() string {
+	return c.getEnvOrFallback("DOMAIN", "domain")
 }
 
 func (c *RealConfigurationService) GetBucketName() string {

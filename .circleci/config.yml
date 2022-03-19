@@ -53,15 +53,15 @@ commands:
         description: the terraform command to execute
         type: string
     steps:
-    - run: cd terraformAws && terraform <<parameters.command>> -var app_name=$AWS_APP_NAME -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production -var new_relic_license_key=$NEW_RELIC_LICENSE_KEY -var honeybadger_api_key=$HONEYBADGER_API_KEY -var dns=$DNS
+    - run: cd terraformAws && terraform <<parameters.command>> -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production -var new_relic_license_key=$NEW_RELIC_LICENSE_KEY -var honeybadger_api_key=$HONEYBADGER_API_KEY -var domain=$DOMAIN
   push_image_to_ecr:
     steps:
       - run: docker build --target release -t release -f src/Dockerfile src/
       - run: echo 'export AWS_ACCOUNT_ID=`aws sts get-caller-identity --query "Account" --output text`' >> $BASH_ENV
       - run: aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-      - run: docker tag release:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_APP_NAME-production:latest
-      - run: docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$AWS_APP_NAME-production:latest
-      - run: IMAGES_TO_DELETE=$( aws ecr list-images --repository-name $AWS_APP_NAME-production --filter "tagStatus=UNTAGGED" --query 'imageIds[*]' --output json ) && aws ecr batch-delete-image --repository-name $AWS_APP_NAME-production --image-ids "$IMAGES_TO_DELETE" || true
+      - run: docker tag release:latest $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/todosbackend-production:latest
+      - run: docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/todosbackend-production:latest
+      - run: IMAGES_TO_DELETE=$( aws ecr list-images --repository-name todosbackend-production --filter "tagStatus=UNTAGGED" --query 'imageIds[*]' --output json ) && aws ecr batch-delete-image --repository-name todosbackend-production --image-ids "$IMAGES_TO_DELETE" || true
 jobs:
   test:
     machine:
@@ -69,11 +69,11 @@ jobs:
     steps:
       - checkout
       - build_test_image
-      # - run: docker run --rm todos-test go test --race ./...
+      - run: docker run --rm todos-test go test --race ./...
       - install_terraform
-      # - init_terraform
-      # - plan_or_apply_terraform:
-      #     command: plan
+      - init_terraform
+      - plan_or_apply_terraform:
+          command: plan
       - init_terraform_aws
       - plan_or_apply_terraform_aws:
           command: plan

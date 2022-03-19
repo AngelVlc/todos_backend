@@ -1,7 +1,3 @@
-variable "app_name" {
-  description = "Name of the Heroku app to be provisioned"
-}
-
 variable "jwt_secret" {
   description = "JWT secret"
 }
@@ -22,6 +18,6 @@ variable "honeybadger_api_key" {
   description = "HoneyBadger api key"
 }
 
-variable "dns" {
-  description = "Dns"
+variable "domain" {
+  description = "Dns domain"
 }

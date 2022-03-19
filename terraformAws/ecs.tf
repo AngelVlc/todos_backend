@@ -31,7 +31,7 @@ resource "aws_ecs_task_definition" "main" {
         { name : "ENVIRONMENT", value : var.environment },
         { name : "CLEARDB_DATABASE_URL", value : "mysql://${module.aurora_mysql.cluster_master_username}:${module.aurora_mysql.cluster_master_password}@${module.aurora_mysql.cluster_endpoint}/${local.database_name}" },
         { name : "DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL", value : "24h" },
-        { name : "DNS", value : var.dns },
+        { name : "DOMAIN", value : var.domain },
         { name : "BUCKET_NAME", value: aws_s3_bucket.bucket.id }
       ]
       portMappings = [{
@@ -54,7 +54,7 @@ resource "aws_ecs_task_definition" "main" {
       essential = false
       environment = [
         { name : "CLUSTER_NAME", value : aws_ecs_cluster.main.name },
-        { name : "DNS", value : var.dns },
+        { name : "DOMAIN", value : var.domain },
       ]
       logConfiguration = {
         logDriver = "awslogs"

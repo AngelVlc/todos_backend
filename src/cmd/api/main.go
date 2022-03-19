@@ -77,7 +77,7 @@ func main() {
 
 		certManager = &autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(cfg.GetDns()),
+			HostPolicy: autocert.HostWhitelist(cfg.GetDomain()),
 			Cache:      s3Cache,
 		}
 

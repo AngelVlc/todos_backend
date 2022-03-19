@@ -73,7 +73,7 @@ func (m *MockedConfigurationService) GetNewRelicLicenseKey() string {
 	return args.String(0)
 }
 
-func (m *MockedConfigurationService) GetDns() string {
+func (m *MockedConfigurationService) GetDomain() string {
 	args := m.Called()
 
 	return args.String(0)

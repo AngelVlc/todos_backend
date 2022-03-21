@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package reqadminmdw
 
@@ -8,7 +9,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
 	"github.com/stretchr/testify/assert"
 )
 

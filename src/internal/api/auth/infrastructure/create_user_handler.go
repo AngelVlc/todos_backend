@@ -3,11 +3,11 @@ package infrastructure
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos/internal/api/auth/application"
-	"github.com/AngelVlc/todos/internal/api/auth/domain"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/application"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	appErrors "github.com/AngelVlc/todos_backend/internal/api/shared/domain/errors"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
 )
 
 type createUserRequest struct {

@@ -3,8 +3,8 @@ package application
 import (
 	"context"
 
-	"github.com/AngelVlc/todos/internal/api/lists/domain"
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	appErrors "github.com/AngelVlc/todos_backend/internal/api/shared/domain/errors"
 )
 
 type CreateListItemService struct {

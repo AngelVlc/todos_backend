@@ -74,6 +74,14 @@ func (c *RealConfigurationService) GetNewRelicLicenseKey() string {
 	return c.getEnvOrFallback("NEW_RELIC_LICENSE_KEY", "apikey")
 }
 
+func (c *RealConfigurationService) GetDomain() string {
+	return c.getEnvOrFallback("DOMAIN", "domain")
+}
+
+func (c *RealConfigurationService) GetBucketName() string {
+	return c.getEnvOrFallback("BUCKET_NAME", "todos-backend")
+}
+
 func (c *RealConfigurationService) InProduction() bool {
 	return c.GetEnvironment() == "production"
 }

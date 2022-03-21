@@ -1,4 +1,5 @@
-//+build !e2e
+//go:build !e2e
+// +build !e2e
 
 package infrastructure
 
@@ -6,8 +7,8 @@ import (
 	"context"
 	"testing"
 
-	listsRepository "github.com/AngelVlc/todos/internal/api/lists/infrastructure/repository"
-	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
+	listsRepository "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
@@ -11,12 +12,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/server"
-	"github.com/AngelVlc/todos/internal/api/wire"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/server"
+	"github.com/AngelVlc/todos_backend/internal/api/wire"
+	"github.com/AngelVlc/todos_backend/pkg/autocerts3cache"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gorilla/handlers"
 	"github.com/honeybadger-io/honeybadger-go"
 	_ "github.com/newrelic/go-agent/v3/integrations/nrmysql"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
@@ -43,10 +47,6 @@ func main() {
 
 	server := server.NewServer(db, eb, newRelicApp)
 
-	port := cfg.GetPort()
-
-	address := fmt.Sprintf(":%v", port)
-
 	validCorsHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	validCorsOrigins := handlers.AllowedOrigins(cfg.GetCorsAllowedOrigins())
 	validCorsMethods := handlers.AllowedMethods([]string{"GET", "DELETE", "POST", "PUT", "OPTIONS"})
@@ -55,18 +55,52 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	httpServer := &http.Server{
-		Addr:         address,
+		Addr:         fmt.Sprintf(":%v", cfg.GetPort()),
 		Handler:      handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods, allowCredentials)(server),
 		WriteTimeout: 5 * time.Second,
 		ReadTimeout:  5 * time.Second,
+		IdleTimeout:  120 * time.Second,
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 	}
 
-	go func() {
-		log.Printf("Listening on port %v ...\n", port)
+	var certManager *autocert.Manager
 
-		if err = http.ListenAndServe(address, handlers.CORS(validCorsHeaders, validCorsOrigins, validCorsMethods, allowCredentials)(server)); err != nil {
-			log.Fatalf("could not listen on port %v %v", port, err)
+	if cfg.InProduction() {
+		ctx := context.TODO()
+		awsCfg, err := config.LoadDefaultConfig(ctx)
+		if err != nil {
+			log.Fatalf("error loading the default config: %v", err)
+		}
+
+		awsS3Api := autocerts3cache.NewAwsS3Api(awsCfg)
+		s3Cache := autocerts3cache.NewS3Cache(cfg.GetBucketName(), awsS3Api)
+
+		certManager = &autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			HostPolicy: autocert.HostWhitelist(cfg.GetDomain()),
+			Cache:      s3Cache,
+		}
+
+		tlsConfig := &tls.Config{
+			GetCertificate: certManager.GetCertificate,
+		}
+		tlsConfig.NextProtos = append([]string{"h2", "http/1.1", "acme-tls/1"}, tlsConfig.NextProtos...)
+
+		httpServer.TLSConfig = tlsConfig
+		httpServer.Addr = ":443"
+	}
+
+	go func() {
+		log.Printf("Starting listener on port %v\n", httpServer.Addr)
+
+		if cfg.InProduction() {
+			err = httpServer.ListenAndServeTLS("", "")
+		} else {
+			err = httpServer.ListenAndServe()
+		}
+
+		if err != nil {
+			log.Fatalf("could not listen on port %v %v", httpServer.Addr, err)
 		}
 	}()
 

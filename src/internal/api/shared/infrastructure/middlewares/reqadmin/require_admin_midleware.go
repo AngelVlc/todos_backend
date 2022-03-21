@@ -3,8 +3,8 @@ package reqadminmdw
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/consts"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/helpers"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
 )
 
 type RequireAdminMiddleware struct {

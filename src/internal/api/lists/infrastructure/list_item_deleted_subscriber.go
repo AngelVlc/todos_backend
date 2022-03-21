@@ -4,8 +4,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/AngelVlc/todos/internal/api/lists/domain"
-	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 

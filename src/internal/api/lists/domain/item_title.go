@@ -1,7 +1,7 @@
 package domain
 
 import (
-	appErrors "github.com/AngelVlc/todos/internal/api/shared/domain/errors"
+	appErrors "github.com/AngelVlc/todos_backend/internal/api/shared/domain/errors"
 )
 
 type ItemTitle string

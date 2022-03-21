@@ -4,16 +4,16 @@ import (
 	"net/http"
 	"net/http/pprof"
 
-	authDomain "github.com/AngelVlc/todos/internal/api/auth/domain"
-	"github.com/AngelVlc/todos/internal/api/auth/domain/passgen"
-	authInfra "github.com/AngelVlc/todos/internal/api/auth/infrastructure"
-	listsDomain "github.com/AngelVlc/todos/internal/api/lists/domain"
-	listsInfra "github.com/AngelVlc/todos/internal/api/lists/infrastructure"
-	sharedApp "github.com/AngelVlc/todos/internal/api/shared/application"
-	"github.com/AngelVlc/todos/internal/api/shared/domain/events"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos/internal/api/shared/infrastructure/middlewares/recover"
-	"github.com/AngelVlc/todos/internal/api/wire"
+	authDomain "github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/domain/passgen"
+	authInfra "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure"
+	listsDomain "github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	listsInfra "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
+	sharedApp "github.com/AngelVlc/todos_backend/internal/api/shared/application"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/middlewares/recover"
+	"github.com/AngelVlc/todos_backend/internal/api/wire"
 	"github.com/gorilla/mux"
 	"github.com/newrelic/go-agent/v3/integrations/nrgorilla"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -57,6 +57,8 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 
 	authMdw := wire.InitAuthMiddleware(db)
 	requireAdminMdw := wire.InitRequireAdminMiddleware()
+
+	router.HandleFunc("/", rootHandler).Methods(http.MethodGet)
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
 	listsSubRouter.Handle("", s.getHandler(listsInfra.GetAllListsHandler)).Methods(http.MethodGet)
@@ -120,4 +122,8 @@ func (s *server) startSubscribers() {
 		subscriber.Subscribe()
 		go subscriber.Start()
 	}
+}
+
+func rootHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("OK"))
 }

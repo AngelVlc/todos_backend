@@ -16,8 +16,14 @@ workflows:
               - test
             filters:
               branches:
-                only: aws
+                only: master
         - smoke:
+            requires:
+              - deploy
+            filters:
+              branches:
+                only: master
+        - deploy-aws:
             requires:
               - deploy
             filters:
@@ -111,3 +117,10 @@ jobs:
       - checkout
       - build_test_image
       - run: HEROKU_URL=`heroku apps:info -a $APP_NAME -s | sed -n 's/.*web_url=//p' | sed 's/\/\([^\/]*\)$/\1/'` && docker run --rm -e BASE_URL=$HEROKU_URL -e ADMIN_PASSWORD=$ADMIN_PASSWORD todos-test go test --tags=e2e ./cmd/api
+  smoke-aws:
+    machine:
+      image: ubuntu-2004:202111-01
+    steps:
+      - checkout
+      - build_test_image
+      - run: docker run --rm -e BASE_URL=https://$DOMAIN -e ADMIN_PASSWORD=$ADMIN_PASSWORD todos-test go test --tags=e2e ./cmd/api

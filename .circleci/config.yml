@@ -23,7 +23,7 @@ workflows:
             filters:
               branches:
                 only: master
-        - deploy-aws:
+        - smoke-aws:
             requires:
               - deploy
             filters:
@@ -52,7 +52,7 @@ commands:
         description: the terraform command to execute
         type: string
     steps:
-    - run: cd terraform && terraform <<parameters.command>> -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=production
+    - run: cd terraform && terraform <<parameters.command>> -var app_name=$APP_NAME -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var environment=heroku
   plan_or_apply_terraform_aws:
     parameters:
       command:
@@ -97,7 +97,7 @@ jobs:
       - run: docker tag todos-release registry.heroku.com/$APP_NAME/web
       - run: docker push registry.heroku.com/$APP_NAME/web
       - run: heroku container:release --app $APP_NAME web
-      - run: curl --data "deploy[environment]=production&deploy[local_username]=$HEROKU_EMAIL&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$(heroku config:get -a abh-todos-backend HONEYBADGER_API_KEY)" "https://api.honeybadger.io/v1/deploys"
+      - run: curl --data "deploy[environment]=heroku&deploy[local_username]=$HEROKU_EMAIL&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$HONEYBADGER_API_KEY" "https://api.honeybadger.io/v1/deploys"
   deploy-aws:
     machine:
       image: ubuntu-2004:202111-01

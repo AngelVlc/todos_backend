@@ -1,10 +1,11 @@
-package infrastructure
+package handlers
 
 import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/internal/api/lists/application"
 	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
@@ -36,7 +37,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	res := ListResponse{
+	res := infrastructure.ListResponse{
 		ID:         list.ID,
 		Name:       string(list.Name),
 		ItemsCount: list.ItemsCount,

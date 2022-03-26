@@ -9,6 +9,7 @@ import (
 	authHandlers "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/handlers"
 	listsDomain "github.com/AngelVlc/todos_backend/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
+	listsHandlers "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/handlers"
 	sharedApp "github.com/AngelVlc/todos_backend/internal/api/shared/application"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
@@ -61,16 +62,16 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	router.HandleFunc("/", rootHandler).Methods(http.MethodGet)
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
-	listsSubRouter.Handle("", s.getHandler(listsInfra.GetAllListsHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("", s.getHandler(listsInfra.CreateListHandler)).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsInfra.GetListHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsInfra.DeleteListHandler)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsInfra.UpdateListHandler)).Methods(http.MethodPut)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsInfra.GetAllListItemsHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsInfra.CreateListItemHandler)).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsInfra.GetListItemHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsInfra.DeleteListItemHandler)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsInfra.UpdateListItemHandler)).Methods(http.MethodPut)
+	listsSubRouter.Handle("", s.getHandler(listsHandlers.GetAllListsHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler)).Methods(http.MethodPost)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetListHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListHandler)).Methods(http.MethodDelete)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler)).Methods(http.MethodPut)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.GetAllListItemsHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.CreateListItemHandler)).Methods(http.MethodPost)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.GetListItemHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListItemHandler)).Methods(http.MethodDelete)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListItemHandler)).Methods(http.MethodPut)
 	listsSubRouter.Use(authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()

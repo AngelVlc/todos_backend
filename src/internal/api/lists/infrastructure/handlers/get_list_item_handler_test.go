@@ -1,7 +1,7 @@
 //go:build !e2e
 // +build !e2e
 
-package infrastructure
+package handlers
 
 import (
 	"context"
@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
 	listsRepository "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
@@ -51,7 +52,7 @@ func TestGetListItemHandler(t *testing.T) {
 		result := GetListItemHandler(httptest.NewRecorder(), request(), h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		listRes, isOk := okRes.Content.(*ListItemResponse)
+		listRes, isOk := okRes.Content.(*infrastructure.ListItemResponse)
 		require.Equal(t, true, isOk, "should be a list item response")
 
 		assert.Equal(t, int32(111), listRes.ID)

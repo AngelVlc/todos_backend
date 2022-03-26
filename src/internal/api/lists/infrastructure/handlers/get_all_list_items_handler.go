@@ -1,9 +1,10 @@
-package infrastructure
+package handlers
 
 import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/internal/api/lists/application"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
@@ -19,10 +20,10 @@ func GetAllListItemsHandler(w http.ResponseWriter, r *http.Request, h handler.Ha
 		return results.ErrorResult{Err: err}
 	}
 
-	res := make([]ListItemResponse, len(foundLists))
+	res := make([]infrastructure.ListItemResponse, len(foundLists))
 
 	for i, v := range foundLists {
-		res[i] = ListItemResponse{
+		res[i] = infrastructure.ListItemResponse{
 			ID:          v.ID,
 			Title:       string(v.Title),
 			Description: v.Description,

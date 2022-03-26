@@ -1,7 +1,7 @@
 //go:build !e2e
 // +build !e2e
 
-package infrastructure
+package handlers
 
 import (
 	"bytes"
@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
 	listsRepository "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
@@ -118,7 +119,7 @@ func TestCreateListItemHandler(t *testing.T) {
 		mockedEventBus.Wg.Wait()
 
 		okRes := results.CheckOkResult(t, result, http.StatusCreated)
-		res, isOk := okRes.Content.(ListItemResponse)
+		res, isOk := okRes.Content.(infrastructure.ListItemResponse)
 		require.Equal(t, true, isOk, "should be a ListItemResponse")
 		assert.Equal(t, int32(1), res.ID)
 
@@ -154,7 +155,7 @@ func TestCreateListItemHandler(t *testing.T) {
 		mockedEventBus.Wg.Wait()
 
 		okRes := results.CheckOkResult(t, result, http.StatusCreated)
-		res, isOk := okRes.Content.(ListItemResponse)
+		res, isOk := okRes.Content.(infrastructure.ListItemResponse)
 		require.Equal(t, true, isOk, "should be a ListItemResponse")
 		assert.Equal(t, int32(1), res.ID)
 

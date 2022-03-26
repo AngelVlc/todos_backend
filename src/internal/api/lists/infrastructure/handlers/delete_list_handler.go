@@ -1,4 +1,4 @@
-package infrastructure
+package handlers
 
 import (
 	"net/http"
@@ -9,21 +9,15 @@ import (
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
 )
 
-func GetListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+func DeleteListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	listID := helpers.ParseInt32UrlVar(r, "id")
 	userID := helpers.GetUserIDFromContext(r)
 
-	srv := application.NewGetListService(h.ListsRepository)
-	foundList, err := srv.GetList(r.Context(), listID, userID)
+	srv := application.NewDeleteListService(h.ListsRepository)
+	err := srv.DeleteList(r.Context(), listID, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	res := ListResponse{
-		ID:         foundList.ID,
-		Name:       string(foundList.Name),
-		ItemsCount: foundList.ItemsCount,
-	}
-
-	return results.OkResult{Content: &res, StatusCode: http.StatusOK}
+	return results.OkResult{Content: nil, StatusCode: http.StatusNoContent}
 }

@@ -1,10 +1,11 @@
-package infrastructure
+package handlers
 
 import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/internal/api/lists/application"
 	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
@@ -38,7 +39,7 @@ func CreateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 
 	go h.EventBus.Publish("listItemCreated", listID)
 
-	res := ListItemResponse{
+	res := infrastructure.ListItemResponse{
 		ID:          newItem.ID,
 		Title:       string(newItem.Title),
 		Description: newItem.Description,

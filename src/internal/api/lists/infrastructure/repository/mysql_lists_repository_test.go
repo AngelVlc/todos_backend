@@ -10,11 +10,10 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 var (
@@ -23,16 +22,7 @@ var (
 )
 
 func TestMySqlListsRepositoryExistsList(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	name := domain.ListName("list name")
@@ -51,7 +41,7 @@ func TestMySqlListsRepositoryExistsList(t *testing.T) {
 		assert.False(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return true if the list exists", func(t *testing.T) {
@@ -62,21 +52,12 @@ func TestMySqlListsRepositoryExistsList(t *testing.T) {
 		assert.True(t, res)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryFindListByID(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	listID := int32(11)
@@ -95,7 +76,7 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return the user if it exists", func(t *testing.T) {
@@ -110,21 +91,12 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 		assert.Equal(t, int32(3), res.ItemsCount)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	userID := int32(1)
 
 	repo := NewMySqlListsRepository(db)
@@ -142,7 +114,7 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return the user lists", func(t *testing.T) {
@@ -162,22 +134,13 @@ func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 		assert.Equal(t, userID, res[1].UserID)
 		assert.Equal(t, int32(4), res[1].ItemsCount)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 }
 
 func TestMySqlListsRepositoryCreateList(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	list := domain.List{UserID: 1, Name: "list1"}
 
 	repo := NewMySqlListsRepository(db)
@@ -196,7 +159,7 @@ func TestMySqlListsRepositoryCreateList(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should create the new list", func(t *testing.T) {
@@ -208,21 +171,12 @@ func TestMySqlListsRepositoryCreateList(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryDeleteList(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	userID := int32(1)
 	listID := int32(11)
 
@@ -242,7 +196,7 @@ func TestMySqlListsRepositoryDeleteList(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should delete the user list", func(t *testing.T) {
@@ -254,21 +208,12 @@ func TestMySqlListsRepositoryDeleteList(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryUpdate(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	list := domain.List{ID: 11, UserID: 1, Name: "list1"}
@@ -287,7 +232,7 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should update the list", func(t *testing.T) {
@@ -299,21 +244,12 @@ func TestMySqlListsRepositoryUpdate(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
@@ -330,7 +266,7 @@ func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should increment the items counter", func(t *testing.T) {
@@ -342,21 +278,12 @@ func TestMySqlListsRepositoryIncrementListCounter(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
@@ -373,7 +300,7 @@ func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should increment the items counter", func(t *testing.T) {
@@ -385,21 +312,12 @@ func TestMySqlListsRepositoryDecrementListCounter(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	userID := int32(1)
@@ -419,7 +337,7 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should get an item", func(t *testing.T) {
@@ -432,21 +350,12 @@ func TestMySqlListsRepositoryFindListItemByID(t *testing.T) {
 		assert.Equal(t, "description", res.Description)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	userID := int32(1)
@@ -465,7 +374,7 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should get all the items", func(t *testing.T) {
@@ -483,21 +392,12 @@ func TestMySqlListsRepositoryGetAllItems(t *testing.T) {
 		assert.Equal(t, int32(1), res[1].Position)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryCreateListItem(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	item := domain.ListItem{ListID: 11, UserID: 1, Title: "title", Description: "desc"}
@@ -516,7 +416,7 @@ func TestMySqlListsRepositoryCreateListItem(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should create the new list item", func(t *testing.T) {
@@ -528,21 +428,12 @@ func TestMySqlListsRepositoryCreateListItem(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryDeleteListItem(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	userID := int32(1)
@@ -563,7 +454,7 @@ func TestMySqlListsRepositoryDeleteListItem(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should delete the item", func(t *testing.T) {
@@ -575,21 +466,12 @@ func TestMySqlListsRepositoryDeleteListItem(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	item := domain.ListItem{ID: 111, ListID: 11, UserID: 1, Title: "title", Description: "desc"}
@@ -608,7 +490,7 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should update the list", func(t *testing.T) {
@@ -623,21 +505,12 @@ func TestMySqlListsRepositoryUpdateListItem(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestBulkUpdateListItems(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	item1 := domain.ListItem{ID: 1, Position: 0}
@@ -659,7 +532,7 @@ func TestBulkUpdateListItems(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should update the list items position", func(t *testing.T) {
@@ -670,21 +543,12 @@ func TestBulkUpdateListItems(t *testing.T) {
 		err := repo.BulkUpdateListItems(context.Background(), items)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestGetListItemsMaxPosition(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
 	userID := int32(1)
@@ -703,7 +567,7 @@ func TestGetListItemsMaxPosition(t *testing.T) {
 		assert.Equal(t, int32(-1), res)
 		assert.EqualError(t, err, "some error; some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should get the max position", func(t *testing.T) {
@@ -715,12 +579,6 @@ func TestGetListItemsMaxPosition(t *testing.T) {
 		require.Equal(t, int32(3), res)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
-}
-
-func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
 }

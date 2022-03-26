@@ -31,7 +31,7 @@ workflows:
                 only: master
         - smoke-aws:
             requires:
-              - deploy
+              - deploy-aws
             filters:
               branches:
                 only: master

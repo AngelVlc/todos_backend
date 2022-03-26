@@ -1,4 +1,4 @@
-package infrastructure
+package handlers
 
 const (
 	tokenCookieName        = "token"

@@ -1,7 +1,7 @@
 //go:build !e2e
 // +build !e2e
 
-package infrastructure
+package handlers
 
 import (
 	"fmt"
@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure"
 	authRepository "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
@@ -46,7 +47,7 @@ func TestGetUserHandler(t *testing.T) {
 		result := GetUserHandler(httptest.NewRecorder(), request(), h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		userRes, isOk := okRes.Content.(*UserResponse)
+		userRes, isOk := okRes.Content.(*infrastructure.UserResponse)
 		require.Equal(t, true, isOk, "should be a user response")
 
 		assert.Equal(t, int32(2), userRes.ID)

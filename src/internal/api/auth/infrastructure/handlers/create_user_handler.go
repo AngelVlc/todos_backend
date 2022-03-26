@@ -1,10 +1,11 @@
-package infrastructure
+package handlers
 
 import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/internal/api/auth/application"
 	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure"
 	appErrors "github.com/AngelVlc/todos_backend/internal/api/shared/domain/errors"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
@@ -48,7 +49,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	res := UserResponse{
+	res := infrastructure.UserResponse{
 		ID:      newUser.ID,
 		Name:    string(newUser.Name),
 		IsAdmin: newUser.IsAdmin,

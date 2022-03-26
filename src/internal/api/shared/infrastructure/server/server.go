@@ -6,9 +6,10 @@ import (
 
 	authDomain "github.com/AngelVlc/todos_backend/internal/api/auth/domain"
 	"github.com/AngelVlc/todos_backend/internal/api/auth/domain/passgen"
-	authInfra "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure"
+	authHandlers "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/handlers"
 	listsDomain "github.com/AngelVlc/todos_backend/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
+	listsHandlers "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/handlers"
 	sharedApp "github.com/AngelVlc/todos_backend/internal/api/shared/application"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
@@ -61,37 +62,37 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	router.HandleFunc("/", rootHandler).Methods(http.MethodGet)
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
-	listsSubRouter.Handle("", s.getHandler(listsInfra.GetAllListsHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("", s.getHandler(listsInfra.CreateListHandler)).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsInfra.GetListHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsInfra.DeleteListHandler)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsInfra.UpdateListHandler)).Methods(http.MethodPut)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsInfra.GetAllListItemsHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsInfra.CreateListItemHandler)).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsInfra.GetListItemHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsInfra.DeleteListItemHandler)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsInfra.UpdateListItemHandler)).Methods(http.MethodPut)
+	listsSubRouter.Handle("", s.getHandler(listsHandlers.GetAllListsHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler)).Methods(http.MethodPost)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetListHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListHandler)).Methods(http.MethodDelete)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler)).Methods(http.MethodPut)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.GetAllListItemsHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.CreateListItemHandler)).Methods(http.MethodPost)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.GetListItemHandler)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListItemHandler)).Methods(http.MethodDelete)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListItemHandler)).Methods(http.MethodPut)
 	listsSubRouter.Use(authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
-	usersSubRouter.Handle("", s.getHandler(authInfra.CreateUserHandler)).Methods(http.MethodPost)
-	usersSubRouter.Handle("", s.getHandler(authInfra.GetAllUsersHandler)).Methods(http.MethodGet)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authInfra.GetUserHandler)).Methods(http.MethodGet)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authInfra.DeleteUserHandler)).Methods(http.MethodDelete)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authInfra.UpdateUserHandler)).Methods(http.MethodPut)
+	usersSubRouter.Handle("", s.getHandler(authHandlers.CreateUserHandler)).Methods(http.MethodPost)
+	usersSubRouter.Handle("", s.getHandler(authHandlers.GetAllUsersHandler)).Methods(http.MethodGet)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.GetUserHandler)).Methods(http.MethodGet)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.DeleteUserHandler)).Methods(http.MethodDelete)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.UpdateUserHandler)).Methods(http.MethodPut)
 	usersSubRouter.Use(authMdw.Middleware)
 	usersSubRouter.Use(requireAdminMdw.Middleware)
 
 	refreshTokensSubRouter := router.PathPrefix("/refreshtokens").Subrouter()
-	refreshTokensSubRouter.Handle("", s.getHandler(authInfra.GetAllRefreshTokensHandler)).Methods(http.MethodGet)
-	refreshTokensSubRouter.Handle("", s.getHandler(authInfra.DeleteRefreshTokensHandler)).Methods(http.MethodDelete)
+	refreshTokensSubRouter.Handle("", s.getHandler(authHandlers.GetAllRefreshTokensHandler)).Methods(http.MethodGet)
+	refreshTokensSubRouter.Handle("", s.getHandler(authHandlers.DeleteRefreshTokensHandler)).Methods(http.MethodDelete)
 	refreshTokensSubRouter.Use(authMdw.Middleware)
 	refreshTokensSubRouter.Use(requireAdminMdw.Middleware)
 
 	authSubRouter := router.PathPrefix("/auth").Subrouter()
-	authSubRouter.Handle("/login", s.getHandler(authInfra.LoginHandler)).Methods(http.MethodPost)
-	authSubRouter.Handle("/refreshtoken", s.getHandler(authInfra.RefreshTokenHandler)).Methods(http.MethodPost)
-	authSubRouter.Handle("/createadmin", s.getHandler(authInfra.CreateUserHandler)).Methods(http.MethodPost)
+	authSubRouter.Handle("/login", s.getHandler(authHandlers.LoginHandler)).Methods(http.MethodPost)
+	authSubRouter.Handle("/refreshtoken", s.getHandler(authHandlers.RefreshTokenHandler)).Methods(http.MethodPost)
+	authSubRouter.Handle("/createadmin", s.getHandler(authHandlers.CreateUserHandler)).Methods(http.MethodPost)
 
 	pprofSubRouter := router.PathPrefix("/debug/pprof").Subrouter()
 	pprofSubRouter.Handle("/heap", pprof.Handler("heap"))

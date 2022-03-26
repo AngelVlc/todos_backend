@@ -12,11 +12,10 @@ import (
 
 	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
 	sharedDomain "github.com/AngelVlc/todos_backend/internal/api/shared/domain"
+	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 )
 
 var (
@@ -25,16 +24,7 @@ var (
 )
 
 func TestMySqlAuthRepositoryExistsUser(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	userName := domain.UserName("userName")
@@ -52,7 +42,7 @@ func TestMySqlAuthRepositoryExistsUser(t *testing.T) {
 		assert.False(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return true if the user exists", func(t *testing.T) {
@@ -63,21 +53,12 @@ func TestMySqlAuthRepositoryExistsUser(t *testing.T) {
 		assert.True(t, res)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	userID := int32(1)
@@ -95,7 +76,7 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return the user if it exists", func(t *testing.T) {
@@ -109,21 +90,12 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 		assert.Equal(t, userID, res.ID)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	userName := domain.UserName("userName")
@@ -141,7 +113,7 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 		assert.Nil(t, u)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return the user if it exists", func(t *testing.T) {
@@ -154,21 +126,12 @@ func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
 		assert.True(t, u.IsAdmin)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	expectedGetUsersQuery := func() *sqlmock.ExpectedQuery {
@@ -183,7 +146,7 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return the users", func(t *testing.T) {
@@ -202,21 +165,12 @@ func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 		assert.Equal(t, "pass2", res[1].PasswordHash)
 		assert.False(t, res[1].IsAdmin)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlAuthRepository(db)
@@ -235,7 +189,7 @@ func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should create the new user", func(t *testing.T) {
@@ -249,21 +203,12 @@ func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	expectedDeleteExec := func() *sqlmock.ExpectedExec {
@@ -281,7 +226,7 @@ func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 		err := repo.DeleteUser(context.Background(), userID)
 
 		assert.EqualError(t, err, "some error")
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should delete the user", func(t *testing.T) {
@@ -292,21 +237,12 @@ func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 		err := repo.DeleteUser(context.Background(), userID)
 
 		assert.Nil(t, err)
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlAuthRepository(db)
@@ -324,7 +260,7 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 		err := repo.UpdateUser(context.Background(), &user)
 
 		assert.EqualError(t, err, "some error")
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should update the user if the update doesn't fail", func(t *testing.T) {
@@ -338,21 +274,12 @@ func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 		err := repo.UpdateUser(context.Background(), &user)
 
 		assert.Nil(t, err)
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	rt := "rt"
@@ -371,7 +298,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 		assert.Nil(t, res)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return an error if the query fails", func(t *testing.T) {
@@ -382,7 +309,7 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return the refresh token if it exists", func(t *testing.T) {
@@ -395,25 +322,16 @@ func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 		assert.Equal(t, int32(111), res.ID)
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryCreateRefreshTokenIfNotExist(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlAuthRepository(db)
 
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
 	rt := domain.RefreshToken{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
-
-	repo := NewMySqlAuthRepository(db)
 
 	expectedInsertExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `id`=`id`")).
@@ -429,7 +347,7 @@ func TestMySqlAuthRepositoryCreateRefreshTokenIfNotExist(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should create the new refresh token", func(t *testing.T) {
@@ -443,21 +361,12 @@ func TestMySqlAuthRepositoryCreateRefreshTokenIfNotExist(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	expectedDelete := func(expTime time.Time) *sqlmock.ExpectedExec {
@@ -475,7 +384,7 @@ func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
 
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should create the new refresh token", func(t *testing.T) {
@@ -489,24 +398,15 @@ func TestMySqlAuthDeleteExpiredRefreshTokens(t *testing.T) {
 
 		assert.Nil(t, err)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
 func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlAuthRepository(db)
 
 	paginationInfo := sharedDomain.NewPaginationInfo(10, 10, "expirationDate", sharedDomain.OrderAsc)
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
-	repo := NewMySqlAuthRepository(db)
 
 	expectedGetQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery("SELECT id,userId,expirationDate FROM `refresh_tokens` ORDER BY expirationDate asc LIMIT 10 OFFSET 10")
@@ -520,7 +420,7 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 		assert.Nil(t, res)
 		assert.EqualError(t, err, "some error")
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should return the users", func(t *testing.T) {
@@ -536,27 +436,12 @@ func TestMySqlAuthRepositoryGetAllRefreshTokens(t *testing.T) {
 		assert.Equal(t, int32(1), res[0].UserID)
 		assert.Equal(t, now, res[0].ExpirationDate)
 
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }
 
-func checkMockExpectations(t *testing.T, mock sqlmock.Sqlmock) {
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
-
 func TestMySqlAuthRepositoryDeleteRefreshTokensByID(t *testing.T) {
-	mockDb, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-	}
-
-	db, err := gorm.Open(mysql.New(mysql.Config{Conn: mockDb, SkipInitializeWithVersion: true}), &gorm.Config{})
-	if err != nil {
-		t.Fatalf("an error '%s' was not expected when opening a gorm database connection", err)
-	}
-
+	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	expectedDeleteExec := func() *sqlmock.ExpectedExec {
@@ -574,7 +459,7 @@ func TestMySqlAuthRepositoryDeleteRefreshTokensByID(t *testing.T) {
 		err := repo.DeleteRefreshTokensByID(context.Background(), ids)
 
 		assert.EqualError(t, err, "some error")
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 
 	t.Run("should delete the refresh tokens", func(t *testing.T) {
@@ -585,6 +470,6 @@ func TestMySqlAuthRepositoryDeleteRefreshTokensByID(t *testing.T) {
 		err := repo.DeleteRefreshTokensByID(context.Background(), ids)
 
 		assert.Nil(t, err)
-		checkMockExpectations(t, mock)
+		helpers.CheckSqlMockExpectations(mock, t)
 	})
 }

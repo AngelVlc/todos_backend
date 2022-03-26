@@ -9,6 +9,8 @@ import (
 	domain2 "github.com/AngelVlc/todos_backend/internal/api/auth/domain"
 	"github.com/AngelVlc/todos_backend/internal/api/auth/domain/passgen"
 	"github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/repository"
+	domain4 "github.com/AngelVlc/todos_backend/internal/api/config/domain"
+	repository3 "github.com/AngelVlc/todos_backend/internal/api/config/infrastructure/repository"
 	domain3 "github.com/AngelVlc/todos_backend/internal/api/lists/domain"
 	repository2 "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos_backend/internal/api/shared/application"
@@ -93,6 +95,16 @@ func initMySqlListsRepository(db *gorm.DB) domain3.ListsRepository {
 	return mySqlListsRepository
 }
 
+func initMockedConfigRepository() domain4.ConfigRepository {
+	mockedConfigRepository := repository3.NewMockedConfigRepository()
+	return mockedConfigRepository
+}
+
+func initMySqlConfigRepository(db *gorm.DB) domain4.ConfigRepository {
+	mySqlConfigRepository := repository3.NewMySqlConfigRepository(db)
+	return mySqlConfigRepository
+}
+
 func initMockedTokenService() domain2.TokenService {
 	mockedTokenService := domain2.NewMockedTokenService()
 	return mockedTokenService
@@ -164,6 +176,14 @@ func InitListsRepository(db *gorm.DB) domain3.ListsRepository {
 	}
 }
 
+func InitConfigRepository(db *gorm.DB) domain4.ConfigRepository {
+	if inTestingMode() {
+		return initMockedConfigRepository()
+	} else {
+		return initMySqlConfigRepository(db)
+	}
+}
+
 func InitTokenService() domain2.TokenService {
 	if inTestingMode() {
 		return initMockedTokenService()
@@ -221,3 +241,7 @@ var MockedTokenServiceSet = wire.NewSet(domain2.NewMockedTokenService, wire.Bind
 var RealEventBusSet = wire.NewSet(events.NewRealEventBus, wire.Bind(new(events.EventBus), new(*events.RealEventBus)))
 
 var MockedEventBusSet = wire.NewSet(events.NewMockedEventBus, wire.Bind(new(events.EventBus), new(*events.MockedEventBus)))
+
+var MySqlConfigRepositorySet = wire.NewSet(repository3.NewMySqlConfigRepository, wire.Bind(new(domain4.ConfigRepository), new(*repository3.MySqlConfigRepository)))
+
+var MockedConfigRepositorySet = wire.NewSet(repository3.NewMockedConfigRepository, wire.Bind(new(domain4.ConfigRepository), new(*repository3.MockedConfigRepository)))

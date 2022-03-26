@@ -9,8 +9,6 @@ import (
 	authDomain "github.com/AngelVlc/todos_backend/internal/api/auth/domain"
 	passgen "github.com/AngelVlc/todos_backend/internal/api/auth/domain/passgen"
 	authRepository "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/repository"
-	configDomain "github.com/AngelVlc/todos_backend/internal/api/config/domain"
-	configRepository "github.com/AngelVlc/todos_backend/internal/api/config/infrastructure/repository"
 	listsDomain "github.com/AngelVlc/todos_backend/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/repository"
 	sharedApp "github.com/AngelVlc/todos_backend/internal/api/shared/application"
@@ -138,24 +136,6 @@ func initMySqlListsRepository(db *gorm.DB) listsDomain.ListsRepository {
 	return nil
 }
 
-func InitConfigRepository(db *gorm.DB) configDomain.ConfigRepository {
-	if inTestingMode() {
-		return initMockedConfigRepository()
-	} else {
-		return initMySqlConfigRepository(db)
-	}
-}
-
-func initMockedConfigRepository() configDomain.ConfigRepository {
-	wire.Build(MockedConfigRepositorySet)
-	return nil
-}
-
-func initMySqlConfigRepository(db *gorm.DB) configDomain.ConfigRepository {
-	wire.Build(MySqlConfigRepositorySet)
-	return nil
-}
-
 func InitTokenService() authDomain.TokenService {
 	if inTestingMode() {
 		return initMockedTokenService()
@@ -269,11 +249,3 @@ var RealEventBusSet = wire.NewSet(
 var MockedEventBusSet = wire.NewSet(
 	events.NewMockedEventBus,
 	wire.Bind(new(events.EventBus), new(*events.MockedEventBus)))
-
-var MySqlConfigRepositorySet = wire.NewSet(
-	configRepository.NewMySqlConfigRepository,
-	wire.Bind(new(configDomain.ConfigRepository), new(*configRepository.MySqlConfigRepository)))
-
-var MockedConfigRepositorySet = wire.NewSet(
-	configRepository.NewMockedConfigRepository,
-	wire.Bind(new(configDomain.ConfigRepository), new(*configRepository.MockedConfigRepository)))

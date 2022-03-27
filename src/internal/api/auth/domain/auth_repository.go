@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	sharedDomain "github.com/AngelVlc/todos_backend/internal/api/shared/domain"
+	sharedDomain "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain"
 )
 
 type AuthRepository interface {

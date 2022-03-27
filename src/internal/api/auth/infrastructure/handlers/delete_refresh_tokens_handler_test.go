@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	authRepository "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/repository"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
+	authRepository "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
 func TestDeleteRefreshTokensHandlerValidations(t *testing.T) {

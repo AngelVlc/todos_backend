@@ -3,7 +3,7 @@ package authmdw
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 )
 
 type FakeAuthMiddleware struct{}

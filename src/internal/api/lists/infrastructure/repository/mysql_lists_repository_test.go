@@ -9,8 +9,8 @@ import (
 	"regexp"
 	"testing"
 
-	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
+	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

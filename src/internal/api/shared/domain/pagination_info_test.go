@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/AngelVlc/todos_backend/internal/api/shared/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain"
 	"github.com/stretchr/testify/require"
 )
 

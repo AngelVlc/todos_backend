@@ -3,11 +3,11 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos_backend/internal/api/lists/application"
-	"github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/src/internal/api/lists/application"
+	"github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
 func GetListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {

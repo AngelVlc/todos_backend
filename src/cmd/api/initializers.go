@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	authDomain "github.com/AngelVlc/todos_backend/internal/api/auth/domain"
-	sharedApp "github.com/AngelVlc/todos_backend/internal/api/shared/application"
+	authDomain "github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	sharedApp "github.com/AngelVlc/todos_backend/src/internal/api/shared/application"
 	"github.com/honeybadger-io/honeybadger-go"
 	"github.com/newrelic/go-agent/v3/newrelic"
 	"gorm.io/driver/mysql"

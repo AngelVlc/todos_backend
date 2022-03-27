@@ -10,11 +10,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
-	authRepository "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure/repository"
-	sharedDomain "github.com/AngelVlc/todos_backend/internal/api/shared/domain"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	authRepository "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/repository"
+	sharedDomain "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

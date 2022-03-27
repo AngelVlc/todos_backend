@@ -3,9 +3,9 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos_backend/internal/api/auth/application"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/application"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
 func DeleteRefreshTokensHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {

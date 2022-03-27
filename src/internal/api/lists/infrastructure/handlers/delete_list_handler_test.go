@@ -10,11 +10,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AngelVlc/todos_backend/internal/api/lists/domain"
-	listsRepository "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/repository"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
+	listsRepository "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/gorilla/mux"
 )
 

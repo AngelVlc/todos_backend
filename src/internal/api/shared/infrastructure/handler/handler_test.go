@@ -12,8 +12,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	appErrors "github.com/AngelVlc/todos_backend/internal/api/shared/domain/errors"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
+	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"

@@ -13,9 +13,9 @@ import (
 	"testing"
 	"time"
 
-	authDomain "github.com/AngelVlc/todos_backend/internal/api/auth/domain"
-	authInfra "github.com/AngelVlc/todos_backend/internal/api/auth/infrastructure"
-	listsDomain "github.com/AngelVlc/todos_backend/internal/api/lists/domain"
+	authDomain "github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	authInfra "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
+	listsDomain "github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	"github.com/stretchr/testify/require"
 )
 

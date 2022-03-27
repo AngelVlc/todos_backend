@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	sharedApp "github.com/AngelVlc/todos_backend/internal/api/shared/application"
+	sharedApp "github.com/AngelVlc/todos_backend/src/internal/api/shared/application"
 	"github.com/golang-jwt/jwt"
 )
 

@@ -7,8 +7,8 @@ import (
 	"context"
 	"testing"
 
-	listsRepository "github.com/AngelVlc/todos_backend/internal/api/lists/infrastructure/repository"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
+	listsRepository "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 

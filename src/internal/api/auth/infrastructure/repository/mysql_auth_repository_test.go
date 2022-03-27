@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
-	sharedDomain "github.com/AngelVlc/todos_backend/internal/api/shared/domain"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/helpers"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	sharedDomain "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

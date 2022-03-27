@@ -3,7 +3,7 @@ package application
 import (
 	"context"
 
-	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
 )
 
 type GetUserService struct {

@@ -9,8 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/golang-jwt/jwt"
 
 	"github.com/stretchr/testify/assert"

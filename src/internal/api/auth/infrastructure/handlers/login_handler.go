@@ -3,10 +3,10 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/AngelVlc/todos_backend/internal/api/auth/application"
-	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/application"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
 type loginRequest struct {

@@ -3,9 +3,9 @@ package application
 import (
 	"context"
 
-	"github.com/AngelVlc/todos_backend/internal/api/auth/domain"
-	"github.com/AngelVlc/todos_backend/internal/api/auth/domain/passgen"
-	appErrors "github.com/AngelVlc/todos_backend/internal/api/shared/domain/errors"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain/passgen"
+	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 )
 
 type UpdateUserService struct {

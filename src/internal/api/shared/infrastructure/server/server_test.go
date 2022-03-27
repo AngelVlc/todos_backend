@@ -11,8 +11,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/AngelVlc/todos_backend/internal/api/shared/domain/events"
-	"github.com/AngelVlc/todos_backend/internal/api/shared/infrastructure/consts"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

@@ -100,6 +100,24 @@ func initMySqlAuthRepository(db *gorm.DB) authDomain.AuthRepository {
 	return nil
 }
 
+func InitUsersRepository(db *gorm.DB) authDomain.UsersRepository {
+	if inTestingMode() {
+		return initMockedUsersRepository()
+	} else {
+		return initMySqlUsersRepository(db)
+	}
+}
+
+func initMockedUsersRepository() authDomain.UsersRepository {
+	wire.Build(MockedUsersRepositorySet)
+	return nil
+}
+
+func initMySqlUsersRepository(db *gorm.DB) authDomain.UsersRepository {
+	wire.Build(MySqlUsersRepositorySet)
+	return nil
+}
+
 func InitPasswordGenerator() passgen.PasswordGenerator {
 	if inTestingMode() {
 		return initMockedPasswordGenerator()
@@ -216,6 +234,14 @@ var MySqlAuthRepositorySet = wire.NewSet(
 var MockedAuthRepositorySet = wire.NewSet(
 	authRepository.NewMockedAuthRepository,
 	wire.Bind(new(authDomain.AuthRepository), new(*authRepository.MockedAuthRepository)))
+
+var MySqlUsersRepositorySet = wire.NewSet(
+	authRepository.NewMySqlUsersRepository,
+	wire.Bind(new(authDomain.UsersRepository), new(*authRepository.MySqlUsersRepository)))
+
+var MockedUsersRepositorySet = wire.NewSet(
+	authRepository.NewMockedUsersRepository,
+	wire.Bind(new(authDomain.UsersRepository), new(*authRepository.MockedUsersRepository)))
 
 var BcryptPasswordGeneratorSet = wire.NewSet(
 	passgen.NewBcryptPasswordGenerator,

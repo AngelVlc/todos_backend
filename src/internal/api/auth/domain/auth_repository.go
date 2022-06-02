@@ -8,7 +8,6 @@ import (
 )
 
 type AuthRepository interface {
-	GetAllUsers(ctx context.Context) ([]User, error)
 	CreateUser(ctx context.Context, user *User) error
 	DeleteUser(ctx context.Context, userID int32) error
 	UpdateUser(ctx context.Context, user *User) error

@@ -25,3 +25,11 @@ func (r *MySqlUsersRepository) FindUser(ctx context.Context, user *domain.User) 
 
 	return &foundUser, nil
 }
+
+func (r *MySqlUsersRepository) GetAll(ctx context.Context) ([]domain.User, error) {
+	res := []domain.User{}
+	if err := r.db.WithContext(ctx).Find(&res).Error; err != nil {
+		return nil, err
+	}
+	return res, nil
+}

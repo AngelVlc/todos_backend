@@ -10,7 +10,7 @@ import (
 )
 
 func GetAllUsersHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	srv := application.NewGetAllUsersService(h.AuthRepository)
+	srv := application.NewGetAllUsersService(h.UsersRepository)
 	foundUsers, err := srv.GetAllUsers(r.Context())
 	if err != nil {
 		return results.ErrorResult{Err: err}

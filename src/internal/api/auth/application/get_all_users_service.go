@@ -8,15 +8,15 @@ import (
 )
 
 type GetAllUsersService struct {
-	repo domain.AuthRepository
+	repo domain.UsersRepository
 }
 
-func NewGetAllUsersService(repo domain.AuthRepository) *GetAllUsersService {
+func NewGetAllUsersService(repo domain.UsersRepository) *GetAllUsersService {
 	return &GetAllUsersService{repo}
 }
 
 func (s *GetAllUsersService) GetAllUsers(ctx context.Context) ([]domain.User, error) {
-	foundUsers, err := s.repo.GetAllUsers(ctx)
+	foundUsers, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}
 	}

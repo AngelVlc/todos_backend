@@ -19,12 +19,12 @@ import (
 )
 
 func TestGetAllUsersHandler(t *testing.T) {
-	mockedRepo := authRepository.MockedAuthRepository{}
-	h := handler.Handler{AuthRepository: &mockedRepo}
+	mockedRepo := authRepository.MockedUsersRepository{}
+	h := handler.Handler{UsersRepository: &mockedRepo}
 
 	t.Run("Should return an error result with an unexpected error if the query fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/", nil)
-		mockedRepo.On("GetAllUsers", request.Context()).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("GetAll", request.Context()).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := GetAllUsersHandler(httptest.NewRecorder(), request, h)
 
@@ -38,7 +38,7 @@ func TestGetAllUsersHandler(t *testing.T) {
 			{ID: 2, Name: "user1", IsAdmin: true},
 			{ID: 5, Name: "user2", IsAdmin: false},
 		}
-		mockedRepo.On("GetAllUsers", request.Context()).Return(found, nil)
+		mockedRepo.On("GetAll", request.Context()).Return(found, nil)
 		result := GetAllUsersHandler(httptest.NewRecorder(), request, h)
 
 		okRes := results.CheckOkResult(t, result, http.StatusOK)

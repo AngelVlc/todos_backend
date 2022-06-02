@@ -23,45 +23,6 @@ var (
 	refreshTokenColumns = []string{"id", "userId", "refreshToken", "expirationDate"}
 )
 
-func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
-	mock, db := helpers.GetMockedDb(t)
-	repo := NewMySqlAuthRepository(db)
-
-	expectedGetUsersQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT id,name,isAdmin FROM `users`"))
-	}
-
-	t.Run("should return an error if the query fails", func(t *testing.T) {
-		expectedGetUsersQuery().WillReturnError(fmt.Errorf("some error"))
-
-		res, err := repo.GetAllUsers(context.Background())
-
-		assert.Nil(t, res)
-		assert.EqualError(t, err, "some error")
-
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-
-	t.Run("should return the users", func(t *testing.T) {
-		expectedGetUsersQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
-
-		res, err := repo.GetAllUsers(context.Background())
-
-		assert.Nil(t, err)
-		require.Equal(t, 2, len(res))
-		assert.Equal(t, int32(11), res[0].ID)
-		assert.Equal(t, domain.UserName("user1"), res[0].Name)
-		assert.Equal(t, "pass1", res[0].PasswordHash)
-		assert.True(t, res[0].IsAdmin)
-		assert.Equal(t, int32(12), res[1].ID)
-		assert.Equal(t, domain.UserName("user2"), res[1].Name)
-		assert.Equal(t, "pass2", res[1].PasswordHash)
-		assert.False(t, res[1].IsAdmin)
-
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-}
-
 func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}

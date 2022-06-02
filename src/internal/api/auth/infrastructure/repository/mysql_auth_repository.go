@@ -21,14 +21,6 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
-func (r *MySqlAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, error) {
-	res := []domain.User{}
-	if err := r.db.WithContext(ctx).Select("id,name,isAdmin").Find(&res).Error; err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
 func (r *MySqlAuthRepository) CreateUser(ctx context.Context, user *domain.User) error {
 	return r.db.WithContext(ctx).Create(user).Error
 }

@@ -94,42 +94,6 @@ func TestMySqlAuthRepositoryFindUserByID(t *testing.T) {
 	})
 }
 
-func TestMySqlAuthRepositoryFindUserByName(t *testing.T) {
-	mock, db := helpers.GetMockedDb(t)
-	repo := NewMySqlAuthRepository(db)
-
-	userName := domain.UserName("userName")
-
-	expectedFindByNameQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`name` = ? LIMIT 1")).
-			WithArgs("userName")
-	}
-
-	t.Run("should return an error if the query fails", func(t *testing.T) {
-		expectedFindByNameQuery().WillReturnError(fmt.Errorf("some error"))
-
-		u, err := repo.FindUserByName(context.Background(), userName)
-
-		assert.Nil(t, u)
-		assert.EqualError(t, err, "some error")
-
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-
-	t.Run("should return the user if it exists", func(t *testing.T) {
-		expectedFindByNameQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(int32(1), "userName", "hash", true))
-
-		u, err := repo.FindUserByName(context.Background(), userName)
-
-		assert.NotNil(t, u)
-		assert.Equal(t, int32(1), u.ID)
-		assert.True(t, u.IsAdmin)
-		assert.Nil(t, err)
-
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-}
-
 func TestMySqlAuthRepositoryGetAllUsers(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)

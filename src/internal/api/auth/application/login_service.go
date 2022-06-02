@@ -11,17 +11,18 @@ import (
 )
 
 type LoginService struct {
-	repo     domain.AuthRepository
-	cfgSvr   sharedApp.ConfigurationService
-	tokenSrv domain.TokenService
+	authRepo  domain.AuthRepository
+	usersRepo domain.UsersRepository
+	cfgSvr    sharedApp.ConfigurationService
+	tokenSrv  domain.TokenService
 }
 
-func NewLoginService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *LoginService {
-	return &LoginService{repo, cfgSvr, tokenSrv}
+func NewLoginService(authRepo domain.AuthRepository, usersRepo domain.UsersRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *LoginService {
+	return &LoginService{authRepo, usersRepo, cfgSvr, tokenSrv}
 }
 
 func (s *LoginService) Login(ctx context.Context, userName domain.UserName, password domain.UserPassword) (*domain.LoginResponse, error) {
-	foundUser, err := s.repo.FindUserByName(ctx, userName)
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{Name: userName})
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (s *LoginService) Login(ctx context.Context, userName domain.UserName, pass
 	go func(txn *newrelic.Transaction) {
 		ctx = newrelic.NewContext(context.Background(), txn)
 		defer txn.End()
-		err = s.repo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
+		err = s.authRepo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
 		if err != nil {
 			log.Printf("Error saving the refresh token. Error: %v", err)
 		}

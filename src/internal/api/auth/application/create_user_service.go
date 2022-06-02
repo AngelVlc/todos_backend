@@ -9,16 +9,17 @@ import (
 )
 
 type CreateUserService struct {
-	repo    domain.AuthRepository
-	passGen passgen.PasswordGenerator
+	authRepo  domain.AuthRepository
+	usersRepo domain.UsersRepository
+	passGen   passgen.PasswordGenerator
 }
 
-func NewCreateUserService(repo domain.AuthRepository, passGen passgen.PasswordGenerator) *CreateUserService {
-	return &CreateUserService{repo, passGen}
+func NewCreateUserService(authRepo domain.AuthRepository, usersRepo domain.UsersRepository, passGen passgen.PasswordGenerator) *CreateUserService {
+	return &CreateUserService{authRepo, usersRepo, passGen}
 }
 
 func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
-	err := userName.CheckIfAlreadyExists(ctx, s.repo)
+	err := userName.CheckIfAlreadyExists(ctx, s.usersRepo)
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +35,7 @@ func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.User
 		IsAdmin:      isAdmin,
 	}
 
-	err = s.repo.CreateUser(ctx, &user)
+	err = s.authRepo.CreateUser(ctx, &user)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user", InternalError: err}
 	}

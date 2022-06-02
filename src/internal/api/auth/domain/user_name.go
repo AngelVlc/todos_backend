@@ -16,13 +16,13 @@ func NewUserName(userName string) (UserName, error) {
 	return UserName(userName), nil
 }
 
-func (u UserName) CheckIfAlreadyExists(ctx context.Context, repo AuthRepository) error {
-	existsUser, err := repo.ExistsUser(ctx, u)
+func (u UserName) CheckIfAlreadyExists(ctx context.Context, repo UsersRepository) error {
+	foundUser, err := repo.FindUser(ctx, &User{Name: u})
 	if err != nil {
 		return err
 	}
 
-	if existsUser {
+	if foundUser != nil {
 		return &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
 	}
 

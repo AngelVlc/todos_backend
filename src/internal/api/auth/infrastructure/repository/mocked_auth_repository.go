@@ -20,12 +20,6 @@ func NewMockedAuthRepository() *MockedAuthRepository {
 	return &MockedAuthRepository{}
 }
 
-func (m *MockedAuthRepository) ExistsUser(ctx context.Context, userName domain.UserName) (bool, error) {
-	args := m.Called(ctx, userName)
-
-	return args.Bool(0), args.Error(1)
-}
-
 func (m *MockedAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {

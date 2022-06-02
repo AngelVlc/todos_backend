@@ -112,12 +112,11 @@ func TestUpdateUserHandler(t *testing.T) {
 		req := request(body)
 		foundUser := authDomain.User{Name: authDomain.UserName("wadus")}
 		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
-		mockedAuthRepo.On("ExistsUser", req.Context(), authDomain.UserName("wadusR")).Return(false, fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{Name: authDomain.UserName("wadusR")}).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
 		results.CheckError(t, result, "some error")
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})
@@ -128,12 +127,11 @@ func TestUpdateUserHandler(t *testing.T) {
 		req := request(body)
 		foundUser := authDomain.User{Name: authDomain.UserName("wadus")}
 		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
-		mockedAuthRepo.On("ExistsUser", req.Context(), authDomain.UserName("wadusR")).Return(true, nil).Once()
+		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{Name: authDomain.UserName("wadusR")}).Return(&domain.User{}, nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
 		results.CheckBadRequestErrorResult(t, result, "A user with the same user name already exists")
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})
@@ -149,7 +147,6 @@ func TestUpdateUserHandler(t *testing.T) {
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error encrypting password")
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})
@@ -177,7 +174,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		req := request(body)
 		foundUser := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
-		mockedAuthRepo.On("ExistsUser", req.Context(), authDomain.UserName("wadusUpdated")).Return(false, nil).Once()
+		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{Name: authDomain.UserName("wadusUpdated")}).Return(nil, nil).Once()
 		foundUser2 := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		foundUser2.Name = authDomain.UserName("wadusUpdated")
 		mockedAuthRepo.On("UpdateUser", req.Context(), &foundUser2).Return(nil).Once()

@@ -9,16 +9,17 @@ import (
 )
 
 type UpdateUserService struct {
-	repo    domain.AuthRepository
-	passGen passgen.PasswordGenerator
+	authRepo  domain.AuthRepository
+	usersRepo domain.UsersRepository
+	passGen   passgen.PasswordGenerator
 }
 
-func NewUpdateUserService(repo domain.AuthRepository, passGen passgen.PasswordGenerator) *UpdateUserService {
-	return &UpdateUserService{repo, passGen}
+func NewUpdateUserService(authRepo domain.AuthRepository, usersRepo domain.UsersRepository, passGen passgen.PasswordGenerator) *UpdateUserService {
+	return &UpdateUserService{authRepo, usersRepo, passGen}
 }
 
 func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
-	foundUser, err := s.repo.FindUserByID(ctx, userID)
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{ID: userID})
 	if err != nil {
 		return nil, err
 	}
@@ -34,7 +35,7 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 	}
 
 	if foundUser.Name != userName {
-		err = userName.CheckIfAlreadyExists(ctx, s.repo)
+		err = userName.CheckIfAlreadyExists(ctx, s.authRepo)
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +53,7 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 	foundUser.Name = userName
 	foundUser.IsAdmin = isAdmin
 
-	err = s.repo.UpdateUser(ctx, foundUser)
+	err = s.authRepo.UpdateUser(ctx, foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user", InternalError: err}
 	}

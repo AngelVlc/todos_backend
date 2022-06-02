@@ -32,10 +32,6 @@ func (r *MySqlAuthRepository) ExistsUser(ctx context.Context, userName domain.Us
 	return count > 0, nil
 }
 
-func (r *MySqlAuthRepository) FindUserByID(ctx context.Context, userID int32) (*domain.User, error) {
-	return r.findUser(ctx, domain.User{ID: userID})
-}
-
 func (r *MySqlAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, error) {
 	res := []domain.User{}
 	if err := r.db.WithContext(ctx).Select("id,name,isAdmin").Find(&res).Error; err != nil {

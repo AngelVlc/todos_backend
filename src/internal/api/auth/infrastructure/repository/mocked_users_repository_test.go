@@ -35,20 +35,6 @@ func TestMySqlUsersRepositoryFindUser_WhenTheQueryFails(t *testing.T) {
 	assert.EqualError(t, err, "some error")
 
 	helpers.CheckSqlMockExpectations(mock, t)
-
-	// t.Run("should return the user if it exists", func(t *testing.T) {
-	// 	expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(userID, "userName", "hash", true))
-
-	// 	res, err := repo.FindUserByID(context.Background(), userID)
-
-	// 	require.NotNil(t, res)
-	// 	assert.Equal(t, domain.UserName("userName"), res.Name)
-	// 	assert.True(t, res.IsAdmin)
-	// 	assert.Equal(t, userID, res.ID)
-	// 	assert.Nil(t, err)
-
-	// 	helpers.CheckSqlMockExpectations(mock, t)
-	// })
 }
 
 func TestMySqlUsersRepositoryFindUser_WhenTheQueryDoesNotFail(t *testing.T) {

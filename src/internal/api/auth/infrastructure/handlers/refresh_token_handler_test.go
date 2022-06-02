@@ -32,10 +32,11 @@ func TestRefreshTokenHandlerValidations(t *testing.T) {
 }
 
 func TestRefreshTokenHandler(t *testing.T) {
-	mockedRepo := authRepository.MockedAuthRepository{}
+	mockedAuthRepo := authRepository.MockedAuthRepository{}
+	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	mockedTokenSrv := domain.MockedTokenService{}
-	h := handler.Handler{AuthRepository: &mockedRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
+	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
 
 	getRefreshTokenCookie := func(rt string) *http.Cookie {
 		return &http.Cookie{Name: refreshTokenCookieName, Value: rt}
@@ -60,13 +61,14 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
-		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckError(t, result, "some error")
 		mockedCfgSrv.AssertExpectations(t)
-		mockedRepo.AssertExpectations(t)
+		mockedAuthRepo.AssertExpectations(t)
+		mockedUsersRepo.AssertExpectations(t)
 		mockedTokenSrv.AssertExpectations(t)
 	})
 
@@ -77,14 +79,15 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
-		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(&domain.User{}, nil).Once()
-		mockedRepo.On("FindRefreshTokenForUser", request.Context(), "token", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{ID: int32(1)}).Return(&domain.User{}, nil).Once()
+		mockedAuthRepo.On("FindRefreshTokenForUser", request.Context(), "token", int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error getting the refresh token")
 		mockedCfgSrv.AssertExpectations(t)
-		mockedRepo.AssertExpectations(t)
+		mockedAuthRepo.AssertExpectations(t)
+		mockedUsersRepo.AssertExpectations(t)
 		mockedTokenSrv.AssertExpectations(t)
 	})
 
@@ -95,14 +98,15 @@ func TestRefreshTokenHandler(t *testing.T) {
 		mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
-		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(&domain.User{}, nil).Once()
-		mockedRepo.On("FindRefreshTokenForUser", request.Context(), "token", int32(1)).Return(nil, nil).Once()
+		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{ID: int32(1)}).Return(&domain.User{}, nil).Once()
+		mockedAuthRepo.On("FindRefreshTokenForUser", request.Context(), "token", int32(1)).Return(nil, nil).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnauthorizedErrorErrorResult(t, result, "The refresh token is not valid")
 		mockedCfgSrv.AssertExpectations(t)
-		mockedRepo.AssertExpectations(t)
+		mockedAuthRepo.AssertExpectations(t)
+		mockedUsersRepo.AssertExpectations(t)
 		mockedTokenSrv.AssertExpectations(t)
 	})
 
@@ -114,15 +118,16 @@ func TestRefreshTokenHandler(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
 		foundUser := domain.User{}
-		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(&foundUser, nil).Once()
-		mockedRepo.On("FindRefreshTokenForUser", request.Context(), "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
+		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
+		mockedAuthRepo.On("FindRefreshTokenForUser", request.Context(), "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("", fmt.Errorf("some error")).Once()
 
 		result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error creating jwt token")
 		mockedCfgSrv.AssertExpectations(t)
-		mockedRepo.AssertExpectations(t)
+		mockedAuthRepo.AssertExpectations(t)
+		mockedUsersRepo.AssertExpectations(t)
 		mockedTokenSrv.AssertExpectations(t)
 	})
 
@@ -134,8 +139,8 @@ func TestRefreshTokenHandler(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", nil)
 		request.AddCookie(getRefreshTokenCookie("token"))
 		foundUser := domain.User{}
-		mockedRepo.On("FindUserByID", request.Context(), int32(1)).Return(&foundUser, nil).Once()
-		mockedRepo.On("FindRefreshTokenForUser", request.Context(), "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
+		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
+		mockedAuthRepo.On("FindRefreshTokenForUser", request.Context(), "token", int32(1)).Return(&domain.RefreshToken{}, nil).Once()
 		mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 
 		recorder := httptest.NewRecorder()
@@ -149,8 +154,9 @@ func TestRefreshTokenHandler(t *testing.T) {
 		assert.Equal(t, "theToken", recorder.Result().Cookies()[0].Value)
 		assert.True(t, recorder.Result().Cookies()[0].HttpOnly)
 
-		mockedRepo.AssertExpectations(t)
+		mockedAuthRepo.AssertExpectations(t)
 		mockedCfgSrv.AssertExpectations(t)
+		mockedUsersRepo.AssertExpectations(t)
 		mockedTokenSrv.AssertExpectations(t)
 	})
 }

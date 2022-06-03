@@ -15,9 +15,9 @@ func NewMySqlUsersRepository(db *gorm.DB) *MySqlUsersRepository {
 	return &MySqlUsersRepository{db}
 }
 
-func (r *MySqlUsersRepository) FindUser(ctx context.Context, user *domain.User) (*domain.User, error) {
+func (r *MySqlUsersRepository) FindUser(ctx context.Context, filter *domain.User) (*domain.User, error) {
 	foundUser := domain.User{}
-	err := r.db.WithContext(ctx).Where(user).Take(&foundUser).Error
+	err := r.db.WithContext(ctx).Where(filter).Take(&foundUser).Error
 
 	if err != nil {
 		return nil, err
@@ -36,4 +36,8 @@ func (r *MySqlUsersRepository) GetAll(ctx context.Context) ([]domain.User, error
 
 func (r *MySqlUsersRepository) Create(ctx context.Context, user *domain.User) error {
 	return r.db.WithContext(ctx).Create(user).Error
+}
+
+func (r *MySqlUsersRepository) Delete(ctx context.Context, filter *domain.User) error {
+	return r.db.WithContext(ctx).Delete(filter).Error
 }

@@ -25,9 +25,8 @@ func TestDeleteUserHandler(t *testing.T) {
 		return request
 	}
 
-	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo}
+	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
 	t.Run("Should return an error if the query to find the user fails", func(t *testing.T) {
 		mockedUsersRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
@@ -35,7 +34,6 @@ func TestDeleteUserHandler(t *testing.T) {
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
 		results.CheckError(t, result, "some error")
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
@@ -46,31 +44,28 @@ func TestDeleteUserHandler(t *testing.T) {
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
 		results.CheckBadRequestErrorResult(t, result, "It is not possible to delete the admin user")
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
 	t.Run("Should return an errorResult with an UnexpectedError if the delete fails", func(t *testing.T) {
 		foundUser := domain.User{Name: domain.UserName("wadus")}
 		mockedUsersRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
-		mockedAuthRepo.On("DeleteUser", request().Context(), int32(1)).Return(fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("Delete", request().Context(), &domain.User{ID: int32(1)}).Return(fmt.Errorf("some error")).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error deleting the user")
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
 	t.Run("Should delete the user", func(t *testing.T) {
 		foundUser := domain.User{Name: domain.UserName("wadus")}
 		mockedUsersRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
-		mockedAuthRepo.On("DeleteUser", request().Context(), int32(1)).Return(nil).Once()
+		mockedUsersRepo.On("Delete", request().Context(), &domain.User{ID: int32(1)}).Return(nil).Once()
 
 		result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
 		results.CheckOkResult(t, result, http.StatusNoContent)
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 	})
 }

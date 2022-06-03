@@ -20,12 +20,6 @@ func NewMockedAuthRepository() *MockedAuthRepository {
 	return &MockedAuthRepository{}
 }
 
-func (m *MockedAuthRepository) DeleteUser(ctx context.Context, userID int32) error {
-	args := m.Called(ctx, userID)
-
-	return args.Error(0)
-}
-
 func (m *MockedAuthRepository) UpdateUser(ctx context.Context, user *domain.User) error {
 	args := m.Called(ctx, user)
 

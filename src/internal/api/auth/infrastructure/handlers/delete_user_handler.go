@@ -12,7 +12,7 @@ import (
 func DeleteUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	userID := helpers.ParseInt32UrlVar(r, "id")
 
-	srv := application.NewDeleteUserService(h.AuthRepository, h.UsersRepository)
+	srv := application.NewDeleteUserService(h.UsersRepository)
 	err := srv.DeleteUser(r.Context(), userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}

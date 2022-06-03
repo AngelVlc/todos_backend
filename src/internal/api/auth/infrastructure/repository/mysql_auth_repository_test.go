@@ -23,40 +23,6 @@ var (
 	refreshTokenColumns = []string{"id", "userId", "refreshToken", "expirationDate"}
 )
 
-func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
-	mock, db := helpers.GetMockedDb(t)
-	repo := NewMySqlAuthRepository(db)
-
-	expectedDeleteExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE `users`.`id` = ?")).
-			WithArgs(1)
-	}
-
-	userID := int32(1)
-
-	t.Run("should return an error if delete fails", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		err := repo.DeleteUser(context.Background(), userID)
-
-		assert.EqualError(t, err, "some error")
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-
-	t.Run("should delete the user", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectCommit()
-
-		err := repo.DeleteUser(context.Background(), userID)
-
-		assert.Nil(t, err)
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-}
-
 func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}

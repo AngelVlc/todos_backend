@@ -150,3 +150,46 @@ func TestMySqlUsersRepositoryCreate_WhenItDoesNotFail(t *testing.T) {
 
 	helpers.CheckSqlMockExpectations(mock, t)
 }
+
+func TestMySqlUsersRepositoryDelete_WhenItFails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlUsersRepository(db)
+
+	expectedDeleteExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE `users`.`id` = ?")).
+			WithArgs(1)
+	}
+
+	userID := int32(1)
+
+	mock.ExpectBegin()
+	expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectRollback()
+
+	err := repo.Delete(context.Background(), &domain.User{ID: userID})
+
+	assert.EqualError(t, err, "some error")
+	helpers.CheckSqlMockExpectations(mock, t)
+
+}
+
+func TestMySqlUsersRepositoryDelete_WhenItDoesNotFail(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlUsersRepository(db)
+
+	expectedDeleteExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE `users`.`id` = ?")).
+			WithArgs(1)
+	}
+
+	userID := int32(1)
+
+	mock.ExpectBegin()
+	expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectCommit()
+
+	err := repo.Delete(context.Background(), &domain.User{ID: userID})
+
+	assert.Nil(t, err)
+	helpers.CheckSqlMockExpectations(mock, t)
+}

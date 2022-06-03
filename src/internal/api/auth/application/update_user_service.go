@@ -9,13 +9,12 @@ import (
 )
 
 type UpdateUserService struct {
-	authRepo  domain.AuthRepository
 	usersRepo domain.UsersRepository
 	passGen   passgen.PasswordGenerator
 }
 
-func NewUpdateUserService(authRepo domain.AuthRepository, usersRepo domain.UsersRepository, passGen passgen.PasswordGenerator) *UpdateUserService {
-	return &UpdateUserService{authRepo, usersRepo, passGen}
+func NewUpdateUserService(usersRepo domain.UsersRepository, passGen passgen.PasswordGenerator) *UpdateUserService {
+	return &UpdateUserService{usersRepo, passGen}
 }
 
 func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
@@ -53,7 +52,7 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 	foundUser.Name = userName
 	foundUser.IsAdmin = isAdmin
 
-	err = s.authRepo.UpdateUser(ctx, foundUser)
+	err = s.usersRepo.Update(ctx, foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user", InternalError: err}
 	}

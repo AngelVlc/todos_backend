@@ -7,4 +7,5 @@ type UsersRepository interface {
 	GetAll(ctx context.Context) ([]User, error)
 	Create(ctx context.Context, user *User) error
 	Delete(ctx context.Context, filter *User) error
+	Update(ctx context.Context, user *User) error
 }

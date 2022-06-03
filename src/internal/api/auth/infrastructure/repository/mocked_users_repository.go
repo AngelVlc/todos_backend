@@ -43,3 +43,9 @@ func (m *MockedUsersRepository) Delete(ctx context.Context, filter *domain.User)
 
 	return args.Error(0)
 }
+
+func (m *MockedUsersRepository) Update(ctx context.Context, user *domain.User) error {
+	args := m.Called(ctx, user)
+
+	return args.Error(0)
+}

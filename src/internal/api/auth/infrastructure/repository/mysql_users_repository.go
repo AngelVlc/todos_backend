@@ -41,3 +41,7 @@ func (r *MySqlUsersRepository) Create(ctx context.Context, user *domain.User) er
 func (r *MySqlUsersRepository) Delete(ctx context.Context, filter *domain.User) error {
 	return r.db.WithContext(ctx).Delete(filter).Error
 }
+
+func (r *MySqlUsersRepository) Update(ctx context.Context, user *domain.User) error {
+	return r.db.WithContext(ctx).Save(&user).Error
+}

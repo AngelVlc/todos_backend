@@ -23,43 +23,6 @@ var (
 	refreshTokenColumns = []string{"id", "userId", "refreshToken", "expirationDate"}
 )
 
-func TestMySqlAuthRepositoryUpdateUser(t *testing.T) {
-	mock, db := helpers.GetMockedDb(t)
-	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
-
-	repo := NewMySqlAuthRepository(db)
-
-	expectedUpdateExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`passwordHash`=?,`isAdmin`=? WHERE `id` = ?")).
-			WithArgs("userName", "hash", false, 11)
-	}
-
-	t.Run("should return an error if update fails", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedUpdateExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		err := repo.UpdateUser(context.Background(), &user)
-
-		assert.EqualError(t, err, "some error")
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-
-	t.Run("should update the user if the update doesn't fail", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedUpdateExec().WillReturnResult(sqlmock.NewResult(0, 0))
-		mock.ExpectCommit()
-		mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `id` = ? LIMIT 1")).
-			WithArgs(11).
-			WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user", "", false))
-
-		err := repo.UpdateUser(context.Background(), &user)
-
-		assert.Nil(t, err)
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-}
-
 func TestMySqlAuthRepositoryFindRefreshTokenForUser(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)

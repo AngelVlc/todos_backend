@@ -63,10 +63,9 @@ func TestUpdateUserHandler(t *testing.T) {
 		return request
 	}
 
-	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedPassGen := passgen.MockedPasswordGenerator{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
+	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
 
 	t.Run("Should return an error if the query to find the user fails", func(t *testing.T) {
 		updateReq := updateUserRequest{Name: "wadus"}
@@ -158,12 +157,11 @@ func TestUpdateUserHandler(t *testing.T) {
 		foundUser := authDomain.User{Name: authDomain.UserName("wadus")}
 		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
 		foundUser.Name = authDomain.UserName("wadusUpdated")
-		mockedAuthRepo.On("UpdateUser", req.Context(), &foundUser).Return(fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("Update", req.Context(), &foundUser).Return(fmt.Errorf("some error")).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error updating the user")
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})
@@ -177,7 +175,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{Name: authDomain.UserName("wadusUpdated")}).Return(nil, nil).Once()
 		foundUser2 := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		foundUser2.Name = authDomain.UserName("wadusUpdated")
-		mockedAuthRepo.On("UpdateUser", req.Context(), &foundUser2).Return(nil).Once()
+		mockedUsersRepo.On("Update", req.Context(), &foundUser2).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
@@ -189,7 +187,6 @@ func TestUpdateUserHandler(t *testing.T) {
 		assert.Equal(t, "wadusUpdated", userRes.Name)
 		assert.False(t, userRes.IsAdmin)
 
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})
@@ -201,7 +198,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		foundUser := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
 		mockedPassGen.On("GenerateFromPassword", "newPass").Return("hassedPass", nil).Once()
-		mockedAuthRepo.On("UpdateUser", req.Context(), &foundUser).Return(nil).Once()
+		mockedUsersRepo.On("Update", req.Context(), &foundUser).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
@@ -213,7 +210,6 @@ func TestUpdateUserHandler(t *testing.T) {
 		assert.Equal(t, "wadus", userRes.Name)
 		assert.False(t, userRes.IsAdmin)
 
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})
@@ -225,7 +221,7 @@ func TestUpdateUserHandler(t *testing.T) {
 		foundUser := authDomain.User{ID: int32(1), Name: authDomain.UserName("wadus"), IsAdmin: false}
 		mockedUsersRepo.On("FindUser", req.Context(), &domain.User{ID: int32(1)}).Return(&foundUser, nil).Once()
 		foundUser.IsAdmin = true
-		mockedAuthRepo.On("UpdateUser", req.Context(), &foundUser).Return(nil).Once()
+		mockedUsersRepo.On("Update", req.Context(), &foundUser).Return(nil).Once()
 
 		result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
@@ -237,7 +233,6 @@ func TestUpdateUserHandler(t *testing.T) {
 		assert.Equal(t, "wadus", userRes.Name)
 		assert.True(t, userRes.IsAdmin)
 
-		mockedAuthRepo.AssertExpectations(t)
 		mockedUsersRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})

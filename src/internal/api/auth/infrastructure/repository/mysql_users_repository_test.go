@@ -193,3 +193,48 @@ func TestMySqlUsersRepositoryDelete_WhenItDoesNotFail(t *testing.T) {
 	assert.Nil(t, err)
 	helpers.CheckSqlMockExpectations(mock, t)
 }
+
+func TestMySqlUsersRepositoryUpdate_WhenItFails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
+
+	repo := NewMySqlUsersRepository(db)
+
+	expectedUpdateExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`passwordHash`=?,`isAdmin`=? WHERE `id` = ?")).
+			WithArgs("userName", "hash", false, 11)
+	}
+
+	mock.ExpectBegin()
+	expectedUpdateExec().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectRollback()
+
+	err := repo.Update(context.Background(), &user)
+
+	assert.EqualError(t, err, "some error")
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlUsersRepositoryUpdate_WhenItDoesNotFail(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
+
+	repo := NewMySqlUsersRepository(db)
+
+	expectedUpdateExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`passwordHash`=?,`isAdmin`=? WHERE `id` = ?")).
+			WithArgs("userName", "hash", false, 11)
+	}
+
+	mock.ExpectBegin()
+	expectedUpdateExec().WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectCommit()
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `id` = ? LIMIT 1")).
+		WithArgs(11).
+		WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user", "", false))
+
+	err := repo.Update(context.Background(), &user)
+
+	assert.Nil(t, err)
+	helpers.CheckSqlMockExpectations(mock, t)
+}

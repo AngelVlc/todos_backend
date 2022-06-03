@@ -8,8 +8,6 @@ import (
 )
 
 type AuthRepository interface {
-	UpdateUser(ctx context.Context, user *User) error
-
 	FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*RefreshToken, error)
 	CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *RefreshToken) error
 	DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error

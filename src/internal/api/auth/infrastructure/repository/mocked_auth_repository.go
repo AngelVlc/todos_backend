@@ -20,12 +20,6 @@ func NewMockedAuthRepository() *MockedAuthRepository {
 	return &MockedAuthRepository{}
 }
 
-func (m *MockedAuthRepository) UpdateUser(ctx context.Context, user *domain.User) error {
-	args := m.Called(ctx, user)
-
-	return args.Error(0)
-}
-
 func (m *MockedAuthRepository) FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*domain.RefreshToken, error) {
 	args := m.Called(ctx, refreshToken, userID)
 	if args.Get(0) == nil {

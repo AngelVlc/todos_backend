@@ -104,3 +104,49 @@ func TestMySqlUsersRepositoryGetAll_WhenTheQueryDoesNotFail(t *testing.T) {
 
 	helpers.CheckSqlMockExpectations(mock, t)
 }
+
+func TestMySqlUsersRepositoryCreate_WhenItFails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
+
+	repo := NewMySqlUsersRepository(db)
+
+	expectedInsertExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
+			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
+	}
+
+	mock.ExpectBegin()
+	expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectRollback()
+
+	err := repo.Create(context.Background(), &user)
+
+	assert.EqualError(t, err, "some error")
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlUsersRepositoryCreate_WhenItDoesNotFail(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
+
+	repo := NewMySqlUsersRepository(db)
+
+	expectedInsertExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
+			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
+	}
+
+	result := sqlmock.NewResult(12, 1)
+
+	mock.ExpectBegin()
+	expectedInsertExec().WillReturnResult(result)
+	mock.ExpectCommit()
+
+	err := repo.Create(context.Background(), &user)
+
+	assert.Nil(t, err)
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}

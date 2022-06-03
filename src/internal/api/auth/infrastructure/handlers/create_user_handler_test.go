@@ -85,10 +85,9 @@ func TestCreateUserHandlerValidations(t *testing.T) {
 }
 
 func TestCreateUserHandler(t *testing.T) {
-	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedPassGen := passgen.MockedPasswordGenerator{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
+	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
 
 	createReq := createUserRequest{Name: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
 	body, _ := json.Marshal(createReq)
@@ -131,13 +130,12 @@ func TestCreateUserHandler(t *testing.T) {
 		hassedPass := "hassed"
 		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
-		mockedAuthRepo.On("CreateUser", request.Context(), &user).Return(fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("Create", request.Context(), &user).Return(fmt.Errorf("some error")).Once()
 
 		result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
 		results.CheckUnexpectedErrorResult(t, result, "Error creating the user")
 		mockedUsersRepo.AssertExpectations(t)
-		mockedAuthRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})
 
@@ -147,7 +145,7 @@ func TestCreateUserHandler(t *testing.T) {
 		hassedPass := "hassed"
 		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
-		mockedAuthRepo.On("CreateUser", request.Context(), &user).Return(nil).Once().Run(func(args mock.Arguments) {
+		mockedUsersRepo.On("Create", request.Context(), &user).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(1).(*domain.User)
 			*arg = domain.User{ID: int32(1)}
 		})
@@ -160,7 +158,6 @@ func TestCreateUserHandler(t *testing.T) {
 		assert.Equal(t, int32(1), res.ID)
 
 		mockedUsersRepo.AssertExpectations(t)
-		mockedAuthRepo.AssertExpectations(t)
 		mockedPassGen.AssertExpectations(t)
 	})
 }

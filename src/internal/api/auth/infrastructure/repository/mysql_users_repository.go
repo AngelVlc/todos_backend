@@ -33,3 +33,7 @@ func (r *MySqlUsersRepository) GetAll(ctx context.Context) ([]domain.User, error
 	}
 	return res, nil
 }
+
+func (r *MySqlUsersRepository) Create(ctx context.Context, user *domain.User) error {
+	return r.db.WithContext(ctx).Create(user).Error
+}

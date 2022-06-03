@@ -31,3 +31,9 @@ func (m *MockedUsersRepository) GetAll(ctx context.Context) ([]domain.User, erro
 
 	return args.Get(0).([]domain.User), args.Error(1)
 }
+
+func (m *MockedUsersRepository) Create(ctx context.Context, user *domain.User) error {
+	args := m.Called(ctx, user)
+
+	return args.Error(0)
+}

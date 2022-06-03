@@ -21,10 +21,6 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
-func (r *MySqlAuthRepository) CreateUser(ctx context.Context, user *domain.User) error {
-	return r.db.WithContext(ctx).Create(user).Error
-}
-
 func (r *MySqlAuthRepository) DeleteUser(ctx context.Context, userID int32) error {
 	return r.db.WithContext(ctx).Delete(domain.User{ID: userID}).Error
 }

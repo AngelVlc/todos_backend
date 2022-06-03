@@ -23,44 +23,6 @@ var (
 	refreshTokenColumns = []string{"id", "userId", "refreshToken", "expirationDate"}
 )
 
-func TestMySqlAuthRepositoryCreateUser(t *testing.T) {
-	mock, db := helpers.GetMockedDb(t)
-	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
-
-	repo := NewMySqlAuthRepository(db)
-
-	expectedInsertExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
-			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
-	}
-
-	t.Run("should return an error if creating the new user fails", func(t *testing.T) {
-		mock.ExpectBegin()
-		expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
-		mock.ExpectRollback()
-
-		err := repo.CreateUser(context.Background(), &user)
-
-		assert.EqualError(t, err, "some error")
-
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-
-	t.Run("should create the new user", func(t *testing.T) {
-		result := sqlmock.NewResult(12, 1)
-
-		mock.ExpectBegin()
-		expectedInsertExec().WillReturnResult(result)
-		mock.ExpectCommit()
-
-		err := repo.CreateUser(context.Background(), &user)
-
-		assert.Nil(t, err)
-
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-}
-
 func TestMySqlAuthRepositoryDeleteUser(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)

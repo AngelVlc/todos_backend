@@ -16,17 +16,6 @@ func NewMySqlListsRepository(db *gorm.DB) *MySqlListsRepository {
 	return &MySqlListsRepository{db}
 }
 
-func (r *MySqlListsRepository) ExistsList(ctx context.Context, name domain.ListName, userID int32) (bool, error) {
-	count := int64(0)
-	err := r.db.WithContext(ctx).Model(&domain.List{}).Where(domain.List{Name: name, UserID: userID}).Count(&count).Error
-
-	if err != nil {
-		return false, err
-	}
-
-	return count > 0, nil
-}
-
 func (r *MySqlListsRepository) FindList(ctx context.Context, list *domain.List) (*domain.List, error) {
 	found := domain.List{}
 	err := r.db.WithContext(ctx).Where(list).Take(&found).Error

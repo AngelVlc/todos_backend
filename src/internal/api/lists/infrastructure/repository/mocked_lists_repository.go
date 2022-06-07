@@ -15,12 +15,6 @@ func NewMockedListsRepository() *MockedListsRepository {
 	return &MockedListsRepository{}
 }
 
-func (m *MockedListsRepository) ExistsList(ctx context.Context, name domain.ListName, userID int32) (bool, error) {
-	args := m.Called(ctx, name, userID)
-
-	return args.Bool(0), args.Error(1)
-}
-
 func (m *MockedListsRepository) FindList(ctx context.Context, list *domain.List) (*domain.List, error) {
 	args := m.Called(ctx, list)
 	if args.Get(0) == nil {

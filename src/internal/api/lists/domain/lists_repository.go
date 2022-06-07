@@ -3,7 +3,6 @@ package domain
 import "context"
 
 type ListsRepository interface {
-	ExistsList(ctx context.Context, name ListName, userID int32) (bool, error)
 	FindList(ctx context.Context, list *List) (*List, error)
 	GetAllLists(ctx context.Context, userID int32) ([]List, error)
 	CreateList(ctx context.Context, list *List) error

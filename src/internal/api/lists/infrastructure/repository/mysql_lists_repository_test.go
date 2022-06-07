@@ -21,41 +21,6 @@ var (
 	listItemsColumns = []string{"id", "listId", "title", "description", "position"}
 )
 
-func TestMySqlListsRepositoryExistsList(t *testing.T) {
-	mock, db := helpers.GetMockedDb(t)
-	repo := NewMySqlListsRepository(db)
-
-	name := domain.ListName("list name")
-	userID := int32(1)
-
-	expectedExistsListQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
-			WithArgs(name, userID)
-	}
-
-	t.Run("should return an error if the query fails", func(t *testing.T) {
-		expectedExistsListQuery().WillReturnError(fmt.Errorf("some error"))
-
-		res, err := repo.ExistsList(context.Background(), name, userID)
-
-		assert.False(t, res)
-		assert.EqualError(t, err, "some error")
-
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-
-	t.Run("should return true if the list exists", func(t *testing.T) {
-		expectedExistsListQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
-
-		res, err := repo.ExistsList(context.Background(), name, userID)
-
-		assert.True(t, res)
-		assert.Nil(t, err)
-
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
-}
-
 func TestMySqlListsRepositoryFindList_WhenTheQueryFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)

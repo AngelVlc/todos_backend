@@ -56,7 +56,7 @@ func TestMySqlListsRepositoryExistsList(t *testing.T) {
 	})
 }
 
-func TestMySqlListsRepositoryFindListByID(t *testing.T) {
+func TestMySqlListsRepositoryFindList_WhenTheQueryFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
@@ -68,31 +68,40 @@ func TestMySqlListsRepositoryFindListByID(t *testing.T) {
 			WithArgs(listID, userID)
 	}
 
-	t.Run("should return an error if the query fails", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
+	expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-		res, err := repo.FindListByID(context.Background(), listID, userID)
+	res, err := repo.FindList(context.Background(), &domain.List{ID: listID, UserID: userID})
 
-		assert.Nil(t, res)
-		assert.EqualError(t, err, "some error")
+	assert.Nil(t, res)
+	assert.EqualError(t, err, "some error")
 
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
+	helpers.CheckSqlMockExpectations(mock, t)
+}
 
-	t.Run("should return the user if it exists", func(t *testing.T) {
-		expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID, int32(3)))
+func TestMySqlListsRepositoryFindList_WhenTheQueryDoesNotFail(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlListsRepository(db)
 
-		res, err := repo.FindListByID(context.Background(), listID, userID)
+	listID := int32(11)
+	userID := int32(1)
 
-		require.NotNil(t, res)
-		assert.Equal(t, listID, res.ID)
-		assert.Equal(t, domain.ListName("list1"), res.Name)
-		assert.Equal(t, userID, res.UserID)
-		assert.Equal(t, int32(3), res.ItemsCount)
-		assert.Nil(t, err)
+	expectedFindByIDQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")).
+			WithArgs(listID, userID)
+	}
 
-		helpers.CheckSqlMockExpectations(mock, t)
-	})
+	expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID, int32(3)))
+
+	res, err := repo.FindList(context.Background(), &domain.List{ID: listID, UserID: userID})
+
+	require.NotNil(t, res)
+	assert.Equal(t, listID, res.ID)
+	assert.Equal(t, domain.ListName("list1"), res.Name)
+	assert.Equal(t, userID, res.UserID)
+	assert.Equal(t, int32(3), res.ItemsCount)
+	assert.Nil(t, err)
+
+	helpers.CheckSqlMockExpectations(mock, t)
 }
 
 func TestMySqlListsRepositoryGetAllLists(t *testing.T) {

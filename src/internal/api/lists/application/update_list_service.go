@@ -16,7 +16,7 @@ func NewUpdateListService(repo domain.ListsRepository) *UpdateListService {
 }
 
 func (s *UpdateListService) UpdateList(ctx context.Context, listID int32, name domain.ListName, userID int32, IDsByPosition []int32) (*domain.List, error) {
-	foundList, err := s.repo.FindListByID(ctx, listID, userID)
+	foundList, err := s.repo.FindList(ctx, &domain.List{ID: listID, UserID: userID})
 	if err != nil {
 		return nil, err
 	}

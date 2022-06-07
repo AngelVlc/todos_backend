@@ -33,7 +33,7 @@ func TestDeletesListHandler(t *testing.T) {
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	t.Run("Should return an error if the query to find the list fails", func(t *testing.T) {
-		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := DeleteListHandler(httptest.NewRecorder(), request(), h)
 
@@ -43,7 +43,7 @@ func TestDeletesListHandler(t *testing.T) {
 
 	t.Run("Should return an errorResult with an UnexpectedError if the delete fails", func(t *testing.T) {
 		list := domain.List{ID: 11, Name: "list1"}
-		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 		mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
 
 		result := DeleteListHandler(httptest.NewRecorder(), request(), h)
@@ -54,7 +54,7 @@ func TestDeletesListHandler(t *testing.T) {
 
 	t.Run("should delete the list", func(t *testing.T) {
 		list := domain.List{ID: 11, Name: "list1"}
-		mockedRepo.On("FindListByID", request().Context(), int32(11), int32(1)).Return(&list, nil).Once()
+		mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 		mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(nil).Once()
 
 		result := DeleteListHandler(httptest.NewRecorder(), request(), h)

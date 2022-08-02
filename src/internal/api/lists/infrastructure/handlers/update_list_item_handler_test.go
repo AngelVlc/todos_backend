@@ -72,7 +72,7 @@ func TestUpdateListItemHandler(t *testing.T) {
 	}
 
 	t.Run("Should return an errorResult with an UnexpectedError if the query to find the list item fails", func(t *testing.T) {
-		mockedRepo.On("FindListItemByID", request().Context(), int32(111), int32(11), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+		mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 		result := UpdateListItemHandler(httptest.NewRecorder(), request(), h)
 
@@ -82,7 +82,7 @@ func TestUpdateListItemHandler(t *testing.T) {
 
 	t.Run("Should return an error result with an UnexpectedError if update list item fails", func(t *testing.T) {
 		listItem := domain.ListItem{ID: 1, ListID: 11, Title: domain.ItemTitle("title"), Description: "desc", UserID: int32(1)}
-		mockedRepo.On("FindListItemByID", request().Context(), int32(111), int32(11), int32(1)).Return(&listItem, nil).Once()
+		mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
 		mockedRepo.On("UpdateListItem", request().Context(), &listItem).Return(fmt.Errorf("some error")).Once()
 
 		result := UpdateListItemHandler(httptest.NewRecorder(), request(), h)
@@ -93,7 +93,7 @@ func TestUpdateListItemHandler(t *testing.T) {
 
 	t.Run("should update the list item", func(t *testing.T) {
 		listItem := domain.ListItem{ID: 1, ListID: 11, Title: domain.ItemTitle("oriTitle"), Description: "oriDesc", UserID: int32(1)}
-		mockedRepo.On("FindListItemByID", request().Context(), int32(111), int32(11), int32(1)).Return(&listItem, nil).Once()
+		mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
 		mockedRepo.On("UpdateListItem", request().Context(), &listItem).Return(nil).Once().Run(func(args mock.Arguments) {
 			arg := args.Get(1).(*domain.ListItem)
 			*arg = domain.ListItem{Title: "title", Description: "desc"}

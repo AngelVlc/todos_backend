@@ -78,6 +78,15 @@ func (m *MockedListsRepository) FindListItemByID(ctx context.Context, itemID int
 	return args.Get(0).(*domain.ListItem), args.Error(1)
 }
 
+func (m *MockedListsRepository) FindListItem(ctx context.Context, listItem *domain.ListItem) (*domain.ListItem, error) {
+	args := m.Called(ctx, listItem)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*domain.ListItem), args.Error(1)
+}
+
 func (m *MockedListsRepository) CreateListItem(ctx context.Context, listItem *domain.ListItem) error {
 	args := m.Called(ctx, listItem)
 

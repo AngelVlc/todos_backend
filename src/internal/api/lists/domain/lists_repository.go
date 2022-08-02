@@ -11,7 +11,7 @@ type ListsRepository interface {
 	IncrementListCounter(ctx context.Context, listID int32) error
 	DecrementListCounter(ctx context.Context, listID int32) error
 
-	FindListItemByID(ctx context.Context, itemID int32, listID int32, userID int32) (*ListItem, error)
+	FindListItem(ctx context.Context, listItem *ListItem) (*ListItem, error)
 	GetAllListItems(ctx context.Context, listID int32, userID int32) ([]ListItem, error)
 	CreateListItem(ctx context.Context, listItem *ListItem) error
 	DeleteListItem(ctx context.Context, itemID int32, listID int32, userID int32) error

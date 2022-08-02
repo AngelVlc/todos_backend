@@ -55,9 +55,9 @@ func (r *MySqlListsRepository) DecrementListCounter(ctx context.Context, listID 
 	return r.db.WithContext(ctx).Model(domain.List{}).Where(domain.List{ID: listID}).UpdateColumn("itemsCount", gorm.Expr("itemsCount - ?", 1)).Error
 }
 
-func (r *MySqlListsRepository) FindListItemByID(ctx context.Context, itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
+func (r *MySqlListsRepository) FindListItem(ctx context.Context, listItem *domain.ListItem) (*domain.ListItem, error) {
 	found := domain.ListItem{}
-	err := r.db.WithContext(ctx).Where(domain.ListItem{ID: itemID, ListID: listID, UserID: userID}).Take(&found).Error
+	err := r.db.WithContext(ctx).Where(listItem).Take(&found).Error
 
 	if err != nil {
 		return nil, err

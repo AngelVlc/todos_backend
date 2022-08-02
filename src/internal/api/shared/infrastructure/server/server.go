@@ -24,6 +24,7 @@ import (
 type server struct {
 	http.Handler
 	authRepo    authDomain.AuthRepository
+	usersRepo   authDomain.UsersRepository
 	listsRepo   listsDomain.ListsRepository
 	cfgSrv      sharedApp.ConfigurationService
 	tokenSrv    authDomain.TokenService
@@ -37,6 +38,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 
 	s := server{
 		authRepo:    wire.InitAuthRepository(db),
+		usersRepo:   wire.InitUsersRepository(db),
 		listsRepo:   wire.InitListsRepository(db),
 		cfgSrv:      wire.InitConfigurationService(),
 		tokenSrv:    wire.InitTokenService(),
@@ -111,7 +113,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.authRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus)
+	return handler.NewHandler(handlerFunc, s.authRepo, s.usersRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus)
 }
 
 func (s *server) addSubscriber(subscriber events.Subscriber) {

@@ -16,7 +16,7 @@ func RefreshTokenHandler(w http.ResponseWriter, r *http.Request, h handler.Handl
 		return results.ErrorResult{Err: err}
 	}
 
-	srv := application.NewRefreshTokenService(h.AuthRepository, h.CfgSrv, h.TokenSrv)
+	srv := application.NewRefreshTokenService(h.AuthRepository, h.UsersRepository, h.CfgSrv, h.TokenSrv)
 	newToken, err := srv.RefreshToken(r.Context(), rt)
 	if err != nil {
 		return results.ErrorResult{Err: err}

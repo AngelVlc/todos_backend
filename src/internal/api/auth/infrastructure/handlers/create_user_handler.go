@@ -43,7 +43,7 @@ func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: &appErrors.BadRequestError{Msg: "Passwords don't match"}}
 	}
 
-	srv := application.NewCreateUserService(h.AuthRepository, h.PassGen)
+	srv := application.NewCreateUserService(h.UsersRepository, h.PassGen)
 	newUser, err := srv.CreateUser(r.Context(), userName, password, createReq.IsAdmin)
 	if err != nil {
 		return results.ErrorResult{Err: err}

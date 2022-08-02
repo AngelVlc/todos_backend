@@ -21,6 +21,7 @@ import (
 type Handler struct {
 	HandlerFunc
 	AuthRepository  authDomain.AuthRepository
+	UsersRepository authDomain.UsersRepository
 	ListsRepository listsDomain.ListsRepository
 	CfgSrv          sharedApp.ConfigurationService
 	TokenSrv        authDomain.TokenService
@@ -34,6 +35,7 @@ type HandlerResult interface {
 
 func NewHandler(f HandlerFunc,
 	authRepo authDomain.AuthRepository,
+	usersRepo authDomain.UsersRepository,
 	listsRepo listsDomain.ListsRepository,
 	cfgSrv sharedApp.ConfigurationService,
 	tokenSrv authDomain.TokenService,
@@ -43,6 +45,7 @@ func NewHandler(f HandlerFunc,
 	return Handler{
 		HandlerFunc:     f,
 		AuthRepository:  authRepo,
+		UsersRepository: usersRepo,
 		ListsRepository: listsRepo,
 		CfgSrv:          cfgSrv,
 		PassGen:         passGen,

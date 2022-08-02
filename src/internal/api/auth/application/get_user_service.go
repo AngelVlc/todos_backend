@@ -7,13 +7,13 @@ import (
 )
 
 type GetUserService struct {
-	repo domain.AuthRepository
+	repo domain.UsersRepository
 }
 
-func NewGetUserService(repo domain.AuthRepository) *GetUserService {
+func NewGetUserService(repo domain.UsersRepository) *GetUserService {
 	return &GetUserService{repo}
 }
 
 func (s *GetUserService) GetUser(ctx context.Context, userID int32) (*domain.User, error) {
-	return s.repo.FindUserByID(ctx, userID)
+	return s.repo.FindUser(ctx, &domain.User{ID: userID})
 }

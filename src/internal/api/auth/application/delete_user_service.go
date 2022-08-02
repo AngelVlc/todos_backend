@@ -9,15 +9,15 @@ import (
 )
 
 type DeleteUserService struct {
-	repo domain.AuthRepository
+	usersRepo domain.UsersRepository
 }
 
-func NewDeleteUserService(repo domain.AuthRepository) *DeleteUserService {
-	return &DeleteUserService{repo}
+func NewDeleteUserService(usersRepo domain.UsersRepository) *DeleteUserService {
+	return &DeleteUserService{usersRepo}
 }
 
 func (s *DeleteUserService) DeleteUser(ctx context.Context, userID int32) error {
-	foundUser, err := s.repo.FindUserByID(ctx, userID)
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{ID: userID})
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func (s *DeleteUserService) DeleteUser(ctx context.Context, userID int32) error 
 		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
 	}
 
-	err = s.repo.DeleteUser(ctx, userID)
+	err = s.usersRepo.Delete(ctx, &domain.User{ID: userID})
 	if err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting the user", InternalError: err}
 	}

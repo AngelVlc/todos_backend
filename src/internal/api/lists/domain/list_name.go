@@ -17,12 +17,12 @@ func NewListName(name string) (ListName, error) {
 }
 
 func (l ListName) CheckIfAlreadyExists(ctx context.Context, userID int32, repo ListsRepository) error {
-	existsList, err := repo.ExistsList(ctx, l, userID)
+	existsList, err := repo.FindList(ctx, &List{Name: l, UserID: userID})
 	if err != nil {
 		return err
 	}
 
-	if existsList {
+	if existsList != nil {
 		return &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
 	}
 

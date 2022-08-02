@@ -21,45 +21,6 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
-func (r *MySqlAuthRepository) ExistsUser(ctx context.Context, userName domain.UserName) (bool, error) {
-	count := int64(0)
-	err := r.db.WithContext(ctx).Model(&domain.User{}).Where(domain.User{Name: userName}).Count(&count).Error
-
-	if err != nil {
-		return false, err
-	}
-
-	return count > 0, nil
-}
-
-func (r *MySqlAuthRepository) FindUserByName(ctx context.Context, userName domain.UserName) (*domain.User, error) {
-	return r.findUser(ctx, domain.User{Name: userName})
-}
-
-func (r *MySqlAuthRepository) FindUserByID(ctx context.Context, userID int32) (*domain.User, error) {
-	return r.findUser(ctx, domain.User{ID: userID})
-}
-
-func (r *MySqlAuthRepository) GetAllUsers(ctx context.Context) ([]domain.User, error) {
-	res := []domain.User{}
-	if err := r.db.WithContext(ctx).Select("id,name,isAdmin").Find(&res).Error; err != nil {
-		return nil, err
-	}
-	return res, nil
-}
-
-func (r *MySqlAuthRepository) CreateUser(ctx context.Context, user *domain.User) error {
-	return r.db.WithContext(ctx).Create(user).Error
-}
-
-func (r *MySqlAuthRepository) DeleteUser(ctx context.Context, userID int32) error {
-	return r.db.WithContext(ctx).Delete(domain.User{ID: userID}).Error
-}
-
-func (r *MySqlAuthRepository) UpdateUser(ctx context.Context, user *domain.User) error {
-	return r.db.WithContext(ctx).Save(&user).Error
-}
-
 func (r *MySqlAuthRepository) FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*domain.RefreshToken, error) {
 	found := domain.RefreshToken{}
 	err := r.db.WithContext(ctx).Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).Take(&found).Error

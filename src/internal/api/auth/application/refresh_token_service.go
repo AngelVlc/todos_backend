@@ -9,13 +9,14 @@ import (
 )
 
 type RefreshTokenService struct {
-	repo     domain.AuthRepository
-	cfgSvr   sharedApp.ConfigurationService
-	tokenSrv domain.TokenService
+	authRepo  domain.AuthRepository
+	usersRepo domain.UsersRepository
+	cfgSvr    sharedApp.ConfigurationService
+	tokenSrv  domain.TokenService
 }
 
-func NewRefreshTokenService(repo domain.AuthRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *RefreshTokenService {
-	return &RefreshTokenService{repo, cfgSvr, tokenSrv}
+func NewRefreshTokenService(authRepo domain.AuthRepository, usersRepo domain.UsersRepository, cfgSvr sharedApp.ConfigurationService, tokenSrv domain.TokenService) *RefreshTokenService {
+	return &RefreshTokenService{authRepo, usersRepo, cfgSvr, tokenSrv}
 }
 
 func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (string, error) {
@@ -26,12 +27,12 @@ func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (stri
 
 	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
-	foundUser, err := s.repo.FindUserByID(ctx, rtInfo.UserID)
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{ID: rtInfo.UserID})
 	if err != nil {
 		return "", err
 	}
 
-	foundRefreshToken, err := s.repo.FindRefreshTokenForUser(ctx, rt, rtInfo.UserID)
+	foundRefreshToken, err := s.authRepo.FindRefreshTokenForUser(ctx, rt, rtInfo.UserID)
 	if err != nil {
 		return "", &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
 	}

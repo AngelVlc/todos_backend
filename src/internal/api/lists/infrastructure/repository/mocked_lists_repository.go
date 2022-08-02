@@ -15,14 +15,8 @@ func NewMockedListsRepository() *MockedListsRepository {
 	return &MockedListsRepository{}
 }
 
-func (m *MockedListsRepository) ExistsList(ctx context.Context, name domain.ListName, userID int32) (bool, error) {
-	args := m.Called(ctx, name, userID)
-
-	return args.Bool(0), args.Error(1)
-}
-
-func (m *MockedListsRepository) FindListByID(ctx context.Context, listID int32, userID int32) (*domain.List, error) {
-	args := m.Called(ctx, listID, userID)
+func (m *MockedListsRepository) FindList(ctx context.Context, list *domain.List) (*domain.List, error) {
+	args := m.Called(ctx, list)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
@@ -77,6 +71,15 @@ func (m *MockedListsRepository) GetAllListItems(ctx context.Context, listID int3
 
 func (m *MockedListsRepository) FindListItemByID(ctx context.Context, itemID int32, listID int32, userID int32) (*domain.ListItem, error) {
 	args := m.Called(ctx, itemID, listID, userID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+
+	return args.Get(0).(*domain.ListItem), args.Error(1)
+}
+
+func (m *MockedListsRepository) FindListItem(ctx context.Context, listItem *domain.ListItem) (*domain.ListItem, error) {
+	args := m.Called(ctx, listItem)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

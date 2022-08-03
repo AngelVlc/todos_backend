@@ -23,6 +23,12 @@ func (m *MockedUsersRepository) FindUser(ctx context.Context, filter *domain.Use
 	return args.Get(0).(*domain.User), args.Error(1)
 }
 
+func (m *MockedUsersRepository) ExistsUser(ctx context.Context, filter *domain.User) (bool, error) {
+	args := m.Called(ctx, filter)
+
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockedUsersRepository) GetAll(ctx context.Context) ([]domain.User, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {

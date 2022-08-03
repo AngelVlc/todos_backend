@@ -26,6 +26,17 @@ func (r *MySqlUsersRepository) FindUser(ctx context.Context, filter *domain.User
 	return &foundUser, nil
 }
 
+func (r *MySqlUsersRepository) ExistsUser(ctx context.Context, filter *domain.User) (bool, error) {
+	count := int64(0)
+	err := r.db.WithContext(ctx).Model(&domain.User{}).Where(filter).Count(&count).Error
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
 func (r *MySqlUsersRepository) GetAll(ctx context.Context) ([]domain.User, error) {
 	res := []domain.User{}
 	if err := r.db.WithContext(ctx).Find(&res).Error; err != nil {

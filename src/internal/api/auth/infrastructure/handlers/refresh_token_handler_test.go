@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRefreshTokenHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_There_Is_Not_A_Refresh_Token_Cookie(t *testing.T) {
+func TestRefreshTokenHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_There_Is_Not_A_Refresh_Token_Cookie(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)

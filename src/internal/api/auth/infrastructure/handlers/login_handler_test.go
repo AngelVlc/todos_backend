@@ -25,7 +25,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -35,7 +35,7 @@ func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_I
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_LoginRequest(t *testing.T) {
+func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_LoginRequest(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
@@ -45,7 +45,7 @@ func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_I
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginRequest_Has_An_Empty_UserName(t *testing.T) {
+func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginRequest_Has_An_Empty_UserName(t *testing.T) {
 	h := handler.Handler{}
 
 	loginReq := loginRequest{UserName: ""}
@@ -57,7 +57,7 @@ func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_I
 	results.CheckBadRequestErrorResult(t, result, "UserName can not be empty")
 }
 
-func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginRequest_Does_Not_Have_Password(t *testing.T) {
+func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginRequest_Does_Not_Have_Password(t *testing.T) {
 	h := handler.Handler{}
 
 	loginReq := loginRequest{UserName: "wadus", Password: ""}

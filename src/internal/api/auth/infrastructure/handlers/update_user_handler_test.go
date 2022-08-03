@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestUpdateUserHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -34,7 +34,7 @@ func TestUpdateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestEr
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestUpdateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_UpdateUserRequest(t *testing.T) {
+func TestUpdateUserHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_UpdateUserRequest(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
@@ -44,7 +44,7 @@ func TestUpdateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestEr
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestUpdateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Has_Passwords_But_They_Do_Not_Match(t *testing.T) {
+func TestUpdateUserHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Has_Passwords_But_They_Do_Not_Match(t *testing.T) {
 	h := handler.Handler{}
 
 	updateReq := updateUserRequest{Name: "wadus", Password: "one", ConfirmPassword: "another"}

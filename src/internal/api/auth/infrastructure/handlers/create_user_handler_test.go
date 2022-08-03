@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestCreateUserHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	h := handler.Handler{}
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
 
@@ -32,7 +32,7 @@ func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestEr
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestCreateUserHandlerValidations_Returns_A_BadRequesError_If_The_Body_Is_Not_A_CreateUserRequest(t *testing.T) {
+func TestCreateUserHandler_Validations_Returns_A_BadRequesError_If_The_Body_Is_Not_A_CreateUserRequest(t *testing.T) {
 	h := handler.Handler{}
 	request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
 
@@ -41,7 +41,7 @@ func TestCreateUserHandlerValidations_Returns_A_BadRequesError_If_The_Body_Is_No
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestCreateUserHandlerValidations_Returns_A_BadRequest_Error_If_Its_A_Create_Admin_Request_With_Not_Admin_UserName_(t *testing.T) {
+func TestCreateUserHandler_Validations_Returns_A_BadRequest_Error_If_Its_A_Create_Admin_Request_With_Not_Admin_UserName_(t *testing.T) {
 	h := handler.Handler{}
 	createReq := createUserRequest{Name: "another"}
 	body, _ := json.Marshal(createReq)
@@ -53,7 +53,7 @@ func TestCreateUserHandlerValidations_Returns_A_BadRequest_Error_If_Its_A_Create
 	results.CheckBadRequestErrorResult(t, result, "/auth/createadmin only can be used to create the admin user")
 }
 
-func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Has_An_Empty_UserName(t *testing.T) {
+func TestCreateUserHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Has_An_Empty_UserName(t *testing.T) {
 	h := handler.Handler{}
 	createReq := createUserRequest{Name: ""}
 	body, _ := json.Marshal(createReq)
@@ -64,7 +64,7 @@ func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestEr
 	results.CheckBadRequestErrorResult(t, result, "UserName can not be empty")
 }
 
-func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Does_Not_Have_Password(t *testing.T) {
+func TestCreateUserHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Does_Not_Have_Password(t *testing.T) {
 	h := handler.Handler{}
 
 	createReq := createUserRequest{Name: "Wadus", Password: ""}
@@ -76,7 +76,7 @@ func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestEr
 	results.CheckBadRequestErrorResult(t, result, "Password can not be empty")
 }
 
-func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Passwords_Do_Not_Match(t *testing.T) {
+func TestCreateUserHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Passwords_Do_Not_Match(t *testing.T) {
 	h := handler.Handler{}
 
 	createReq := createUserRequest{Name: "Wadus", Password: "pass", ConfirmPassword: "othePass"}

@@ -27,7 +27,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateListItemHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	request := func(body io.Reader) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
 		request = mux.SetURLVars(request, map[string]string{
@@ -44,7 +44,7 @@ func TestCreateListItemHandlerValidations_Returns_An_ErrorResult_With_A_BadReque
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestCreateListItemHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_CreateListItemRequest(t *testing.T) {
+func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_CreateListItemRequest(t *testing.T) {
 	request := func(body io.Reader) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
 		request = mux.SetURLVars(request, map[string]string{
@@ -61,7 +61,7 @@ func TestCreateListItemHandlerValidations_Returns_An_ErrorResult_With_A_BadReque
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestCreateListItemHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateListItemRequest_Has_An_Empty_Title(t *testing.T) {
+func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateListItemRequest_Has_An_Empty_Title(t *testing.T) {
 	request := func(body io.Reader) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
 		request = mux.SetURLVars(request, map[string]string{

@@ -25,7 +25,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateListItemHandlerValidations_Returns_An_Error_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestUpdateListItemHandler_Validations_Returns_An_Error_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	request := func(body io.Reader) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
 		ctx := request.Context()
@@ -40,7 +40,7 @@ func TestUpdateListItemHandlerValidations_Returns_An_Error_If_The_Request_Does_N
 	results.CheckError(t, result, "Invalid body")
 }
 
-func TestUpdateListItemHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_UpdateListItemRequest_Has_An_Empty_Title(t *testing.T) {
+func TestUpdateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_UpdateListItemRequest_Has_An_Empty_Title(t *testing.T) {
 	request := func(body io.Reader) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
 		ctx := request.Context()

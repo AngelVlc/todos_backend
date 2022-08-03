@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetUserHandler(t *testing.T) {
+func TestGetUserHandler_Returns_An_Error_If_The_Query_Fails(t *testing.T) {
 	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
@@ -31,28 +31,37 @@ func TestGetUserHandler(t *testing.T) {
 	mockedRepo := authRepository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedRepo}
 
-	t.Run("Should return an error if the query to find the user fails", func(t *testing.T) {
-		mockedRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
-		result := GetUserHandler(httptest.NewRecorder(), request(), h)
+	result := GetUserHandler(httptest.NewRecorder(), request(), h)
 
-		results.CheckError(t, result, "some error")
-		mockedRepo.AssertExpectations(t)
-	})
+	results.CheckError(t, result, "some error")
+	mockedRepo.AssertExpectations(t)
+}
 
-	t.Run("should return the user", func(t *testing.T) {
-		user := domain.User{ID: 2, Name: "user1", IsAdmin: true}
-		mockedRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(&user, nil).Once()
+func TestGetUserHandler_Returns_The_User(t *testing.T) {
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "1",
+		})
+		return request
+	}
 
-		result := GetUserHandler(httptest.NewRecorder(), request(), h)
+	mockedRepo := authRepository.MockedUsersRepository{}
+	h := handler.Handler{UsersRepository: &mockedRepo}
 
-		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		userRes, isOk := okRes.Content.(*infrastructure.UserResponse)
-		require.Equal(t, true, isOk, "should be a user response")
+	user := domain.User{ID: 2, Name: "user1", IsAdmin: true}
+	mockedRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(&user, nil).Once()
 
-		assert.Equal(t, int32(2), userRes.ID)
-		assert.Equal(t, "user1", userRes.Name)
-		assert.True(t, userRes.IsAdmin)
-		mockedRepo.AssertExpectations(t)
-	})
+	result := GetUserHandler(httptest.NewRecorder(), request(), h)
+
+	okRes := results.CheckOkResult(t, result, http.StatusOK)
+	userRes, isOk := okRes.Content.(*infrastructure.UserResponse)
+	require.Equal(t, true, isOk, "should be a user response")
+
+	assert.Equal(t, int32(2), userRes.ID)
+	assert.Equal(t, "user1", userRes.Name)
+	assert.True(t, userRes.IsAdmin)
+	mockedRepo.AssertExpectations(t)
 }

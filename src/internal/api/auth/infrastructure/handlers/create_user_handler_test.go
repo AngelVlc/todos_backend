@@ -23,68 +23,72 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateUserHandlerValidations(t *testing.T) {
+func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	h := handler.Handler{}
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
 
-	t.Run("Should return an errorResult with a BadRequestError if the request does not have body", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/", nil)
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckBadRequestErrorResult(t, result, "Invalid body")
-	})
-
-	t.Run("Should return an errorResult with a BadRequestError if the body is not a create user request", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
-
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckBadRequestErrorResult(t, result, "Invalid body")
-	})
-
-	t.Run("Should return an errorResult with a BadRequestError if its a create admin request with a user name different from admin", func(t *testing.T) {
-		createReq := createUserRequest{Name: "another"}
-		body, _ := json.Marshal(createReq)
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		request.RequestURI = "/auth/createadmin"
-
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckBadRequestErrorResult(t, result, "/auth/createadmin only can be used to create the admin user")
-	})
-
-	t.Run("Should return an errorResult with a BadRequestError if the create user request has an empty userName", func(t *testing.T) {
-		createReq := createUserRequest{Name: ""}
-		body, _ := json.Marshal(createReq)
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckBadRequestErrorResult(t, result, "UserName can not be empty")
-	})
-
-	t.Run("Should return an errorResult with a BadRequestError if the create user request does not have password", func(t *testing.T) {
-		createReq := createUserRequest{Name: "Wadus", Password: ""}
-		body, _ := json.Marshal(createReq)
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckBadRequestErrorResult(t, result, "Password can not be empty")
-	})
-
-	t.Run("Should return an errorResult with a BadRequestError if the create user request passwords don't match", func(t *testing.T) {
-		createReq := createUserRequest{Name: "Wadus", Password: "pass", ConfirmPassword: "othePass"}
-		body, _ := json.Marshal(createReq)
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckBadRequestErrorResult(t, result, "Passwords don't match")
-	})
+	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestCreateUserHandler(t *testing.T) {
+func TestCreateUserHandlerValidations_Returns_A_BadRequesError_If_The_Body_Is_Not_A_CreateUserRequest(t *testing.T) {
+	h := handler.Handler{}
+	request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
+
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+	results.CheckBadRequestErrorResult(t, result, "Invalid body")
+}
+
+func TestCreateUserHandlerValidations_Returns_A_BadRequest_Error_If_Its_A_Create_Admin_Request_With_Not_Admin_UserName_(t *testing.T) {
+	h := handler.Handler{}
+	createReq := createUserRequest{Name: "another"}
+	body, _ := json.Marshal(createReq)
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request.RequestURI = "/auth/createadmin"
+
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+	results.CheckBadRequestErrorResult(t, result, "/auth/createadmin only can be used to create the admin user")
+}
+
+func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_CreateUserRequest_Has_An_Empty_UserName(t *testing.T) {
+	h := handler.Handler{}
+	createReq := createUserRequest{Name: ""}
+	body, _ := json.Marshal(createReq)
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+	results.CheckBadRequestErrorResult(t, result, "UserName can not be empty")
+}
+
+func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_CreateUserRequest_Does_Not_Have_Password(t *testing.T) {
+	h := handler.Handler{}
+
+	createReq := createUserRequest{Name: "Wadus", Password: ""}
+	body, _ := json.Marshal(createReq)
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+	results.CheckBadRequestErrorResult(t, result, "Password can not be empty")
+}
+
+func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_CreateUserRequest_Passwords_Do_Not_Match(t *testing.T) {
+	h := handler.Handler{}
+
+	createReq := createUserRequest{Name: "Wadus", Password: "pass", ConfirmPassword: "othePass"}
+	body, _ := json.Marshal(createReq)
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+	results.CheckBadRequestErrorResult(t, result, "Passwords don't match")
+}
+
+func TestCreateUserHandler_Returns_An_Error_If_The_Query_To_Check_If_The_User_Exists_Fails(t *testing.T) {
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedPassGen := passgen.MockedPasswordGenerator{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
@@ -92,72 +96,98 @@ func TestCreateUserHandler(t *testing.T) {
 	createReq := createUserRequest{Name: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
 	body, _ := json.Marshal(createReq)
 
-	t.Run("Should return an error if the query to check if the user exists fails", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, fmt.Errorf("some error")).Once()
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, fmt.Errorf("some error")).Once()
 
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
-		results.CheckError(t, result, "some error")
-		mockedUsersRepo.AssertExpectations(t)
+	results.CheckError(t, result, "some error")
+	mockedUsersRepo.AssertExpectations(t)
+}
+
+func TestCreateUserHandler_Returns_A_BadRequest_Error_If_A_User_With_The_Same_Name_Already_Exist(t *testing.T) {
+	mockedUsersRepo := authRepository.MockedUsersRepository{}
+	mockedPassGen := passgen.MockedPasswordGenerator{}
+	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
+
+	createReq := createUserRequest{Name: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
+	body, _ := json.Marshal(createReq)
+
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(true, nil).Once()
+
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+	results.CheckBadRequestErrorResult(t, result, "A user with the same user name already exists")
+	mockedUsersRepo.AssertExpectations(t)
+}
+
+func TestCreateUserHandler_Returns_An_UnexpectedError_If_The_User_Does_Not_Exist_But_Generating_The_Password_Fails(t *testing.T) {
+	mockedUsersRepo := authRepository.MockedUsersRepository{}
+	mockedPassGen := passgen.MockedPasswordGenerator{}
+	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
+
+	createReq := createUserRequest{Name: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
+	body, _ := json.Marshal(createReq)
+
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
+	mockedPassGen.On("GenerateFromPassword", "pass").Return("", fmt.Errorf("some error")).Once()
+
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+	results.CheckUnexpectedErrorResult(t, result, "Error encrypting password")
+	mockedUsersRepo.AssertExpectations(t)
+	mockedPassGen.AssertExpectations(t)
+}
+
+func TestCreateUserHandler_Returns_An_UnexpectedError_If_The_User_Does_Not_Exist_But_Creating_The_User_Fails(t *testing.T) {
+	mockedUsersRepo := authRepository.MockedUsersRepository{}
+	mockedPassGen := passgen.MockedPasswordGenerator{}
+	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
+
+	createReq := createUserRequest{Name: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
+	body, _ := json.Marshal(createReq)
+
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
+	hassedPass := "hassed"
+	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
+	user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
+	mockedUsersRepo.On("Create", request.Context(), &user).Return(fmt.Errorf("some error")).Once()
+
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
+
+	results.CheckUnexpectedErrorResult(t, result, "Error creating the user")
+	mockedUsersRepo.AssertExpectations(t)
+	mockedPassGen.AssertExpectations(t)
+}
+
+func TestCreateUserHandler_Creates_The_User(t *testing.T) {
+	mockedUsersRepo := authRepository.MockedUsersRepository{}
+	mockedPassGen := passgen.MockedPasswordGenerator{}
+	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
+
+	createReq := createUserRequest{Name: "wadus", Password: "pass", ConfirmPassword: "pass", IsAdmin: true}
+	body, _ := json.Marshal(createReq)
+
+	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
+	hassedPass := "hassed"
+	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
+	user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
+	mockedUsersRepo.On("Create", request.Context(), &user).Return(nil).Once().Run(func(args mock.Arguments) {
+		arg := args.Get(1).(*domain.User)
+		*arg = domain.User{ID: int32(1)}
 	})
 
-	t.Run("Should return an error result with a BadRequestError if a user with the same name already exist", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(true, nil).Once()
+	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
+	okRes := results.CheckOkResult(t, result, http.StatusCreated)
+	res, isOk := okRes.Content.(infrastructure.UserResponse)
+	require.Equal(t, true, isOk, "should be a UserResponse")
+	assert.Equal(t, int32(1), res.ID)
 
-		results.CheckBadRequestErrorResult(t, result, "A user with the same user name already exists")
-		mockedUsersRepo.AssertExpectations(t)
-	})
-
-	t.Run("Should return an error result with an UnexpectedError if the user doesn't exist but generating the password fails", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
-		mockedPassGen.On("GenerateFromPassword", "pass").Return("", fmt.Errorf("some error")).Once()
-
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckUnexpectedErrorResult(t, result, "Error encrypting password")
-		mockedUsersRepo.AssertExpectations(t)
-		mockedPassGen.AssertExpectations(t)
-	})
-
-	t.Run("Should return an error result with an UnexpectedError if the user doesn't exist but creating the user fails", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
-		hassedPass := "hassed"
-		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
-		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
-		mockedUsersRepo.On("Create", request.Context(), &user).Return(fmt.Errorf("some error")).Once()
-
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		results.CheckUnexpectedErrorResult(t, result, "Error creating the user")
-		mockedUsersRepo.AssertExpectations(t)
-		mockedPassGen.AssertExpectations(t)
-	})
-
-	t.Run("should create the new user it she doesn't exist", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
-		hassedPass := "hassed"
-		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
-		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
-		mockedUsersRepo.On("Create", request.Context(), &user).Return(nil).Once().Run(func(args mock.Arguments) {
-			arg := args.Get(1).(*domain.User)
-			*arg = domain.User{ID: int32(1)}
-		})
-
-		result := CreateUserHandler(httptest.NewRecorder(), request, h)
-
-		okRes := results.CheckOkResult(t, result, http.StatusCreated)
-		res, isOk := okRes.Content.(infrastructure.UserResponse)
-		require.Equal(t, true, isOk, "should be a UserResponse")
-		assert.Equal(t, int32(1), res.ID)
-
-		mockedUsersRepo.AssertExpectations(t)
-		mockedPassGen.AssertExpectations(t)
-	})
+	mockedUsersRepo.AssertExpectations(t)
+	mockedPassGen.AssertExpectations(t)
 }

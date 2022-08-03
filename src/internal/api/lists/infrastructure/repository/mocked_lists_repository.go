@@ -24,6 +24,12 @@ func (m *MockedListsRepository) FindList(ctx context.Context, list *domain.List)
 	return args.Get(0).(*domain.List), args.Error(1)
 }
 
+func (m *MockedListsRepository) ExistsList(ctx context.Context, list *domain.List) (bool, error) {
+	args := m.Called(ctx, list)
+
+	return args.Bool(0), args.Error(1)
+}
+
 func (m *MockedListsRepository) GetAllLists(ctx context.Context, userID int32) ([]domain.List, error) {
 	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {

@@ -69,6 +69,52 @@ func TestMySqlListsRepositoryFindList_WhenTheQueryDoesNotFail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
+func TestMySqlListsRepositoryExistsList_WhenItFails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlListsRepository(db)
+
+	name := domain.ListName("list name")
+	userID := int32(1)
+	list := &domain.List{Name: name, UserID: userID}
+
+	expectedExistsListQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
+			WithArgs(name, userID)
+	}
+
+	expectedExistsListQuery().WillReturnError(fmt.Errorf("some error"))
+
+	res, err := repo.ExistsList(context.Background(), list)
+
+	assert.False(t, res)
+	assert.EqualError(t, err, "some error")
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlListsRepositoryExistsList_WhenItDoesNotFail(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlListsRepository(db)
+
+	name := domain.ListName("list name")
+	userID := int32(1)
+	list := &domain.List{Name: name, UserID: userID}
+
+	expectedExistsListQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
+			WithArgs(name, userID)
+	}
+
+	expectedExistsListQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	res, err := repo.ExistsList(context.Background(), list)
+
+	assert.True(t, res)
+	assert.Nil(t, err)
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
 func TestMySqlListsRepositoryGetAllLists(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	userID := int32(1)

@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetListItemHandler(t *testing.T) {
+func TestGetListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Item_Fails(t *testing.T) {
 	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
@@ -36,29 +36,41 @@ func TestGetListItemHandler(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	t.Run("Should return an error if the query to find the list item fails", func(t *testing.T) {
-		mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
-		result := GetListItemHandler(httptest.NewRecorder(), request(), h)
+	result := GetListItemHandler(httptest.NewRecorder(), request(), h)
 
-		results.CheckError(t, result, "some error")
-		mockedRepo.AssertExpectations(t)
-	})
+	results.CheckError(t, result, "some error")
+	mockedRepo.AssertExpectations(t)
+}
 
-	t.Run("should return the list", func(t *testing.T) {
-		list := domain.ListItem{ID: 111, ListID: 11, Title: "title", Description: "desc"}
-		mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+func TestGetListItemHandler_Returns_The_List(t *testing.T) {
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"listId": "11",
+			"id":     "111",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
+		return request.WithContext(ctx)
+	}
 
-		result := GetListItemHandler(httptest.NewRecorder(), request(), h)
+	mockedRepo := listsRepository.MockedListsRepository{}
+	h := handler.Handler{ListsRepository: &mockedRepo}
 
-		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		listRes, isOk := okRes.Content.(*infrastructure.ListItemResponse)
-		require.Equal(t, true, isOk, "should be a list item response")
+	list := domain.ListItem{ID: 111, ListID: 11, Title: "title", Description: "desc"}
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 
-		assert.Equal(t, int32(111), listRes.ID)
-		assert.Equal(t, int32(11), listRes.ListID)
-		assert.Equal(t, "title", listRes.Title)
-		assert.Equal(t, "desc", listRes.Description)
-		mockedRepo.AssertExpectations(t)
-	})
+	result := GetListItemHandler(httptest.NewRecorder(), request(), h)
+
+	okRes := results.CheckOkResult(t, result, http.StatusOK)
+	listRes, isOk := okRes.Content.(*infrastructure.ListItemResponse)
+	require.Equal(t, true, isOk, "should be a list item response")
+
+	assert.Equal(t, int32(111), listRes.ID)
+	assert.Equal(t, int32(11), listRes.ListID)
+	assert.Equal(t, "title", listRes.Title)
+	assert.Equal(t, "desc", listRes.Description)
+	mockedRepo.AssertExpectations(t)
 }

@@ -4,6 +4,7 @@ import "context"
 
 type UsersRepository interface {
 	FindUser(ctx context.Context, filter *User) (*User, error)
+	ExistsUser(ctx context.Context, filter *User) (bool, error)
 	GetAll(ctx context.Context) ([]User, error)
 	Create(ctx context.Context, user *User) error
 	Delete(ctx context.Context, filter *User) error

@@ -94,7 +94,7 @@ func TestCreateUserHandler(t *testing.T) {
 
 	t.Run("Should return an error if the query to check if the user exists fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(nil, fmt.Errorf("some error")).Once()
+		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, fmt.Errorf("some error")).Once()
 
 		result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -104,7 +104,7 @@ func TestCreateUserHandler(t *testing.T) {
 
 	t.Run("Should return an error result with a BadRequestError if a user with the same name already exist", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(&domain.User{}, nil).Once()
+		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(true, nil).Once()
 
 		result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -112,9 +112,9 @@ func TestCreateUserHandler(t *testing.T) {
 		mockedUsersRepo.AssertExpectations(t)
 	})
 
-	t.Run("Should return an error result with an UnexpectedError if generate the password fails", func(t *testing.T) {
+	t.Run("Should return an error result with an UnexpectedError if the user doesn't exist but generating the password fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(nil, nil).Once()
+		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
 		mockedPassGen.On("GenerateFromPassword", "pass").Return("", fmt.Errorf("some error")).Once()
 
 		result := CreateUserHandler(httptest.NewRecorder(), request, h)
@@ -124,9 +124,9 @@ func TestCreateUserHandler(t *testing.T) {
 		mockedPassGen.AssertExpectations(t)
 	})
 
-	t.Run("Should return an error result with an UnexpectedError if create user fails", func(t *testing.T) {
+	t.Run("Should return an error result with an UnexpectedError if the user doesn't exist but creating the user fails", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(nil, nil).Once()
+		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
 		hassedPass := "hassed"
 		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}
@@ -139,9 +139,9 @@ func TestCreateUserHandler(t *testing.T) {
 		mockedPassGen.AssertExpectations(t)
 	})
 
-	t.Run("should create the new user", func(t *testing.T) {
+	t.Run("should create the new user it she doesn't exist", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-		mockedUsersRepo.On("FindUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(nil, nil).Once()
+		mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserName("wadus")}).Return(false, nil).Once()
 		hassedPass := "hassed"
 		mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 		user := domain.User{Name: domain.UserName("wadus"), PasswordHash: hassedPass, IsAdmin: true}

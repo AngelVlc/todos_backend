@@ -61,6 +61,48 @@ func TestMySqlUsersRepositoryFindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
+func TestMySqlAuthRepositoryExistsUser_WhenItFails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlUsersRepository(db)
+
+	user := &domain.User{Name: domain.UserName("userName")}
+
+	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
+			WithArgs("userName")
+	}
+
+	expectedExistsQuery().WillReturnError(fmt.Errorf("some error"))
+
+	res, err := repo.ExistsUser(context.Background(), user)
+
+	assert.False(t, res)
+	assert.EqualError(t, err, "some error")
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlAuthRepositoryExistsUser_WhenItDoesNotFail(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlUsersRepository(db)
+
+	user := &domain.User{Name: domain.UserName("userName")}
+
+	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
+		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
+			WithArgs("userName")
+	}
+
+	expectedExistsQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+
+	res, err := repo.ExistsUser(context.Background(), user)
+
+	assert.True(t, res)
+	assert.Nil(t, err)
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
 func TestMySqlUsersRepositoryGetAll_WhenTheQueryFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)

@@ -23,7 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	h := handler.Handler{}
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
 
@@ -53,7 +53,7 @@ func TestCreateUserHandlerValidations_Returns_A_BadRequest_Error_If_Its_A_Create
 	results.CheckBadRequestErrorResult(t, result, "/auth/createadmin only can be used to create the admin user")
 }
 
-func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_CreateUserRequest_Has_An_Empty_UserName(t *testing.T) {
+func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Has_An_Empty_UserName(t *testing.T) {
 	h := handler.Handler{}
 	createReq := createUserRequest{Name: ""}
 	body, _ := json.Marshal(createReq)
@@ -64,7 +64,7 @@ func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_CreateUse
 	results.CheckBadRequestErrorResult(t, result, "UserName can not be empty")
 }
 
-func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_CreateUserRequest_Does_Not_Have_Password(t *testing.T) {
+func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Does_Not_Have_Password(t *testing.T) {
 	h := handler.Handler{}
 
 	createReq := createUserRequest{Name: "Wadus", Password: ""}
@@ -76,7 +76,7 @@ func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_CreateUse
 	results.CheckBadRequestErrorResult(t, result, "Password can not be empty")
 }
 
-func TestCreateUserHandlerValidations_Returns_A_BadRequestError_If_The_CreateUserRequest_Passwords_Do_Not_Match(t *testing.T) {
+func TestCreateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateUserRequest_Passwords_Do_Not_Match(t *testing.T) {
 	h := handler.Handler{}
 
 	createReq := createUserRequest{Name: "Wadus", Password: "pass", ConfirmPassword: "othePass"}
@@ -122,7 +122,7 @@ func TestCreateUserHandler_Returns_A_BadRequest_Error_If_A_User_With_The_Same_Na
 	mockedUsersRepo.AssertExpectations(t)
 }
 
-func TestCreateUserHandler_Returns_An_UnexpectedError_If_The_User_Does_Not_Exist_But_Generating_The_Password_Fails(t *testing.T) {
+func TestCreateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_User_Does_Not_Exist_But_Generating_The_Password_Fails(t *testing.T) {
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedPassGen := passgen.MockedPasswordGenerator{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}
@@ -141,7 +141,7 @@ func TestCreateUserHandler_Returns_An_UnexpectedError_If_The_User_Does_Not_Exist
 	mockedPassGen.AssertExpectations(t)
 }
 
-func TestCreateUserHandler_Returns_An_UnexpectedError_If_The_User_Does_Not_Exist_But_Creating_The_User_Fails(t *testing.T) {
+func TestCreateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_User_Does_Not_Exist_But_Creating_The_User_Fails(t *testing.T) {
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedPassGen := passgen.MockedPasswordGenerator{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo, PassGen: &mockedPassGen}

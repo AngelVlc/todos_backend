@@ -25,7 +25,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestLoginHandlerValidations_Returns_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -35,7 +35,7 @@ func TestLoginHandlerValidations_Returns_A_BadRequestError_If_The_Request_Does_N
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestLoginHandlerValidations_Returns_A_BadRequestError_If_The_Body_Is_Not_A_LoginRequest(t *testing.T) {
+func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_LoginRequest(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
@@ -45,7 +45,7 @@ func TestLoginHandlerValidations_Returns_A_BadRequestError_If_The_Body_Is_Not_A_
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestLoginHandlerValidations_Returns_A_BadRequestError_If_The_LoginRequest_Has_An_Empty_UserName(t *testing.T) {
+func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginRequest_Has_An_Empty_UserName(t *testing.T) {
 	h := handler.Handler{}
 
 	loginReq := loginRequest{UserName: ""}
@@ -57,7 +57,7 @@ func TestLoginHandlerValidations_Returns_A_BadRequestError_If_The_LoginRequest_H
 	results.CheckBadRequestErrorResult(t, result, "UserName can not be empty")
 }
 
-func TestLoginHandlerValidations_Returns_A_BadRequestError_If_The_LoginRequest_Does_Not_Have_Password(t *testing.T) {
+func TestLoginHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginRequest_Does_Not_Have_Password(t *testing.T) {
 	h := handler.Handler{}
 
 	loginReq := loginRequest{UserName: "wadus", Password: ""}
@@ -88,7 +88,7 @@ func TestLoginHandler_Returns_An_Error_If_The_Query_To_Find_The_User_Fails(t *te
 	mockedAuthRepo.AssertExpectations(t)
 }
 
-func TestLoginHandler_Returns_A_BadRequestError_If_The_Password_Does_Not_Match(t *testing.T) {
+func TestLoginHandler_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Password_Does_Not_Match(t *testing.T) {
 	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
@@ -108,7 +108,7 @@ func TestLoginHandler_Returns_A_BadRequestError_If_The_Password_Does_Not_Match(t
 	mockedAuthRepo.AssertExpectations(t)
 }
 
-func TestLoginHandler_Returns_An_UnexpectedError_If_Generating_The_Token_Fails(t *testing.T) {
+func TestLoginHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Generating_The_Token_Fails(t *testing.T) {
 	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
@@ -132,7 +132,7 @@ func TestLoginHandler_Returns_An_UnexpectedError_If_Generating_The_Token_Fails(t
 	mockedTokenSrv.AssertExpectations(t)
 }
 
-func TestLoginHandler_Returns_An_UnexpectedError_If_Generating_The_RefreshToken_Fails(t *testing.T) {
+func TestLoginHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Generating_The_RefreshToken_Fails(t *testing.T) {
 	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}

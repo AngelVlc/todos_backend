@@ -14,7 +14,7 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
-func TestDeleteRefreshTokensHandlerValidations_Returns_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestDeleteRefreshTokensHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	h := handler.Handler{}
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
 
@@ -23,7 +23,7 @@ func TestDeleteRefreshTokensHandlerValidations_Returns_A_BadRequestError_If_The_
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestDeleteRefreshTokensHandlerValidations_Returns_A_BadRequestError_If_The_Body_Is_Not_An_Array_Of_Ids(t *testing.T) {
+func TestDeleteRefreshTokensHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_An_Array_Of_Ids(t *testing.T) {
 	h := handler.Handler{}
 	request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
 
@@ -32,7 +32,7 @@ func TestDeleteRefreshTokensHandlerValidations_Returns_A_BadRequestError_If_The_
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestDeleteRefreshTokensHandler_Returns_An_UnexpectedError_If_The_Query_To_Find_The_User_Fails(t *testing.T) {
+func TestDeleteRefreshTokensHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_To_Find_The_User_Fails(t *testing.T) {
 	mockedRepo := authRepository.MockedAuthRepository{}
 	h := handler.Handler{AuthRepository: &mockedRepo}
 

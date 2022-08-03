@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateUserHandlerValidations_Returns_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
+func TestUpdateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -34,7 +34,7 @@ func TestUpdateUserHandlerValidations_Returns_A_BadRequestError_If_The_Request_D
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestUpdateUserHandlerValidations_Returns_A_BadRequestError_If_The_Body_Is_Not_A_UpdateUserRequest(t *testing.T) {
+func TestUpdateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_UpdateUserRequest(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
@@ -44,7 +44,7 @@ func TestUpdateUserHandlerValidations_Returns_A_BadRequestError_If_The_Body_Is_N
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestUpdateUserHandlerValidations_Returns_A_BadRequestError_If_The_Request_Has_Passwords_But_They_Do_Not_Match(t *testing.T) {
+func TestUpdateUserHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Has_Passwords_But_They_Do_Not_Match(t *testing.T) {
 	h := handler.Handler{}
 
 	updateReq := updateUserRequest{Name: "wadus", Password: "one", ConfirmPassword: "another"}
@@ -80,7 +80,7 @@ func TestUpdateUserHandler_Returns_An_Error_If_The_Query_To_Find_The_User_Fails(
 	mockedUsersRepo.AssertExpectations(t)
 }
 
-func TestUpdateUserHandler_Returns_A_BadRequestError_If_Tries_To_Update_The_Admin_User_UserName(t *testing.T) {
+func TestUpdateUserHandler_Returns_An_ErrorResult_With_A_BadRequestError_If_Tries_To_Update_The_Admin_User_UserName(t *testing.T) {
 	request := func(body []byte) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
 		request = mux.SetURLVars(request, map[string]string{
@@ -105,7 +105,7 @@ func TestUpdateUserHandler_Returns_A_BadRequestError_If_Tries_To_Update_The_Admi
 	mockedUsersRepo.AssertExpectations(t)
 }
 
-func TestUpdateUserHandler_Returns_A_BadRequestError_If_Tries_To_Update_The_Admin_User_IsAdmin(t *testing.T) {
+func TestUpdateUserHandler_Returns_An_ErrorResult_With_A_BadRequestError_If_Tries_To_Update_The_Admin_User_IsAdmin(t *testing.T) {
 	request := func(body []byte) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
 		request = mux.SetURLVars(request, map[string]string{
@@ -157,7 +157,7 @@ func TestUpdateUserHandler_Returns_An_Error_If_The_Query_To_Check_If_A_User_With
 	mockedPassGen.AssertExpectations(t)
 }
 
-func TestUpdateUserHandler_Returns_A_BadRequestError_If_The_UserName_Already_Exists(t *testing.T) {
+func TestUpdateUserHandler_Returns_An_ErrorResult_With_A_BadRequestError_If_The_UserName_Already_Exists(t *testing.T) {
 	request := func(body []byte) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
 		request = mux.SetURLVars(request, map[string]string{
@@ -184,7 +184,7 @@ func TestUpdateUserHandler_Returns_A_BadRequestError_If_The_UserName_Already_Exi
 	mockedPassGen.AssertExpectations(t)
 }
 
-func TestUpdateUserHandler_Returns_An_UnexpectedError_If_Generating_The_Password_Fails(t *testing.T) {
+func TestUpdateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Generating_The_Password_Fails(t *testing.T) {
 	request := func(body []byte) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
 		request = mux.SetURLVars(request, map[string]string{
@@ -211,7 +211,7 @@ func TestUpdateUserHandler_Returns_An_UnexpectedError_If_Generating_The_Password
 	mockedPassGen.AssertExpectations(t)
 }
 
-func TestUpdateUserHandler_Returns_An_UnexpectedError_If_The_Update_Fails(t *testing.T) {
+func TestUpdateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Update_Fails(t *testing.T) {
 	request := func(body []byte) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", bytes.NewBuffer(body))
 		request = mux.SetURLVars(request, map[string]string{

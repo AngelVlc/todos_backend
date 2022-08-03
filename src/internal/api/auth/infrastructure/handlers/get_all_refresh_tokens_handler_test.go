@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetAllRefreshTokensHandler_Returns_An_UnexpectedError_If_The_Query_Fails(t *testing.T) {
+func TestGetAllRefreshTokensHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_Fails(t *testing.T) {
 	mockedRepo := authRepository.MockedAuthRepository{}
 	h := handler.Handler{AuthRepository: &mockedRepo}
 

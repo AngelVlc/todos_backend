@@ -36,7 +36,7 @@ func TestDeleteUserHandler_Returns_An_Error_If_The_Query_To_Find_The_User_Fails(
 	mockedUsersRepo.AssertExpectations(t)
 }
 
-func TestDeleteUserHandler_Returns_A_BadRequestError_When_Deleting_The_Admin_User(t *testing.T) {
+func TestDeleteUserHandler_Returns_An_ErrorResult_With_A_BadRequestError_When_Deleting_The_Admin_User(t *testing.T) {
 	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
@@ -57,7 +57,7 @@ func TestDeleteUserHandler_Returns_A_BadRequestError_When_Deleting_The_Admin_Use
 	mockedUsersRepo.AssertExpectations(t)
 }
 
-func TestDeleteUserHandler_Returns_An_UnexpectedError_If_The_Delete_Fails(t *testing.T) {
+func TestDeleteUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Delete_Fails(t *testing.T) {
 	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{

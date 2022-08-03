@@ -19,7 +19,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestRefreshTokenHandlerValidations_Returns_A_BadRequestError_If_There_Is_Not_A_Refresh_Token_Cookie(t *testing.T) {
+func TestRefreshTokenHandlerValidations_Returns_An_ErrorResult_With_A_BadRequestError_If_There_Is_Not_A_Refresh_Token_Cookie(t *testing.T) {
 	h := handler.Handler{}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -29,7 +29,7 @@ func TestRefreshTokenHandlerValidations_Returns_A_BadRequestError_If_There_Is_No
 	results.CheckBadRequestErrorResult(t, result, "Missing refresh token cookie")
 }
 
-func TestRefreshTokenHandler_Returns_An_UnauthorizedError_If_The_RefreshToken_Is_Not_Valid(t *testing.T) {
+func TestRefreshTokenHandler_Returns_An_ErrorResult_With_An_UnauthorizedError_If_The_RefreshToken_Is_Not_Valid(t *testing.T) {
 	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
@@ -79,7 +79,7 @@ func TestRefreshTokenHandler_Returns_An_Error_If_Getting_The_User_By_Id_Fails(t 
 	mockedTokenSrv.AssertExpectations(t)
 }
 
-func TestRefreshTokenHandler_Returns_An_UnexpectedError_If_Getting_The_RefreshToken_Fails(t *testing.T) {
+func TestRefreshTokenHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Getting_The_RefreshToken_Fails(t *testing.T) {
 	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
@@ -108,7 +108,7 @@ func TestRefreshTokenHandler_Returns_An_UnexpectedError_If_Getting_The_RefreshTo
 	mockedTokenSrv.AssertExpectations(t)
 }
 
-func TestRefreshTokenHandler_Returns_An_UnauthorizedError_If_The_RefreshToken_Does_Not_Exist(t *testing.T) {
+func TestRefreshTokenHandler_Returns_An_ErrorResult_With_An_UnauthorizedError_If_The_RefreshToken_Does_Not_Exist(t *testing.T) {
 	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
@@ -137,7 +137,7 @@ func TestRefreshTokenHandler_Returns_An_UnauthorizedError_If_The_RefreshToken_Do
 	mockedTokenSrv.AssertExpectations(t)
 }
 
-func TestRefreshTokenHandler_Returns_An_UnexpectedError_If_Generate_The_New_Token_Fails(t *testing.T) {
+func TestRefreshTokenHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Generate_The_New_Token_Fails(t *testing.T) {
 	mockedAuthRepo := authRepository.MockedAuthRepository{}
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}

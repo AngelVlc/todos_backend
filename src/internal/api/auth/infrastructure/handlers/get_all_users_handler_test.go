@@ -18,7 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetAllUsersHandler_Returns_An_UnexpectedError_If_The_Query_Fails(t *testing.T) {
+func TestGetAllUsersHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_Fails(t *testing.T) {
 	mockedRepo := authRepository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedRepo}
 

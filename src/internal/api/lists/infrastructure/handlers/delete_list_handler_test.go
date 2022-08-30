@@ -18,7 +18,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func TestDeletesListHandler(t *testing.T) {
+func TestDeletesListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *testing.T) {
 	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
@@ -32,34 +32,58 @@ func TestDeletesListHandler(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	t.Run("Should return an error if the query to find the list fails", func(t *testing.T) {
-		mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
-		result := DeleteListHandler(httptest.NewRecorder(), request(), h)
+	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
 
-		results.CheckError(t, result, "some error")
-		mockedRepo.AssertExpectations(t)
-	})
+	results.CheckError(t, result, "some error")
+	mockedRepo.AssertExpectations(t)
+}
 
-	t.Run("Should return an errorResult with an UnexpectedError if the delete fails", func(t *testing.T) {
-		list := domain.List{ID: 11, Name: "list1"}
-		mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-		mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
+func TestDeletesListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Delete_Fails(t *testing.T) {
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "11",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
+		return request.WithContext(ctx)
+	}
 
-		result := DeleteListHandler(httptest.NewRecorder(), request(), h)
+	mockedRepo := listsRepository.MockedListsRepository{}
+	h := handler.Handler{ListsRepository: &mockedRepo}
 
-		results.CheckUnexpectedErrorResult(t, result, "Error deleting the user list")
-		mockedRepo.AssertExpectations(t)
-	})
+	list := domain.List{ID: 11, Name: "list1"}
+	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
 
-	t.Run("should delete the list", func(t *testing.T) {
-		list := domain.List{ID: 11, Name: "list1"}
-		mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-		mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(nil).Once()
+	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
 
-		result := DeleteListHandler(httptest.NewRecorder(), request(), h)
+	results.CheckUnexpectedErrorResult(t, result, "Error deleting the user list")
+	mockedRepo.AssertExpectations(t)
+}
 
-		results.CheckOkResult(t, result, http.StatusNoContent)
-		mockedRepo.AssertExpectations(t)
-	})
+func TestDeletesListHandler_Deletes_The_List(t *testing.T) {
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id": "11",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
+		return request.WithContext(ctx)
+	}
+
+	mockedRepo := listsRepository.MockedListsRepository{}
+	h := handler.Handler{ListsRepository: &mockedRepo}
+
+	list := domain.List{ID: 11, Name: "list1"}
+	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(nil).Once()
+
+	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
+
+	results.CheckOkResult(t, result, http.StatusNoContent)
+	mockedRepo.AssertExpectations(t)
 }

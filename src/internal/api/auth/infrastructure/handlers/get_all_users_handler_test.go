@@ -18,41 +18,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestGetAllUsersHandler(t *testing.T) {
+func TestGetAllUsersHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_Fails(t *testing.T) {
 	mockedRepo := authRepository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedRepo}
 
-	t.Run("Should return an error result with an unexpected error if the query fails", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/", nil)
-		mockedRepo.On("GetAll", request.Context()).Return(nil, fmt.Errorf("some error")).Once()
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
+	mockedRepo.On("GetAll", request.Context()).Return(nil, fmt.Errorf("some error")).Once()
 
-		result := GetAllUsersHandler(httptest.NewRecorder(), request, h)
+	result := GetAllUsersHandler(httptest.NewRecorder(), request, h)
 
-		results.CheckUnexpectedErrorResult(t, result, "Error getting users")
-		mockedRepo.AssertExpectations(t)
-	})
+	results.CheckUnexpectedErrorResult(t, result, "Error getting users")
+	mockedRepo.AssertExpectations(t)
+}
 
-	t.Run("Should return the users if the query does not fail", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/", nil)
-		found := []domain.User{
-			{ID: 2, Name: "user1", IsAdmin: true},
-			{ID: 5, Name: "user2", IsAdmin: false},
-		}
-		mockedRepo.On("GetAll", request.Context()).Return(found, nil)
-		result := GetAllUsersHandler(httptest.NewRecorder(), request, h)
+func TestGetAllUsersHandler_Returns_The_Users(t *testing.T) {
+	mockedRepo := authRepository.MockedUsersRepository{}
+	h := handler.Handler{UsersRepository: &mockedRepo}
 
-		okRes := results.CheckOkResult(t, result, http.StatusOK)
-		userRes, isOk := okRes.Content.([]*infrastructure.UserResponse)
-		require.Equal(t, true, isOk, "should be an array of user response")
+	request, _ := http.NewRequest(http.MethodGet, "/", nil)
+	found := []domain.User{
+		{ID: 2, Name: "user1", IsAdmin: true},
+		{ID: 5, Name: "user2", IsAdmin: false},
+	}
+	mockedRepo.On("GetAll", request.Context()).Return(found, nil)
+	result := GetAllUsersHandler(httptest.NewRecorder(), request, h)
 
-		require.Equal(t, len(userRes), 2)
-		assert.Equal(t, int32(2), userRes[0].ID)
-		assert.Equal(t, "user1", userRes[0].Name)
-		assert.True(t, userRes[0].IsAdmin)
-		assert.Equal(t, int32(5), userRes[1].ID)
-		assert.Equal(t, "user2", userRes[1].Name)
-		assert.False(t, userRes[1].IsAdmin)
+	okRes := results.CheckOkResult(t, result, http.StatusOK)
+	userRes, isOk := okRes.Content.([]*infrastructure.UserResponse)
+	require.Equal(t, true, isOk, "should be an array of user response")
 
-		mockedRepo.AssertExpectations(t)
-	})
+	require.Equal(t, len(userRes), 2)
+	assert.Equal(t, int32(2), userRes[0].ID)
+	assert.Equal(t, "user1", userRes[0].Name)
+	assert.True(t, userRes[0].IsAdmin)
+	assert.Equal(t, int32(5), userRes[1].ID)
+	assert.Equal(t, "user2", userRes[1].Name)
+	assert.False(t, userRes[1].IsAdmin)
+
+	mockedRepo.AssertExpectations(t)
 }

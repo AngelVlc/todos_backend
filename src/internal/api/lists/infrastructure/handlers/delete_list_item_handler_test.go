@@ -19,7 +19,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func TestDeletesListItemHandler(t *testing.T) {
+func TestDeletesListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_ListItem_Fails(t *testing.T) {
 	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
@@ -35,38 +35,66 @@ func TestDeletesListItemHandler(t *testing.T) {
 	mockedEventBus := events.MockedEventBus{}
 	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
-	t.Run("Should return an error if the query to find the list item fails", func(t *testing.T) {
-		mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
-		result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
+	result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
 
-		results.CheckError(t, result, "some error")
-		mockedRepo.AssertExpectations(t)
-	})
+	results.CheckError(t, result, "some error")
+	mockedRepo.AssertExpectations(t)
+}
 
-	t.Run("Should return an errorResult with an UnexpectedError if the delete fails", func(t *testing.T) {
-		listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
-		mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
-		mockedRepo.On("DeleteListItem", request().Context(), int32(111), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
+func TestDeletesListItemHandler_Returns_An_Error_With_An_UnexpectedError_If_The_Delete_Fails(t *testing.T) {
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id":     "111",
+			"listId": "11",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
+		return request.WithContext(ctx)
+	}
 
-		result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
+	mockedRepo := listsRepository.MockedListsRepository{}
+	mockedEventBus := events.MockedEventBus{}
+	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
-		results.CheckUnexpectedErrorResult(t, result, "Error deleting the list item")
-		mockedRepo.AssertExpectations(t)
-	})
+	listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
+	mockedRepo.On("DeleteListItem", request().Context(), int32(111), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
 
-	t.Run("should delete the list item", func(t *testing.T) {
-		listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
-		mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
-		mockedRepo.On("DeleteListItem", request().Context(), int32(111), int32(11), int32(1)).Return(nil).Once()
-		mockedEventBus.On("Publish", "listItemDeleted", int32(11))
+	result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
 
-		mockedEventBus.Wg.Add(1)
-		result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
-		mockedEventBus.Wg.Wait()
+	results.CheckUnexpectedErrorResult(t, result, "Error deleting the list item")
+	mockedRepo.AssertExpectations(t)
+}
 
-		results.CheckOkResult(t, result, http.StatusNoContent)
-		mockedRepo.AssertExpectations(t)
-		mockedEventBus.AssertExpectations(t)
-	})
+func TestDeletesListItemHandler_Deleted_The_ListItem(t *testing.T) {
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+		request = mux.SetURLVars(request, map[string]string{
+			"id":     "111",
+			"listId": "11",
+		})
+		ctx := request.Context()
+		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
+		return request.WithContext(ctx)
+	}
+
+	mockedRepo := listsRepository.MockedListsRepository{}
+	mockedEventBus := events.MockedEventBus{}
+	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
+
+	listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
+	mockedRepo.On("DeleteListItem", request().Context(), int32(111), int32(11), int32(1)).Return(nil).Once()
+	mockedEventBus.On("Publish", "listItemDeleted", int32(11))
+
+	mockedEventBus.Wg.Add(1)
+	result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
+	mockedEventBus.Wg.Wait()
+
+	results.CheckOkResult(t, result, http.StatusNoContent)
+	mockedRepo.AssertExpectations(t)
+	mockedEventBus.AssertExpectations(t)
 }

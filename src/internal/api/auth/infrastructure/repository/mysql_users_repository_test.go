@@ -16,7 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestMySqlUsersRepositoryFindUser_WhenTheQueryFails(t *testing.T) {
+func TestMySqlUsersRepository_FindUser_WhenTheQueryFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
@@ -37,7 +37,7 @@ func TestMySqlUsersRepositoryFindUser_WhenTheQueryFails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlUsersRepositoryFindUser_WhenTheQueryDoesNotFail(t *testing.T) {
+func TestMySqlUsersRepository_FindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
@@ -61,7 +61,7 @@ func TestMySqlUsersRepositoryFindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlAuthRepositoryExistsUser_WhenItFails(t *testing.T) {
+func TestMySqlAuthRepository_ExistsUser_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
@@ -82,7 +82,7 @@ func TestMySqlAuthRepositoryExistsUser_WhenItFails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlAuthRepositoryExistsUser_WhenItDoesNotFail(t *testing.T) {
+func TestMySqlAuthRepository_ExistsUser_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
@@ -103,7 +103,7 @@ func TestMySqlAuthRepositoryExistsUser_WhenItDoesNotFail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlUsersRepositoryGetAll_WhenTheQueryFails(t *testing.T) {
+func TestMySqlUsersRepository_GetAll_WhenTheQueryFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
@@ -121,7 +121,7 @@ func TestMySqlUsersRepositoryGetAll_WhenTheQueryFails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlUsersRepositoryGetAll_WhenTheQueryDoesNotFail(t *testing.T) {
+func TestMySqlUsersRepository_GetAll_WhenTheQueryDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
@@ -147,7 +147,7 @@ func TestMySqlUsersRepositoryGetAll_WhenTheQueryDoesNotFail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlUsersRepositoryCreate_WhenItFails(t *testing.T) {
+func TestMySqlUsersRepository_Create_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
@@ -169,7 +169,7 @@ func TestMySqlUsersRepositoryCreate_WhenItFails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlUsersRepositoryCreate_WhenItDoesNotFail(t *testing.T) {
+func TestMySqlUsersRepository_Create_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
@@ -193,7 +193,7 @@ func TestMySqlUsersRepositoryCreate_WhenItDoesNotFail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlUsersRepositoryDelete_WhenItFails(t *testing.T) {
+func TestMySqlUsersRepository_Delete_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
@@ -215,7 +215,7 @@ func TestMySqlUsersRepositoryDelete_WhenItFails(t *testing.T) {
 
 }
 
-func TestMySqlUsersRepositoryDelete_WhenItDoesNotFail(t *testing.T) {
+func TestMySqlUsersRepository_Delete_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
@@ -236,7 +236,7 @@ func TestMySqlUsersRepositoryDelete_WhenItDoesNotFail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlUsersRepositoryUpdate_WhenItFails(t *testing.T) {
+func TestMySqlUsersRepository_Update_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
@@ -257,7 +257,7 @@ func TestMySqlUsersRepositoryUpdate_WhenItFails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlUsersRepositoryUpdate_WhenItDoesNotFail(t *testing.T) {
+func TestMySqlUsersRepository_Update_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
 

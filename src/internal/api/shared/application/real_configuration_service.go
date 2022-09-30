@@ -19,23 +19,10 @@ func (c *RealConfigurationService) GetDatasource() string {
 	user := c.getEnvOrFallback("MYSQL_USER", "root")
 	pass := c.getEnvOrFallback("MYSQL_PASSWORD", "pass")
 	dbname := c.getEnvOrFallback("MYSQL_DATABASE", "todos")
+	tls := c.getEnvOrFallback("MYSQL_TLS", "false")
+	options := fmt.Sprintf("charset=utf8&parseTime=True&loc=Local&tls=%v", tls)
 
-	// This env var is set by Heroku
-	clearDbUrl := os.Getenv("CLEARDB_DATABASE_URL")
-	if len(clearDbUrl) > 0 {
-		clearDbUrl = strings.Replace(clearDbUrl, "mysql://", "", 1)
-		clearDbUrl = strings.Replace(clearDbUrl, "?reconnect=true", "", 1)
-		parts := strings.Split(clearDbUrl, "@")
-		userPass := strings.Split(parts[0], ":")
-		user = userPass[0]
-		pass = userPass[1]
-		hostDbName := strings.Split(parts[1], "/")
-		host = hostDbName[0]
-		dbname = hostDbName[1]
-		port = "3306"
-	}
-
-	return fmt.Sprintf("%v:%v@(%v:%v)/%v?charset=utf8&parseTime=True&loc=Local", user, pass, host, port, dbname)
+	return fmt.Sprintf("%v:%v@(%v:%v)/%v?%v", user, pass, host, port, dbname, options)
 }
 
 func (c *RealConfigurationService) GetPort() string {

@@ -80,7 +80,7 @@ jobs:
       - push_image_to_gcr
       - plan_or_apply_terraform:
           command: apply -input=false -auto-approve
-      # - run: curl --data "deploy[environment]=production&deploy[local_username]=$HEROKU_EMAIL&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$HONEYBADGER_API_KEY" "https://api.honeybadger.io/v1/deploys"
+      - run: curl --data "deploy[environment]=production&deploy[local_username]=$CIRCLE_PR_USERNAME&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$HONEYBADGER_API_KEY" "https://api.honeybadger.io/v1/deploys"
   smoke-aws:
     machine:
       image: ubuntu-2004:202111-01

@@ -12,7 +12,7 @@ run:
 	docker-compose run --rm -p 5001:5001 app go run ./...
 
 console:
-	docker-compose run --rm -p 5001:5001 app bash
+	docker-compose run --rm -p 5001:5001 app sh
 
 db-create:
 	docker-compose run --rm mysql ${MYSQL_COMMAND} -e "CREATE DATABASE todos"

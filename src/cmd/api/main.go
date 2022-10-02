@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"log"
 	"net"
@@ -15,12 +14,9 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/server"
 	"github.com/AngelVlc/todos_backend/src/internal/api/wire"
-	"github.com/AngelVlc/todos_backend/src/pkg/autocerts3cache"
-	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/gorilla/handlers"
 	"github.com/honeybadger-io/honeybadger-go"
 	_ "github.com/newrelic/go-agent/v3/integrations/nrmysql"
-	"golang.org/x/crypto/acme/autocert"
 )
 
 func main() {
@@ -63,41 +59,10 @@ func main() {
 		BaseContext:  func(_ net.Listener) context.Context { return ctx },
 	}
 
-	var certManager *autocert.Manager
-
-	if cfg.InProduction() {
-		ctx := context.TODO()
-		awsCfg, err := config.LoadDefaultConfig(ctx)
-		if err != nil {
-			log.Fatalf("error loading the default config: %v", err)
-		}
-
-		awsS3Api := autocerts3cache.NewAwsS3Api(awsCfg)
-		s3Cache := autocerts3cache.NewS3Cache(cfg.GetBucketName(), awsS3Api)
-
-		certManager = &autocert.Manager{
-			Prompt:     autocert.AcceptTOS,
-			HostPolicy: autocert.HostWhitelist(cfg.GetDomain()),
-			Cache:      s3Cache,
-		}
-
-		tlsConfig := &tls.Config{
-			GetCertificate: certManager.GetCertificate,
-		}
-		tlsConfig.NextProtos = append([]string{"h2", "http/1.1", "acme-tls/1"}, tlsConfig.NextProtos...)
-
-		httpServer.TLSConfig = tlsConfig
-		httpServer.Addr = ":443"
-	}
-
 	go func() {
 		log.Printf("Starting listener on port %v\n", httpServer.Addr)
 
-		if cfg.InProduction() {
-			err = httpServer.ListenAndServeTLS("", "")
-		} else {
-			err = httpServer.ListenAndServe()
-		}
+		err = httpServer.ListenAndServe()
 
 		if err != nil {
 			log.Fatalf("could not listen on port %v %v", httpServer.Addr, err)

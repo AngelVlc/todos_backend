@@ -11,9 +11,5 @@ CREATE TABLE `listItems` (
     `listId` int(32) NOT NULL,
     `title` varchar(50) NOT NULL,
     `description` varchar(200) NOT NULL,
-    PRIMARY KEY (`id`),
-    FOREIGN KEY fk_lists(listId)
-        REFERENCES lists(id)
-        ON UPDATE CASCADE
-        ON DELETE CASCADE
+    PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

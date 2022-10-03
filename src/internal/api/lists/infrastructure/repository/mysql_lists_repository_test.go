@@ -210,12 +210,40 @@ func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlListsRepository_DeleteList_When_It_Fails(t *testing.T) {
+func TestMySqlListsRepository_DeleteList_When_Deleting_The_ListItems_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	userID := int32(1)
 	listID := int32(11)
 
 	repo := NewMySqlListsRepository(db)
+
+	expectedRemoveListItemsExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE `listItems`.`listId` = ? AND `listItems`.`userId` = ?")).
+			WithArgs(listID, userID)
+	}
+
+	mock.ExpectBegin()
+	expectedRemoveListItemsExec().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectRollback()
+
+	err := repo.DeleteList(context.Background(), listID, userID)
+
+	assert.EqualError(t, err, "some error")
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlListsRepository_DeleteList_When_Deleting_The_List_Fails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	userID := int32(1)
+	listID := int32(11)
+
+	repo := NewMySqlListsRepository(db)
+
+	expectedRemoveListItemsExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE `listItems`.`listId` = ? AND `listItems`.`userId` = ?")).
+			WithArgs(listID, userID)
+	}
 
 	expectedRemoveListExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")).
@@ -223,6 +251,7 @@ func TestMySqlListsRepository_DeleteList_When_It_Fails(t *testing.T) {
 	}
 
 	mock.ExpectBegin()
+	expectedRemoveListItemsExec().WillReturnResult(sqlmock.NewResult(0, 0))
 	expectedRemoveListExec().WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
@@ -240,12 +269,18 @@ func TestMySqlListsRepository_DeleteList_When_It_Does_Not_Fail(t *testing.T) {
 
 	repo := NewMySqlListsRepository(db)
 
+	expectedRemoveListItemsExec := func() *sqlmock.ExpectedExec {
+		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE `listItems`.`listId` = ? AND `listItems`.`userId` = ?")).
+			WithArgs(listID, userID)
+	}
+
 	expectedRemoveListExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")).
 			WithArgs(listID, userID)
 	}
 
 	mock.ExpectBegin()
+	expectedRemoveListItemsExec().WillReturnResult(sqlmock.NewResult(0, 0))
 	expectedRemoveListExec().WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 

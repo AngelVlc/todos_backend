@@ -51,7 +51,14 @@ func (r *MySqlListsRepository) CreateList(ctx context.Context, list *domain.List
 }
 
 func (r *MySqlListsRepository) DeleteList(ctx context.Context, listID int32, userID int32) error {
-	return r.db.WithContext(ctx).Where(domain.List{ID: listID, UserID: userID}).Delete(domain.List{}).Error
+	return r.db.Transaction(func(tx *gorm.DB) error {
+		err := tx.WithContext(ctx).Where(domain.ListItem{ListID: listID, UserID: userID}).Delete(domain.ListItem{}).Error
+		if err != nil {
+			return err
+		}
+
+		return tx.WithContext(ctx).Where(domain.List{ID: listID, UserID: userID}).Delete(domain.List{}).Error
+	})
 }
 
 func (r *MySqlListsRepository) UpdateList(ctx context.Context, list *domain.List) error {

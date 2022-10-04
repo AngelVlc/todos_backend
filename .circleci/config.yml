@@ -45,13 +45,14 @@ commands:
         description: the terraform command to execute
         type: string
     steps:
-    - run: cd terraformGc && terraform <<parameters.command>> -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var new_relic_license_key=$NEW_RELIC_LICENSE_KEY -var honeybadger_api_key=$HONEYBADGER_API_KEY -var app_name=$APP_NAME -var gc_project_id=$GCLOUD_PROJECT_ID -var container_image=eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest -var mysql_tls=$MYSQL_TLS -var mysql_host=$MYSQL_HOST -var mysql_database=$MYSQL_DATABASE -var mysql_user=$MYSQL_USER -var mysql_password=$MYSQL_PASSWORD -var delete_expired_refresh_token_interval=$DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL
+    - run: cd terraformGc && terraform <<parameters.command>> -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var new_relic_license_key=$NEW_RELIC_LICENSE_KEY -var honeybadger_api_key=$HONEYBADGER_API_KEY -var app_name=$APP_NAME -var gc_project_id=$GCLOUD_PROJECT_ID -var mysql_tls=$MYSQL_TLS -var mysql_host=$MYSQL_HOST -var mysql_database=$MYSQL_DATABASE -var mysql_user=$MYSQL_USER -var mysql_password=$MYSQL_PASSWORD -var delete_expired_refresh_token_interval=$DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL
   push_image_to_gcr:
     steps:
       - run: docker build --target release -t eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest -f src/Dockerfile src/
       - run: gcloud auth configure-docker
       - run: gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS --project=$GCLOUD_PROJECT_ID
       - run: docker push eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest
+      - run: echo 'export CONTAINER_IMAGE=`docker images --format "{{.Repository}}@{{.Digest}}" --filter "reference=eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release"`' >> $BASH_ENV
 jobs:
   test:
     machine:
@@ -79,7 +80,7 @@ jobs:
           command: apply -target=google_project_service.container_registry -input=false -auto-approve
       - push_image_to_gcr
       - plan_or_apply_terraform:
-          command: apply -input=false -auto-approve
+          command: apply -input=false -auto-approve -var container_image=$CONTAINER_IMAGE
       - run: curl --data "deploy[environment]=production&deploy[local_username]=$CIRCLE_PR_USERNAME&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$HONEYBADGER_API_KEY" "https://api.honeybadger.io/v1/deploys"
   smoke-aws:
     machine:

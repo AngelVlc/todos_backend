@@ -24,6 +24,7 @@ variable "gc_project_id" {
 
 variable "container_image" {
   description = "Container imaged used in the Cloud Run service"
+  default = "image"
 }
 
 variable "delete_expired_refresh_token_interval" {

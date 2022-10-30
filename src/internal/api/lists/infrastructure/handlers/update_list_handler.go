@@ -14,6 +14,7 @@ import (
 type updateListRequest struct {
 	Name          string  `json:"name"`
 	IDsByPosition []int32 `json:"idsByPosition"`
+	IsQuickList   bool    `json:"isQuickList"`
 }
 
 func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
@@ -32,15 +33,16 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewUpdateListService(h.ListsRepository)
-	list, err := srv.UpdateList(r.Context(), listID, listName, userID, updateReq.IDsByPosition)
+	list, err := srv.UpdateList(r.Context(), listID, listName, userID, updateReq.IDsByPosition, updateReq.IsQuickList)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
 	res := infrastructure.ListResponse{
-		ID:         list.ID,
-		Name:       string(list.Name),
-		ItemsCount: list.ItemsCount,
+		ID:          list.ID,
+		Name:        string(list.Name),
+		ItemsCount:  list.ItemsCount,
+		IsQuickList: list.IsQuickList,
 	}
 
 	return results.OkResult{Content: res, StatusCode: http.StatusOK}

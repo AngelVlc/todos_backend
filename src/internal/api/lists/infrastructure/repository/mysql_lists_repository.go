@@ -47,7 +47,7 @@ func (r *MySqlListsRepository) GetAllLists(ctx context.Context, userID int32) ([
 }
 
 func (r *MySqlListsRepository) CreateList(ctx context.Context, list *domain.List) error {
-	return r.db.WithContext(ctx).Create(list).Error
+	return r.db.WithContext(ctx).Select("Name", "UserID", "IsQuickList").Create(list).Error
 }
 
 func (r *MySqlListsRepository) DeleteList(ctx context.Context, listID int32, userID int32) error {
@@ -62,7 +62,7 @@ func (r *MySqlListsRepository) DeleteList(ctx context.Context, listID int32, use
 }
 
 func (r *MySqlListsRepository) UpdateList(ctx context.Context, list *domain.List) error {
-	return r.db.WithContext(ctx).Model(list).Updates(domain.List{Name: list.Name}).Error
+	return r.db.WithContext(ctx).Model(list).Select("Name", "IsQuickList").Updates(domain.List{Name: list.Name, IsQuickList: list.IsQuickList}).Error
 }
 
 func (r *MySqlListsRepository) IncrementListCounter(ctx context.Context, listID int32) error {

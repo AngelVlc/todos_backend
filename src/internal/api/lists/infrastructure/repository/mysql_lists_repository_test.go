@@ -168,13 +168,13 @@ func TestMySqlListsRepository_GetAllLists_WhenItDoesNotFail(t *testing.T) {
 
 func TestMySqlListsRepository_CreateList_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	list := domain.List{UserID: 1, Name: "list1"}
+	list := domain.List{UserID: 1, Name: "list1", IsQuickList: true}
 
 	repo := NewMySqlListsRepository(db)
 
 	expectedInsertListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`itemsCount`) VALUES (?,?,?)")).
-			WithArgs(list.Name, list.UserID, list.ItemsCount)
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`isQuickList`) VALUES (?,?,?)")).
+			WithArgs(list.Name, list.UserID, list.IsQuickList)
 	}
 
 	mock.ExpectBegin()
@@ -190,13 +190,13 @@ func TestMySqlListsRepository_CreateList_When_It_Fails(t *testing.T) {
 
 func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	list := domain.List{UserID: 1, Name: "list1"}
+	list := domain.List{UserID: 1, Name: "list1", IsQuickList: true}
 
 	repo := NewMySqlListsRepository(db)
 
 	expectedInsertListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`itemsCount`) VALUES (?,?,?)")).
-			WithArgs(list.Name, list.UserID, list.ItemsCount)
+		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`isQuickList`) VALUES (?,?,?)")).
+			WithArgs(list.Name, list.UserID, list.IsQuickList)
 	}
 
 	mock.ExpectBegin()
@@ -291,15 +291,15 @@ func TestMySqlListsRepository_DeleteList_When_It_Does_Not_Fail(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlListsRepository_Update_When_It_Fails(t *testing.T) {
+func TestMySqlListsRepository_UpdateList_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	list := domain.List{ID: 11, UserID: 1, Name: "list1"}
+	list := domain.List{ID: 11, UserID: 1, Name: "list1", IsQuickList: true}
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=? WHERE `id` = ?")).
-			WithArgs("list1", int32(11))
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=?,`isQuickList`=? WHERE `id` = ?")).
+			WithArgs("list1", true, int32(11))
 	}
 
 	mock.ExpectBegin()
@@ -313,15 +313,15 @@ func TestMySqlListsRepository_Update_When_It_Fails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlListsRepository_Update_When_It_Does_Not_Fail(t *testing.T) {
+func TestMySqlListsRepository_UpdateList_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	list := domain.List{ID: 11, UserID: 1, Name: "list1"}
+	list := domain.List{ID: 11, UserID: 1, Name: "list1", IsQuickList: true}
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=? WHERE `id` = ?")).
-			WithArgs("list1", int32(11))
+		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=?,`isQuickList`=? WHERE `id` = ?")).
+			WithArgs("list1", true, int32(11))
 	}
 
 	mock.ExpectBegin()

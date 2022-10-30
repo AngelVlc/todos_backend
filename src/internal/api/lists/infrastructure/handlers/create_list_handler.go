@@ -12,7 +12,8 @@ import (
 )
 
 type createListRequest struct {
-	Name string `json:"name"`
+	Name        string `json:"name"`
+	IsQuickList bool   `json:"isQuickList"`
 }
 
 func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
@@ -30,15 +31,16 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewCreateListService(h.ListsRepository)
-	newList, err := srv.CreateList(r.Context(), listName, userID)
+	newList, err := srv.CreateList(r.Context(), listName, userID, createReq.IsQuickList)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
 	res := infrastructure.ListResponse{
-		ID:         newList.ID,
-		Name:       string(newList.Name),
-		ItemsCount: newList.ItemsCount,
+		ID:          newList.ID,
+		Name:        string(newList.Name),
+		ItemsCount:  newList.ItemsCount,
+		IsQuickList: newList.IsQuickList,
 	}
 
 	return results.OkResult{Content: res, StatusCode: http.StatusCreated}

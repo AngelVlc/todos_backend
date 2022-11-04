@@ -1,0 +1,1 @@
+ALTER TABLE `users` MODIFY `isAdmin` tinyint(1) NULL;

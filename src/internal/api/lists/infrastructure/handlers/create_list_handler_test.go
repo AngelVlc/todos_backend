@@ -163,15 +163,16 @@ func TestCreateListHandler_Creates_A_New_List(t *testing.T) {
 	list := domain.List{Name: domain.ListName("list1"), UserID: int32(1)}
 	mockedRepo.On("CreateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
 		arg := args.Get(1).(*domain.List)
-		*arg = domain.List{ID: int32(1)}
+		*arg = domain.List{ID: int32(1), Name: "list1"}
 	})
 
 	result := CreateListHandler(httptest.NewRecorder(), request(), h)
 
 	okRes := results.CheckOkResult(t, result, http.StatusCreated)
 	res, isOk := okRes.Content.(infrastructure.ListResponse)
-	require.Equal(t, true, isOk, "should be a ListResponse")
+	require.True(t, isOk, "should be a ListResponse")
 	assert.Equal(t, int32(1), res.ID)
+	assert.Equal(t, "list1", res.Name)
 
 	mockedRepo.AssertExpectations(t)
 }

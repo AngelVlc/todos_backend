@@ -15,7 +15,7 @@ workflows:
             filters:
               branches:
                 only: master
-        - smoke-aws:
+        - smoke:
             requires:
               - deploy
             filters:
@@ -82,7 +82,7 @@ jobs:
       - plan_or_apply_terraform:
           command: apply -input=false -auto-approve -var container_image=$CONTAINER_IMAGE
       - run: curl --data "deploy[environment]=production&deploy[local_username]=$CIRCLE_PR_USERNAME&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$HONEYBADGER_API_KEY" "https://api.honeybadger.io/v1/deploys"
-  smoke-aws:
+  smoke:
     machine:
       image: ubuntu-2004:202111-01
     steps:

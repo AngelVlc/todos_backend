@@ -15,7 +15,12 @@ func NewUpdateListService(repo domain.ListsRepository) *UpdateListService {
 	return &UpdateListService{repo}
 }
 
-func (s *UpdateListService) UpdateList(ctx context.Context, listID int32, name domain.ListName, userID int32, IDsByPosition []int32) (*domain.List, error) {
+func (s *UpdateListService) UpdateList(ctx context.Context,
+	listID int32,
+	name domain.ListName,
+	userID int32,
+	idsByPosition []int32) (*domain.List, error) {
+
 	foundList, err := s.repo.FindList(ctx, &domain.List{ID: listID, UserID: userID})
 	if err != nil {
 		return nil, err
@@ -45,9 +50,9 @@ func (s *UpdateListService) UpdateList(ctx context.Context, listID int32, name d
 		return foundList, nil
 	}
 
-	for i := 0; i < len(IDsByPosition); i++ {
+	for i := 0; i < len(idsByPosition); i++ {
 		for j := 0; j < len(foundItems); j++ {
-			if foundItems[j].ID == int32(IDsByPosition[i]) {
+			if foundItems[j].ID == int32(idsByPosition[i]) {
 				foundItems[j].Position = int32(i)
 				break
 			}

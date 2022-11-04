@@ -259,7 +259,7 @@ func TestUpdateListHandler_Updates_The_List_And_The_Position_Of_Their_Items(t *t
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
 	res, isOk := okRes.Content.(infrastructure.ListResponse)
-	require.Equal(t, true, isOk, "should be a ListResponse")
+	require.True(t, isOk, "should be a ListResponse")
 	assert.Equal(t, "list1", res.Name)
 
 	mockedRepo.AssertExpectations(t)

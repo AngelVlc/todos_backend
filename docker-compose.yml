@@ -6,7 +6,7 @@ services:
       target: base
     ports:
       - '5001:5001'
-    command: go run cmd/api/main.go
+    command: go run ./...
     depends_on:
       - mysql
     volumes:

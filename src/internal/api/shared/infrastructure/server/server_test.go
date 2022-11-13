@@ -70,6 +70,7 @@ func TestServerAdminRoutes(t *testing.T) {
 		{"/users", http.MethodGet},
 		{"/users/12", http.MethodDelete},
 		{"/users/12", http.MethodPut},
+		{"/users/12", http.MethodPatch},
 		{"/users/12", http.MethodGet},
 		{"/refreshtokens", http.MethodGet},
 		{"/refreshtokens", http.MethodDelete},
@@ -111,12 +112,14 @@ func TestServerPrivateRoutes(t *testing.T) {
 		{"/lists", http.MethodGet},
 		{"/lists", http.MethodPost},
 		{"/lists/12", http.MethodPut},
+		{"/lists/12", http.MethodPatch},
 		{"/lists/12", http.MethodGet},
 		{"/lists/12", http.MethodDelete},
 		{"/lists/12/items", http.MethodPost},
 		{"/lists/12/items/3", http.MethodGet},
 		{"/lists/12/items/3", http.MethodDelete},
 		{"/lists/12/items/3", http.MethodPut},
+		{"/lists/12/items/3", http.MethodPatch},
 	}
 
 	for _, r := range privateRoutes {
@@ -140,17 +143,21 @@ func TestServerBadRoutes(t *testing.T) {
 	}{
 		{"/users/wadus", http.MethodDelete},
 		{"/users/wadus", http.MethodPut},
+		{"/users/wadus", http.MethodPatch},
 		{"/users/wadus", http.MethodGet},
 		{"/lists/wadus", http.MethodPut},
+		{"/lists/wadus", http.MethodPatch},
 		{"/lists/wadus", http.MethodGet},
 		{"/lists/wadus", http.MethodDelete},
 		{"/lists/wadus/items", http.MethodPost},
 		{"/lists/wadus/items/3", http.MethodGet},
 		{"/lists/wadus/items/3", http.MethodDelete},
 		{"/lists/wadus/items/3", http.MethodPut},
+		{"/lists/wadus/items/3", http.MethodPatch},
 		{"/lists/3/items/wadus", http.MethodGet},
 		{"/lists/3/items/wadus", http.MethodDelete},
 		{"/lists/3/items/wadus", http.MethodPut},
+		{"/lists/3/items/wadus", http.MethodPatch},
 	}
 
 	for _, r := range badParamsRoutes {

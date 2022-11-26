@@ -68,12 +68,12 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler)).Methods(http.MethodPost)
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetListHandler)).Methods(http.MethodGet)
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListHandler)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler)).Methods(http.MethodPut, http.MethodPatch)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler)).Methods(http.MethodPatch)
 	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.GetAllListItemsHandler)).Methods(http.MethodGet)
 	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.CreateListItemHandler)).Methods(http.MethodPost)
 	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.GetListItemHandler)).Methods(http.MethodGet)
 	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListItemHandler)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListItemHandler)).Methods(http.MethodPut, http.MethodPatch)
+	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListItemHandler)).Methods(http.MethodPatch)
 	listsSubRouter.Use(authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
@@ -81,7 +81,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	usersSubRouter.Handle("", s.getHandler(authHandlers.GetAllUsersHandler)).Methods(http.MethodGet)
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.GetUserHandler)).Methods(http.MethodGet)
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.DeleteUserHandler)).Methods(http.MethodDelete)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.UpdateUserHandler)).Methods(http.MethodPut, http.MethodPatch)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.UpdateUserHandler)).Methods(http.MethodPatch)
 	usersSubRouter.Use(authMdw.Middleware)
 	usersSubRouter.Use(requireAdminMdw.Middleware)
 

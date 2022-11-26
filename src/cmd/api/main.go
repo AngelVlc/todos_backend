@@ -45,7 +45,7 @@ func main() {
 
 	validCorsHeaders := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	validCorsOrigins := handlers.AllowedOrigins(cfg.GetCorsAllowedOrigins())
-	validCorsMethods := handlers.AllowedMethods([]string{"GET", "DELETE", "POST", "PUT", "OPTIONS"})
+	validCorsMethods := handlers.AllowedMethods([]string{"GET", "DELETE", "POST", "PATCH", "OPTIONS"})
 	allowCredentials := handlers.AllowCredentials()
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -26,13 +26,18 @@ func CreateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 		return results.ErrorResult{Err: err}
 	}
 
-	listTitle, err := domain.NewItemTitle(createReq.Title)
+	listItemTitle, err := domain.NewItemTitle(createReq.Title)
+	if err != nil {
+		return results.ErrorResult{Err: err}
+	}
+
+	listItemDescription, err := domain.NewItemDescription(createReq.Description)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
 	srv := application.NewCreateListItemService(h.ListsRepository)
-	newItem, err := srv.CreateListItem(r.Context(), listID, listTitle, createReq.Description, userID)
+	newItem, err := srv.CreateListItem(r.Context(), listID, listItemTitle, listItemDescription, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
@@ -42,7 +47,7 @@ func CreateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 	res := infrastructure.ListItemResponse{
 		ID:          newItem.ID,
 		Title:       string(newItem.Title),
-		Description: newItem.Description,
+		Description: string(newItem.Description),
 		ListID:      newItem.ListID,
 	}
 

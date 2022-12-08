@@ -27,13 +27,18 @@ func UpdateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 		return results.ErrorResult{Err: err}
 	}
 
-	listTitle, err := domain.NewItemTitle(updateReq.Title)
+	listItemTitle, err := domain.NewItemTitle(updateReq.Title)
+	if err != nil {
+		return results.ErrorResult{Err: err}
+	}
+
+	listItemDescription, err := domain.NewItemDescription(updateReq.Description)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
 	srv := application.NewUpdateListItemService(h.ListsRepository)
-	item, err := srv.UpdateListItem(r.Context(), itemID, listID, listTitle, updateReq.Description, userID)
+	item, err := srv.UpdateListItem(r.Context(), itemID, listID, listItemTitle, listItemDescription, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
@@ -41,7 +46,7 @@ func UpdateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 	res := infrastructure.ListItemResponse{
 		ID:          item.ID,
 		Title:       string(item.Title),
-		Description: item.Description,
+		Description: string(item.Description),
 		ListID:      item.ListID,
 	}
 

@@ -24,7 +24,7 @@ func GetListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Handle
 	res := infrastructure.ListItemResponse{
 		ID:          foundList.ID,
 		Title:       string(foundList.Title),
-		Description: foundList.Description,
+		Description: string(foundList.Description),
 		ListID:      foundList.ListID,
 	}
 

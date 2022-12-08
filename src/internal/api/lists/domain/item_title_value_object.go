@@ -8,15 +8,15 @@ import (
 
 type ItemTitleValueObject string
 
-const title_max_length = 50
+const item_title_max_length = 50
 
 func NewItemTitleValueObject(title string) (ItemTitleValueObject, error) {
 	if len(title) == 0 {
 		return "", &appErrors.BadRequestError{Msg: "The item title can not be empty"}
 	}
 
-	if len(title) > title_max_length {
-		return "", &appErrors.BadRequestError{Msg: fmt.Sprintf("The item title can not have more than %v characters", title_max_length)}
+	if len(title) > item_title_max_length {
+		return "", &appErrors.BadRequestError{Msg: fmt.Sprintf("The item title can not have more than %v characters", item_title_max_length)}
 	}
 
 	return ItemTitleValueObject(title), nil

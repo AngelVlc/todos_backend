@@ -15,7 +15,7 @@ func TestNewItemDescription_Validates_MaxLength(t *testing.T) {
 		b.WriteString("#")
 	}
 
-	itemDescription, err := NewItemDescription(b.String())
+	itemDescription, err := NewItemDescriptionValueObject(b.String())
 
 	assert.Empty(t, itemDescription)
 	badReqErr, isBadReqErr := err.(*appErrors.BadRequestError)
@@ -24,7 +24,7 @@ func TestNewItemDescription_Validates_MaxLength(t *testing.T) {
 }
 
 func TestNewItemDescription_Returns_A_Valid_ItemTitle(t *testing.T) {
-	itemDescription, err := NewItemDescription("a valid description")
+	itemDescription, err := NewItemDescriptionValueObject("a valid description")
 
 	assert.Equal(t, "a valid description", string(itemDescription))
 	assert.NoError(t, err)

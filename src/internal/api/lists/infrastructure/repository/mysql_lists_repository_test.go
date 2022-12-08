@@ -61,7 +61,7 @@ func TestMySqlListsRepository_FindList_WhenTheQueryDoesNotFail(t *testing.T) {
 
 	require.NotNil(t, res)
 	assert.Equal(t, listID, res.ID)
-	assert.Equal(t, domain.ListName("list1"), res.Name)
+	assert.Equal(t, domain.ListNameValueObject("list1"), res.Name)
 	assert.Equal(t, userID, res.UserID)
 	assert.Equal(t, int32(3), res.ItemsCount)
 	assert.Nil(t, err)
@@ -73,7 +73,7 @@ func TestMySqlListsRepository_ExistsList_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	name := domain.ListName("list name")
+	name := domain.ListNameValueObject("list name")
 	userID := int32(1)
 	list := &domain.List{Name: name, UserID: userID}
 
@@ -96,7 +96,7 @@ func TestMySqlListsRepository_ExistsList_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	name := domain.ListName("list name")
+	name := domain.ListNameValueObject("list name")
 	userID := int32(1)
 	list := &domain.List{Name: name, UserID: userID}
 
@@ -155,11 +155,11 @@ func TestMySqlListsRepository_GetAllLists_WhenItDoesNotFail(t *testing.T) {
 	require.NotNil(t, res)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
-	assert.Equal(t, domain.ListName("list1"), res[0].Name)
+	assert.Equal(t, domain.ListNameValueObject("list1"), res[0].Name)
 	assert.Equal(t, userID, res[0].UserID)
 	assert.Equal(t, int32(3), res[0].ItemsCount)
 	assert.Equal(t, int32(12), res[1].ID)
-	assert.Equal(t, domain.ListName("list2"), res[1].Name)
+	assert.Equal(t, domain.ListNameValueObject("list2"), res[1].Name)
 	assert.Equal(t, userID, res[1].UserID)
 	assert.Equal(t, int32(4), res[1].ItemsCount)
 
@@ -460,8 +460,8 @@ func TestMySqlListsRepository_FindListItem_WhenItDoesNotFail(t *testing.T) {
 	res, err := repo.FindListItem(context.Background(), &listItem)
 
 	require.NotNil(t, res)
-	assert.Equal(t, domain.ItemTitle("title"), res.Title)
-	assert.Equal(t, domain.ItemDescription("description"), res.Description)
+	assert.Equal(t, domain.ItemTitleValueObject("title"), res.Title)
+	assert.Equal(t, domain.ItemDescriptionValueObject("description"), res.Description)
 	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -507,11 +507,11 @@ func TestMySqlListsRepository_GetAllItems_When_It_Does_Not_Fail(t *testing.T) {
 
 	require.NotNil(t, res)
 	require.Equal(t, 2, len(res))
-	assert.Equal(t, domain.ItemTitle("title1"), res[0].Title)
-	assert.Equal(t, domain.ItemDescription("desc1"), res[0].Description)
+	assert.Equal(t, domain.ItemTitleValueObject("title1"), res[0].Title)
+	assert.Equal(t, domain.ItemDescriptionValueObject("desc1"), res[0].Description)
 	assert.Equal(t, int32(0), res[0].Position)
-	assert.Equal(t, domain.ItemTitle("title2"), res[1].Title)
-	assert.Equal(t, domain.ItemDescription("desc2"), res[1].Description)
+	assert.Equal(t, domain.ItemTitleValueObject("title2"), res[1].Title)
+	assert.Equal(t, domain.ItemDescriptionValueObject("desc2"), res[1].Description)
 	assert.Equal(t, int32(1), res[1].Position)
 	assert.Nil(t, err)
 

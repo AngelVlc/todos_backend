@@ -6,11 +6,11 @@ import (
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 )
 
-type ItemTitle string
+type ItemTitleValueObject string
 
 const title_max_length = 50
 
-func NewItemTitle(title string) (ItemTitle, error) {
+func NewItemTitleValueObject(title string) (ItemTitleValueObject, error) {
 	if len(title) == 0 {
 		return "", &appErrors.BadRequestError{Msg: "The item title can not be empty"}
 	}
@@ -19,5 +19,5 @@ func NewItemTitle(title string) (ItemTitle, error) {
 		return "", &appErrors.BadRequestError{Msg: fmt.Sprintf("The item title can not have more than %v characters", title_max_length)}
 	}
 
-	return ItemTitle(title), nil
+	return ItemTitleValueObject(title), nil
 }

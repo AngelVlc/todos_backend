@@ -15,7 +15,7 @@ func NewCreateListItemService(repo domain.ListsRepository) *CreateListItemServic
 	return &CreateListItemService{repo}
 }
 
-func (s *CreateListItemService) CreateListItem(ctx context.Context, listID int32, title domain.ItemTitle, description domain.ItemDescription, userID int32) (*domain.ListItem, error) {
+func (s *CreateListItemService) CreateListItem(ctx context.Context, listID int32, title domain.ItemTitleValueObject, description domain.ItemDescriptionValueObject, userID int32) (*domain.ListItem, error) {
 	foundList, err := s.repo.FindList(ctx, &domain.List{ID: listID, UserID: userID})
 	if err != nil {
 		return nil, err

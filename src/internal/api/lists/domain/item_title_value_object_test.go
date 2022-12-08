@@ -9,7 +9,7 @@ import (
 )
 
 func TestNewItemTitle_Validates_MinLength(t *testing.T) {
-	itemTitle, err := NewItemTitle("")
+	itemTitle, err := NewItemTitleValueObject("")
 
 	assert.Empty(t, itemTitle)
 
@@ -19,7 +19,7 @@ func TestNewItemTitle_Validates_MinLength(t *testing.T) {
 }
 
 func TestNewItemTitle_Validates_MaxLength(t *testing.T) {
-	itemTitle, err := NewItemTitle("012345678901234567890123456789012345678901234567890")
+	itemTitle, err := NewItemTitleValueObject("012345678901234567890123456789012345678901234567890")
 
 	assert.Empty(t, itemTitle)
 	badReqErr, isBadReqErr := err.(*appErrors.BadRequestError)
@@ -28,7 +28,7 @@ func TestNewItemTitle_Validates_MaxLength(t *testing.T) {
 }
 
 func TestNewItemTitle_Returns_A_Valid_ItemTitle(t *testing.T) {
-	itemTitle, err := NewItemTitle("a valid title")
+	itemTitle, err := NewItemTitleValueObject("a valid title")
 
 	assert.Equal(t, "a valid title", string(itemTitle))
 	assert.NoError(t, err)

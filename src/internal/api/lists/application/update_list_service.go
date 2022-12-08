@@ -17,7 +17,7 @@ func NewUpdateListService(repo domain.ListsRepository) *UpdateListService {
 
 func (s *UpdateListService) UpdateList(ctx context.Context,
 	listID int32,
-	name domain.ListName,
+	name domain.ListNameValueObject,
 	userID int32,
 	idsByPosition []int32) (*domain.List, error) {
 

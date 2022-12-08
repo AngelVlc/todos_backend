@@ -27,12 +27,12 @@ func UpdateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 		return results.ErrorResult{Err: err}
 	}
 
-	listItemTitle, err := domain.NewItemTitle(updateReq.Title)
+	listItemTitle, err := domain.NewItemTitleValueObject(updateReq.Title)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	listItemDescription, err := domain.NewItemDescription(updateReq.Description)
+	listItemDescription, err := domain.NewItemDescriptionValueObject(updateReq.Description)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

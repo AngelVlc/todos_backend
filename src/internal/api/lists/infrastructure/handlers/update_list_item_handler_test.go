@@ -105,7 +105,7 @@ func TestUpdateListItemHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If
 		return request.WithContext(ctx)
 	}
 
-	listItem := domain.ListItem{ID: 1, ListID: 11, Title: domain.ItemTitle("title"), Description: domain.ItemDescription("desc"), UserID: int32(1)}
+	listItem := domain.ListItem{ID: 1, ListID: 11, Title: domain.ItemTitleValueObject("title"), Description: domain.ItemDescriptionValueObject("desc"), UserID: int32(1)}
 	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
 	mockedRepo.On("UpdateListItem", request().Context(), &listItem).Return(fmt.Errorf("some error")).Once()
 
@@ -134,7 +134,7 @@ func TestUpdateListItemHandler_Updates_The_ListItem(t *testing.T) {
 		return request.WithContext(ctx)
 	}
 
-	listItem := domain.ListItem{ID: 1, ListID: 11, Title: domain.ItemTitle("oriTitle"), Description: domain.ItemDescription("oriDesc"), UserID: int32(1)}
+	listItem := domain.ListItem{ID: 1, ListID: 11, Title: domain.ItemTitleValueObject("oriTitle"), Description: domain.ItemDescriptionValueObject("oriDesc"), UserID: int32(1)}
 	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
 	mockedRepo.On("UpdateListItem", request().Context(), &listItem).Return(nil).Once().Run(func(args mock.Arguments) {
 		arg := args.Get(1).(*domain.ListItem)

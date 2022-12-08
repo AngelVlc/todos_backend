@@ -26,12 +26,12 @@ func CreateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 		return results.ErrorResult{Err: err}
 	}
 
-	listItemTitle, err := domain.NewItemTitle(createReq.Title)
+	listItemTitle, err := domain.NewItemTitleValueObject(createReq.Title)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	listItemDescription, err := domain.NewItemDescription(createReq.Description)
+	listItemDescription, err := domain.NewItemDescriptionValueObject(createReq.Description)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

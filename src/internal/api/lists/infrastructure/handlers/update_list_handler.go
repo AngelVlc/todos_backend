@@ -26,7 +26,7 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	listName, err := domain.NewListName(updateReq.Name)
+	listName, err := domain.NewListNameValueObject(updateReq.Name)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

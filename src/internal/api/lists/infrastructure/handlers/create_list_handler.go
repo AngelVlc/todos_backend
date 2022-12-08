@@ -24,7 +24,7 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	listName, err := domain.NewListName(createReq.Name)
+	listName, err := domain.NewListNameValueObject(createReq.Name)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

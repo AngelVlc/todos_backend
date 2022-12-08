@@ -119,9 +119,9 @@ func TestUpdateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Is
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{ID: int32(11), Name: domain.ListName("oldName"), UserID: int32(11)}
+	list := domain.List{ID: int32(11), Name: domain.ListNameValueObject("oldName"), UserID: int32(11)}
 	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.List{Name: domain.ListName("list1"), UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.List{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -147,7 +147,7 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Upd
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{ID: int32(11), Name: domain.ListName("list1"), UserID: int32(11)}
+	list := domain.List{ID: int32(11), Name: domain.ListNameValueObject("list1"), UserID: int32(11)}
 	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(fmt.Errorf("some error")).Once()
 
@@ -175,9 +175,9 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Get
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{ID: int32(11), Name: domain.ListName("originalName"), UserID: int32(1)}
+	list := domain.List{ID: int32(11), Name: domain.ListNameValueObject("originalName"), UserID: int32(1)}
 	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.List{Name: domain.ListName("list1"), UserID: int32(1)}).Return(false, nil).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.List{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}).Return(false, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
 		arg := args.Get(1).(*domain.List)
 		*arg = domain.List{Name: "list1"}
@@ -208,9 +208,9 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{ID: int32(11), Name: domain.ListName("originalName"), UserID: int32(1)}
+	list := domain.List{ID: int32(11), Name: domain.ListNameValueObject("originalName"), UserID: int32(1)}
 	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.List{Name: domain.ListName("list1"), UserID: int32(1)}).Return(false, nil).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.List{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}).Return(false, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
 		arg := args.Get(1).(*domain.List)
 		*arg = domain.List{Name: "list1"}
@@ -243,9 +243,9 @@ func TestUpdateListHandler_Updates_The_List_And_The_Position_Of_Their_Items(t *t
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{ID: int32(11), Name: domain.ListName("originalName"), UserID: int32(1)}
+	list := domain.List{ID: int32(11), Name: domain.ListNameValueObject("originalName"), UserID: int32(1)}
 	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.List{Name: domain.ListName("list1"), UserID: int32(1)}).Return(false, nil).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.List{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}).Return(false, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
 		arg := args.Get(1).(*domain.List)
 		*arg = domain.List{Name: "list1"}

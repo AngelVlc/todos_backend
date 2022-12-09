@@ -101,7 +101,7 @@ func TestCreateListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fa
 		return request.WithContext(ctx)
 	}
 
-	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
 
@@ -128,9 +128,9 @@ func TestCreateListItemHandler_Returns_An_Error_With_An_UnexpectedError_If_The_C
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}
-	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	listItem := domain.ListItem{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc"}
+	list := domain.ListEntity{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}
+	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	listItem := domain.ListItemEntity{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc"}
 	mockedRepo.On("CreateListItem", request().Context(), &listItem).Return(fmt.Errorf("some error")).Once()
 
 	result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
@@ -158,12 +158,12 @@ func TestCreateListItemHandler_Creates_The_New_ListItem_When_The_List_Does_Not_H
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{Name: domain.ListNameValueObject("list1"), UserID: int32(1), ItemsCount: int32(0)}
-	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	listItem := domain.ListItem{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc", Position: int32(0)}
+	list := domain.ListEntity{Name: domain.ListNameValueObject("list1"), UserID: int32(1), ItemsCount: int32(0)}
+	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	listItem := domain.ListItemEntity{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc", Position: int32(0)}
 	mockedRepo.On("CreateListItem", request().Context(), &listItem).Return(nil).Once().Run(func(args mock.Arguments) {
-		arg := args.Get(1).(*domain.ListItem)
-		*arg = domain.ListItem{ID: int32(1)}
+		arg := args.Get(1).(*domain.ListItemEntity)
+		*arg = domain.ListItemEntity{ID: int32(1)}
 	})
 
 	mockedEventBus.On("Publish", "listItemCreated", int32(11))
@@ -200,8 +200,8 @@ func TestCreateListItemHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{Name: domain.ListNameValueObject("list1"), UserID: int32(1), ItemsCount: int32(3)}
-	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	list := domain.ListEntity{Name: domain.ListNameValueObject("list1"), UserID: int32(1), ItemsCount: int32(3)}
+	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 	mockedRepo.On("GetListItemsMaxPosition", request().Context(), int32(11), int32(1)).Return(int32(-1), fmt.Errorf("some error")).Once()
 
 	result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
@@ -229,13 +229,13 @@ func TestCreateListItemHandler_Creates_The_New_ListItem_When_The_List_Already_Ha
 		return request.WithContext(ctx)
 	}
 
-	list := domain.List{Name: domain.ListNameValueObject("list1"), UserID: int32(1), ItemsCount: int32(2)}
-	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	list := domain.ListEntity{Name: domain.ListNameValueObject("list1"), UserID: int32(1), ItemsCount: int32(2)}
+	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 	mockedRepo.On("GetListItemsMaxPosition", request().Context(), int32(11), int32(1)).Return(int32(2), nil).Once()
-	listItem := domain.ListItem{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc", Position: int32(3)}
+	listItem := domain.ListItemEntity{ListID: int32(11), UserID: int32(1), Title: "title", Description: "desc", Position: int32(3)}
 	mockedRepo.On("CreateListItem", request().Context(), &listItem).Return(nil).Once().Run(func(args mock.Arguments) {
-		arg := args.Get(1).(*domain.ListItem)
-		*arg = domain.ListItem{ID: int32(1)}
+		arg := args.Get(1).(*domain.ListItemEntity)
+		*arg = domain.ListItemEntity{ID: int32(1)}
 	})
 
 	mockedEventBus.On("Publish", "listItemCreated", int32(11))

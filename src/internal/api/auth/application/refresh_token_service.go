@@ -27,7 +27,7 @@ func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (stri
 
 	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
-	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{ID: rtInfo.UserID})
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserEntity{ID: rtInfo.UserID})
 	if err != nil {
 		return "", err
 	}

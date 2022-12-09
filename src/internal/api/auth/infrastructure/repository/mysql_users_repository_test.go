@@ -29,7 +29,7 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryFails(t *testing.T) {
 
 	expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.FindUser(context.Background(), &domain.User{ID: userID})
+	res, err := repo.FindUser(context.Background(), &domain.UserEntity{ID: userID})
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -50,7 +50,7 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 
 	expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(int32(1), userName, "hash", true))
 
-	res, err := repo.FindUser(context.Background(), &domain.User{Name: userName})
+	res, err := repo.FindUser(context.Background(), &domain.UserEntity{Name: userName})
 
 	require.NotNil(t, res)
 	assert.Equal(t, userName, res.Name)
@@ -65,7 +65,7 @@ func TestMySqlAuthRepository_ExistsUser_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	user := &domain.User{Name: domain.UserNameValueObject("userName")}
+	user := &domain.UserEntity{Name: domain.UserNameValueObject("userName")}
 
 	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
@@ -86,7 +86,7 @@ func TestMySqlAuthRepository_ExistsUser_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	user := &domain.User{Name: domain.UserNameValueObject("userName")}
+	user := &domain.UserEntity{Name: domain.UserNameValueObject("userName")}
 
 	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
@@ -149,7 +149,7 @@ func TestMySqlUsersRepository_GetAll_WhenTheQueryDoesNotFail(t *testing.T) {
 
 func TestMySqlUsersRepository_Create_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserEntity{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlUsersRepository(db)
 
@@ -171,7 +171,7 @@ func TestMySqlUsersRepository_Create_WhenItFails(t *testing.T) {
 
 func TestMySqlUsersRepository_Create_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	user := domain.User{Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserEntity{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlUsersRepository(db)
 
@@ -208,7 +208,7 @@ func TestMySqlUsersRepository_Delete_WhenItFails(t *testing.T) {
 	expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.Delete(context.Background(), &domain.User{ID: userID})
+	err := repo.Delete(context.Background(), &domain.UserEntity{ID: userID})
 
 	assert.EqualError(t, err, "some error")
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -230,7 +230,7 @@ func TestMySqlUsersRepository_Delete_WhenItDoesNotFail(t *testing.T) {
 	expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
-	err := repo.Delete(context.Background(), &domain.User{ID: userID})
+	err := repo.Delete(context.Background(), &domain.UserEntity{ID: userID})
 
 	assert.Nil(t, err)
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -238,7 +238,7 @@ func TestMySqlUsersRepository_Delete_WhenItDoesNotFail(t *testing.T) {
 
 func TestMySqlUsersRepository_Update_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserEntity{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlUsersRepository(db)
 
@@ -259,7 +259,7 @@ func TestMySqlUsersRepository_Update_WhenItFails(t *testing.T) {
 
 func TestMySqlUsersRepository_Update_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	user := domain.User{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserEntity{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlUsersRepository(db)
 

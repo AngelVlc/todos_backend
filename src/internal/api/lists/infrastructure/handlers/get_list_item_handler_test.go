@@ -36,7 +36,7 @@ func TestGetListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Item_
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItemEntity{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetListItemHandler(httptest.NewRecorder(), request(), h)
 
@@ -59,8 +59,8 @@ func TestGetListItemHandler_Returns_The_List(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	list := domain.ListItem{ID: 111, ListID: 11, Title: "title", Description: "desc"}
-	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	list := domain.ListItemEntity{ID: 111, ListID: 11, Title: "title", Description: "desc"}
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItemEntity{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 
 	result := GetListItemHandler(httptest.NewRecorder(), request(), h)
 

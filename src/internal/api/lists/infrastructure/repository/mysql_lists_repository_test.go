@@ -35,7 +35,7 @@ func TestMySqlListsRepository_FindList_WhenTheQueryFails(t *testing.T) {
 
 	expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.FindList(context.Background(), &domain.List{ID: listID, UserID: userID})
+	res, err := repo.FindList(context.Background(), &domain.ListEntity{ID: listID, UserID: userID})
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -57,7 +57,7 @@ func TestMySqlListsRepository_FindList_WhenTheQueryDoesNotFail(t *testing.T) {
 
 	expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID, int32(3)))
 
-	res, err := repo.FindList(context.Background(), &domain.List{ID: listID, UserID: userID})
+	res, err := repo.FindList(context.Background(), &domain.ListEntity{ID: listID, UserID: userID})
 
 	require.NotNil(t, res)
 	assert.Equal(t, listID, res.ID)
@@ -75,7 +75,7 @@ func TestMySqlListsRepository_ExistsList_WhenItFails(t *testing.T) {
 
 	name := domain.ListNameValueObject("list name")
 	userID := int32(1)
-	list := &domain.List{Name: name, UserID: userID}
+	list := &domain.ListEntity{Name: name, UserID: userID}
 
 	expectedExistsListQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
@@ -98,7 +98,7 @@ func TestMySqlListsRepository_ExistsList_WhenItDoesNotFail(t *testing.T) {
 
 	name := domain.ListNameValueObject("list name")
 	userID := int32(1)
-	list := &domain.List{Name: name, UserID: userID}
+	list := &domain.ListEntity{Name: name, UserID: userID}
 
 	expectedExistsListQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
@@ -168,7 +168,7 @@ func TestMySqlListsRepository_GetAllLists_WhenItDoesNotFail(t *testing.T) {
 
 func TestMySqlListsRepository_CreateList_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	list := domain.List{UserID: 1, Name: "list1"}
+	list := domain.ListEntity{UserID: 1, Name: "list1"}
 
 	repo := NewMySqlListsRepository(db)
 
@@ -190,7 +190,7 @@ func TestMySqlListsRepository_CreateList_When_It_Fails(t *testing.T) {
 
 func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	list := domain.List{UserID: 1, Name: "list1"}
+	list := domain.ListEntity{UserID: 1, Name: "list1"}
 
 	repo := NewMySqlListsRepository(db)
 
@@ -295,7 +295,7 @@ func TestMySqlListsRepository_Update_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	list := domain.List{ID: 11, UserID: 1, Name: "list1"}
+	list := domain.ListEntity{ID: 11, UserID: 1, Name: "list1"}
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=? WHERE `id` = ?")).
@@ -317,7 +317,7 @@ func TestMySqlListsRepository_Update_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	list := domain.List{ID: 11, UserID: 1, Name: "list1"}
+	list := domain.ListEntity{ID: 11, UserID: 1, Name: "list1"}
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=? WHERE `id` = ?")).
@@ -423,7 +423,7 @@ func TestMySqlListsRepository_FindListItem_WhenItFails(t *testing.T) {
 	listID := int32(11)
 	itemID := int32(111)
 
-	listItem := domain.ListItem{ID: itemID, ListID: listID, UserID: userID}
+	listItem := domain.ListItemEntity{ID: itemID, ListID: listID, UserID: userID}
 
 	expectedGetItemQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? AND `listItems`.`listId` = ? AND `listItems`.`userId` = ? LIMIT 1")).
@@ -448,7 +448,7 @@ func TestMySqlListsRepository_FindListItem_WhenItDoesNotFail(t *testing.T) {
 	listID := int32(11)
 	itemID := int32(111)
 
-	listItem := domain.ListItem{ID: itemID, ListID: listID, UserID: userID}
+	listItem := domain.ListItemEntity{ID: itemID, ListID: listID, UserID: userID}
 
 	expectedGetItemQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`id` = ? AND `listItems`.`listId` = ? AND `listItems`.`userId` = ? LIMIT 1")).
@@ -522,7 +522,7 @@ func TestMySqlListsRepository_CreateListItem_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	item := domain.ListItem{ListID: 11, UserID: 1, Title: "title", Description: "desc"}
+	item := domain.ListItemEntity{ListID: 11, UserID: 1, Title: "title", Description: "desc"}
 
 	expectedInsertListItemExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`) VALUES (?,?,?,?,?)")).
@@ -544,7 +544,7 @@ func TestMySqlListsRepository_CreateListItem_When_It_Does_Not_Fail(t *testing.T)
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	item := domain.ListItem{ListID: 11, UserID: 1, Title: "title", Description: "desc"}
+	item := domain.ListItemEntity{ListID: 11, UserID: 1, Title: "title", Description: "desc"}
 
 	expectedInsertListItemExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`) VALUES (?,?,?,?,?)")).
@@ -614,7 +614,7 @@ func TestMySqlListsRepository_UpdateListItem_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	item := domain.ListItem{ID: 111, ListID: 11, UserID: 1, Title: "title", Description: "desc"}
+	item := domain.ListItemEntity{ID: 111, ListID: 11, UserID: 1, Title: "title", Description: "desc"}
 
 	expectedUpdateListItemExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId`=?,`userId`=?,`title`=?,`description`=?,`position`=? WHERE `id` = ?")).
@@ -636,7 +636,7 @@ func TestMySqlListsRepository_UpdateListItem(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	item := domain.ListItem{ID: 111, ListID: 11, UserID: 1, Title: "title", Description: "desc"}
+	item := domain.ListItemEntity{ID: 111, ListID: 11, UserID: 1, Title: "title", Description: "desc"}
 
 	expectedUpdateListItemExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `listItems` SET `listId`=?,`userId`=?,`title`=?,`description`=?,`position`=? WHERE `id` = ?")).
@@ -661,10 +661,10 @@ func TestMySqlListsRepository_BulkUpdateListItems_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	item1 := domain.ListItem{ID: 1, Position: 0}
-	item2 := domain.ListItem{ID: 2, Position: 1}
-	item3 := domain.ListItem{ID: 3, Position: 2}
-	items := []domain.ListItem{item1, item2, item3}
+	item1 := domain.ListItemEntity{ID: 1, Position: 0}
+	item2 := domain.ListItemEntity{ID: 2, Position: 1}
+	item3 := domain.ListItemEntity{ID: 3, Position: 2}
+	items := []domain.ListItemEntity{item1, item2, item3}
 
 	expectedUpdateListItemsExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`,`id`) VALUES (?,?,?,?,?,?),(?,?,?,?,?,?),(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `position`=VALUES(`position`)")).
@@ -686,10 +686,10 @@ func TestMySqlListsRepository_BulkUpdateListItems_When_It_Does_Not_Fail(t *testi
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	item1 := domain.ListItem{ID: 1, Position: 0}
-	item2 := domain.ListItem{ID: 2, Position: 1}
-	item3 := domain.ListItem{ID: 3, Position: 2}
-	items := []domain.ListItem{item1, item2, item3}
+	item1 := domain.ListItemEntity{ID: 1, Position: 0}
+	item2 := domain.ListItemEntity{ID: 2, Position: 1}
+	item3 := domain.ListItemEntity{ID: 3, Position: 2}
+	items := []domain.ListItemEntity{item1, item2, item3}
 
 	expectedUpdateListItemsExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`,`id`) VALUES (?,?,?,?,?,?),(?,?,?,?,?,?),(?,?,?,?,?,?) ON DUPLICATE KEY UPDATE `position`=VALUES(`position`)")).

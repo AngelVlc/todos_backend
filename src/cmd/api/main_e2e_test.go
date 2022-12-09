@@ -68,7 +68,7 @@ func TestEndtoEnd(t *testing.T) {
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 201, res.StatusCode)
-	createdRes := listsDomain.List{}
+	createdRes := listsDomain.ListEntity{}
 	err = objFromRes(res.Body, &createdRes)
 	require.Nil(t, err)
 	listID := fmt.Sprint(createdRes.ID)

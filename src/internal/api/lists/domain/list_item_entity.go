@@ -1,6 +1,6 @@
 package domain
 
-type ListItem struct {
+type ListItemEntity struct {
 	ID          int32                      `gorm:"type:int(32);primary_key"`
 	ListID      int32                      `gorm:"column:listId;type:int(32)"`
 	UserID      int32                      `gorm:"column:userId;type:int(32)"`
@@ -9,6 +9,6 @@ type ListItem struct {
 	Position    int32                      `gorm:"column:position;type:int(32)"`
 }
 
-func (ListItem) TableName() string {
+func (ListItemEntity) TableName() string {
 	return "listItems"
 }

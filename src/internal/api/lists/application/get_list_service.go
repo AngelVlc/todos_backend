@@ -14,6 +14,6 @@ func NewGetListService(repo domain.ListsRepository) *GetListService {
 	return &GetListService{repo}
 }
 
-func (s *GetListService) GetList(ctx context.Context, listID int32, userID int32) (*domain.List, error) {
-	return s.repo.FindList(ctx, &domain.List{ID: listID, UserID: userID})
+func (s *GetListService) GetList(ctx context.Context, listID int32, userID int32) (*domain.ListEntity, error) {
+	return s.repo.FindList(ctx, &domain.ListEntity{ID: listID, UserID: userID})
 }

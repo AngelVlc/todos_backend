@@ -32,7 +32,7 @@ func TestDeletesListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
 
@@ -54,8 +54,8 @@ func TestDeletesListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Th
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	list := domain.List{ID: 11, Name: "list1"}
-	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	list := domain.ListEntity{ID: 11, Name: "list1"}
+	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 	mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
 
 	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
@@ -78,8 +78,8 @@ func TestDeletesListHandler_Deletes_The_List(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	list := domain.List{ID: 11, Name: "list1"}
-	mockedRepo.On("FindList", request().Context(), &domain.List{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	list := domain.ListEntity{ID: 11, Name: "list1"}
+	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 	mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(nil).Once()
 
 	result := DeleteListHandler(httptest.NewRecorder(), request(), h)

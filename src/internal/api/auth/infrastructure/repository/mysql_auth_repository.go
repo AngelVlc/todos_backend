@@ -72,8 +72,8 @@ func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids [
 	return nil
 }
 
-func (r *MySqlAuthRepository) findUser(ctx context.Context, where domain.User) (*domain.User, error) {
-	foundUser := domain.User{}
+func (r *MySqlAuthRepository) findUser(ctx context.Context, where domain.UserEntity) (*domain.UserEntity, error) {
+	foundUser := domain.UserEntity{}
 	err := r.db.WithContext(ctx).Where(where).Take(&foundUser).Error
 
 	if err != nil {

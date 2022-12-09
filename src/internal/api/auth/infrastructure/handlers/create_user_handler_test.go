@@ -97,7 +97,7 @@ func TestCreateUserHandler_Returns_An_Error_If_The_Query_To_Check_If_The_User_Ex
 	body, _ := json.Marshal(createReq)
 
 	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserNameValueObject("wadus")}).Return(false, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -114,7 +114,7 @@ func TestCreateUserHandler_Returns_A_BadRequest_Error_If_A_User_With_The_Same_Na
 	body, _ := json.Marshal(createReq)
 
 	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserNameValueObject("wadus")}).Return(true, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(true, nil).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -131,7 +131,7 @@ func TestCreateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 	body, _ := json.Marshal(createReq)
 
 	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserNameValueObject("wadus")}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(false, nil).Once()
 	mockedPassGen.On("GenerateFromPassword", "pass").Return("", fmt.Errorf("some error")).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
@@ -150,10 +150,10 @@ func TestCreateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 	body, _ := json.Marshal(createReq)
 
 	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserNameValueObject("wadus")}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(false, nil).Once()
 	hassedPass := "hassed"
 	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
-	user := domain.User{Name: domain.UserNameValueObject("wadus"), PasswordHash: hassedPass, IsAdmin: true}
+	user := domain.UserEntity{Name: domain.UserNameValueObject("wadus"), PasswordHash: hassedPass, IsAdmin: true}
 	mockedUsersRepo.On("Create", request.Context(), &user).Return(fmt.Errorf("some error")).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
@@ -172,13 +172,13 @@ func TestCreateUserHandler_Creates_The_User(t *testing.T) {
 	body, _ := json.Marshal(createReq)
 
 	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
-	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.User{Name: domain.UserNameValueObject("wadus")}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(false, nil).Once()
 	hassedPass := "hassed"
 	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
-	user := domain.User{Name: domain.UserNameValueObject("wadus"), PasswordHash: hassedPass, IsAdmin: true}
+	user := domain.UserEntity{Name: domain.UserNameValueObject("wadus"), PasswordHash: hassedPass, IsAdmin: true}
 	mockedUsersRepo.On("Create", request.Context(), &user).Return(nil).Once().Run(func(args mock.Arguments) {
-		arg := args.Get(1).(*domain.User)
-		*arg = domain.User{ID: int32(1)}
+		arg := args.Get(1).(*domain.UserEntity)
+		*arg = domain.UserEntity{ID: int32(1)}
 	})
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)

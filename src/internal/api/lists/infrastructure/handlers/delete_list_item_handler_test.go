@@ -35,7 +35,7 @@ func TestDeletesListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_ListIt
 	mockedEventBus := events.MockedEventBus{}
 	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
-	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItemEntity{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
 
@@ -59,8 +59,8 @@ func TestDeletesListItemHandler_Returns_An_Error_With_An_UnexpectedError_If_The_
 	mockedEventBus := events.MockedEventBus{}
 	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
-	listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
-	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
+	listItem := domain.ListItemEntity{ID: 111, ListID: 11, Title: "title"}
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItemEntity{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
 	mockedRepo.On("DeleteListItem", request().Context(), int32(111), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
 
 	result := DeleteListItemHandler(httptest.NewRecorder(), request(), h)
@@ -85,8 +85,8 @@ func TestDeletesListItemHandler_Deleted_The_ListItem(t *testing.T) {
 	mockedEventBus := events.MockedEventBus{}
 	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
 
-	listItem := domain.ListItem{ID: 111, ListID: 11, Title: "title"}
-	mockedRepo.On("FindListItem", request().Context(), &domain.ListItem{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
+	listItem := domain.ListItemEntity{ID: 111, ListID: 11, Title: "title"}
+	mockedRepo.On("FindListItem", request().Context(), &domain.ListItemEntity{ID: int32(111), ListID: int32(11), UserID: int32(1)}).Return(&listItem, nil).Once()
 	mockedRepo.On("DeleteListItem", request().Context(), int32(111), int32(11), int32(1)).Return(nil).Once()
 	mockedEventBus.On("Publish", "listItemDeleted", int32(11))
 

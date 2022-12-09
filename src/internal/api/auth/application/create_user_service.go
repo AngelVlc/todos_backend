@@ -17,7 +17,7 @@ func NewCreateUserService(usersRepo domain.UsersRepository, passGen passgen.Pass
 	return &CreateUserService{usersRepo, passGen}
 }
 
-func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
+func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPassword, isAdmin bool) (*domain.UserEntity, error) {
 	err := userName.CheckIfAlreadyExists(ctx, s.usersRepo)
 	if err != nil {
 		return nil, err
@@ -28,7 +28,7 @@ func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.User
 		return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 	}
 
-	user := domain.User{
+	user := domain.UserEntity{
 		Name:         userName,
 		PasswordHash: hasshedPass,
 		IsAdmin:      isAdmin,

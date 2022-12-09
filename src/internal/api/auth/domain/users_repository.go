@@ -3,10 +3,10 @@ package domain
 import "context"
 
 type UsersRepository interface {
-	FindUser(ctx context.Context, filter *User) (*User, error)
-	ExistsUser(ctx context.Context, filter *User) (bool, error)
-	GetAll(ctx context.Context) ([]User, error)
-	Create(ctx context.Context, user *User) error
-	Delete(ctx context.Context, filter *User) error
-	Update(ctx context.Context, user *User) error
+	FindUser(ctx context.Context, filter *UserEntity) (*UserEntity, error)
+	ExistsUser(ctx context.Context, filter *UserEntity) (bool, error)
+	GetAll(ctx context.Context) ([]UserEntity, error)
+	Create(ctx context.Context, user *UserEntity) error
+	Delete(ctx context.Context, filter *UserEntity) error
+	Update(ctx context.Context, user *UserEntity) error
 }

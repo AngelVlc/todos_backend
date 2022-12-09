@@ -16,7 +16,7 @@ func NewDeleteListService(repo domain.ListsRepository) *DeleteListService {
 }
 
 func (s *DeleteListService) DeleteList(ctx context.Context, listID int32, userID int32) error {
-	_, err := s.repo.FindList(ctx, &domain.List{ID: listID, UserID: userID})
+	_, err := s.repo.FindList(ctx, &domain.ListEntity{ID: listID, UserID: userID})
 	if err != nil {
 		return err
 	}

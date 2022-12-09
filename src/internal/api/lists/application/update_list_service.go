@@ -19,9 +19,9 @@ func (s *UpdateListService) UpdateList(ctx context.Context,
 	listID int32,
 	name domain.ListNameValueObject,
 	userID int32,
-	idsByPosition []int32) (*domain.List, error) {
+	idsByPosition []int32) (*domain.ListEntity, error) {
 
-	foundList, err := s.repo.FindList(ctx, &domain.List{ID: listID, UserID: userID})
+	foundList, err := s.repo.FindList(ctx, &domain.ListEntity{ID: listID, UserID: userID})
 	if err != nil {
 		return nil, err
 	}

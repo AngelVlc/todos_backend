@@ -17,8 +17,8 @@ func NewUpdateUserService(usersRepo domain.UsersRepository, passGen passgen.Pass
 	return &UpdateUserService{usersRepo, passGen}
 }
 
-func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserNameValueObject, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
-	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{ID: userID})
+func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserNameValueObject, password domain.UserPassword, isAdmin bool) (*domain.UserEntity, error) {
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserEntity{ID: userID})
 	if err != nil {
 		return nil, err
 	}

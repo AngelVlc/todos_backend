@@ -31,7 +31,7 @@ func TestGetUserHandler_Returns_An_Error_If_The_Query_Fails(t *testing.T) {
 	mockedRepo := authRepository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedRepo}
 
-	mockedRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindUser", request().Context(), &domain.UserEntity{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -51,8 +51,8 @@ func TestGetUserHandler_Returns_The_User(t *testing.T) {
 	mockedRepo := authRepository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedRepo}
 
-	user := domain.User{ID: 2, Name: "user1", IsAdmin: true}
-	mockedRepo.On("FindUser", request().Context(), &domain.User{ID: int32(1)}).Return(&user, nil).Once()
+	user := domain.UserEntity{ID: 2, Name: "user1", IsAdmin: true}
+	mockedRepo.On("FindUser", request().Context(), &domain.UserEntity{ID: int32(1)}).Return(&user, nil).Once()
 
 	result := GetUserHandler(httptest.NewRecorder(), request(), h)
 

@@ -22,7 +22,7 @@ func NewLoginService(authRepo domain.AuthRepository, usersRepo domain.UsersRepos
 }
 
 func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPassword) (*domain.LoginResponse, error) {
-	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{Name: userName})
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserEntity{Name: userName})
 	if err != nil {
 		return nil, err
 	}

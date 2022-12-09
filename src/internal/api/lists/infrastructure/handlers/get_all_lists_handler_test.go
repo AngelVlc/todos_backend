@@ -50,7 +50,7 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	found := []domain.List{
+	found := []domain.ListEntity{
 		{ID: 11, Name: "list1", ItemsCount: 4},
 		{ID: 12, Name: "list2", ItemsCount: 8},
 	}

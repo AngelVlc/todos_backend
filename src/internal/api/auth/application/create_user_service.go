@@ -17,7 +17,7 @@ func NewCreateUserService(usersRepo domain.UsersRepository, passGen passgen.Pass
 	return &CreateUserService{usersRepo, passGen}
 }
 
-func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
+func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
 	err := userName.CheckIfAlreadyExists(ctx, s.usersRepo)
 	if err != nil {
 		return nil, err

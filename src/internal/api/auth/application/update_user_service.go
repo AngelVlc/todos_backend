@@ -17,14 +17,14 @@ func NewUpdateUserService(usersRepo domain.UsersRepository, passGen passgen.Pass
 	return &UpdateUserService{usersRepo, passGen}
 }
 
-func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserName, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
+func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserNameValueObject, password domain.UserPassword, isAdmin bool) (*domain.User, error) {
 	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{ID: userID})
 	if err != nil {
 		return nil, err
 	}
 
 	if foundUser.IsTheAdminUser() {
-		if userName != domain.UserName("admin") {
+		if userName != domain.UserNameValueObject("admin") {
 			return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
 		}
 

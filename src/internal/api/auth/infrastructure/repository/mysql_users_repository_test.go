@@ -41,7 +41,7 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	userName := domain.UserName("userName")
+	userName := domain.UserNameValueObject("userName")
 
 	expectedFindByIDQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`name` = ? LIMIT 1")).
@@ -65,7 +65,7 @@ func TestMySqlAuthRepository_ExistsUser_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	user := &domain.User{Name: domain.UserName("userName")}
+	user := &domain.User{Name: domain.UserNameValueObject("userName")}
 
 	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
@@ -86,7 +86,7 @@ func TestMySqlAuthRepository_ExistsUser_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	user := &domain.User{Name: domain.UserName("userName")}
+	user := &domain.User{Name: domain.UserNameValueObject("userName")}
 
 	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
@@ -136,11 +136,11 @@ func TestMySqlUsersRepository_GetAll_WhenTheQueryDoesNotFail(t *testing.T) {
 	assert.Nil(t, err)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
-	assert.Equal(t, domain.UserName("user1"), res[0].Name)
+	assert.Equal(t, domain.UserNameValueObject("user1"), res[0].Name)
 	assert.Equal(t, "pass1", res[0].PasswordHash)
 	assert.True(t, res[0].IsAdmin)
 	assert.Equal(t, int32(12), res[1].ID)
-	assert.Equal(t, domain.UserName("user2"), res[1].Name)
+	assert.Equal(t, domain.UserNameValueObject("user2"), res[1].Name)
 	assert.Equal(t, "pass2", res[1].PasswordHash)
 	assert.False(t, res[1].IsAdmin)
 

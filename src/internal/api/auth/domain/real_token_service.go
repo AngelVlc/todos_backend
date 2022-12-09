@@ -66,7 +66,7 @@ func (s *RealTokenService) GetRefreshTokenInfo(refreshToken *jwt.Token) *Refresh
 	return &info
 }
 
-func (s *RealTokenService) getNewToken(userID int32, userName UserName, userIsAdmin bool) *jwt.Token {
+func (s *RealTokenService) getNewToken(userID int32, userName UserNameValueObject, userIsAdmin bool) *jwt.Token {
 	t := s.newToken()
 
 	tc := s.getTokenClaims(t)

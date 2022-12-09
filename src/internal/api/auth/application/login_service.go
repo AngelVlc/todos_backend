@@ -21,7 +21,7 @@ func NewLoginService(authRepo domain.AuthRepository, usersRepo domain.UsersRepos
 	return &LoginService{authRepo, usersRepo, cfgSvr, tokenSrv}
 }
 
-func (s *LoginService) Login(ctx context.Context, userName domain.UserName, password domain.UserPassword) (*domain.LoginResponse, error) {
+func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPassword) (*domain.LoginResponse, error) {
 	foundUser, err := s.usersRepo.FindUser(ctx, &domain.User{Name: userName})
 	if err != nil {
 		return nil, err

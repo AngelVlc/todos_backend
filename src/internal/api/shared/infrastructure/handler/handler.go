@@ -89,7 +89,11 @@ func (h Handler) ParseBody(r *http.Request, result interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(result)
 	if err != nil {
-		return &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+		if badRequestErr, ok := err.(*appErrors.BadRequestError); ok {
+			return badRequestErr
+		} else {
+			return &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+		}
 	}
 
 	return nil

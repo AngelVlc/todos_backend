@@ -57,7 +57,8 @@ func TestGetListHandler_Returns_The_List(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	list := domain.ListEntity{ID: 11, Name: "list1", ItemsCount: 4}
+	listName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: 11, Name: listName, ItemsCount: 4}
 	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 
 	result := GetListHandler(httptest.NewRecorder(), request(), h)

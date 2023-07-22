@@ -12,7 +12,7 @@ import (
 )
 
 type createListRequest struct {
-	Name string `json:"name"`
+	Name domain.ListNameValueObject `json:"name"`
 }
 
 func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
@@ -24,20 +24,15 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	listName, err := domain.NewListNameValueObject(createReq.Name)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
-
 	srv := application.NewCreateListService(h.ListsRepository)
-	newList, err := srv.CreateList(r.Context(), listName, userID)
+	newList, err := srv.CreateList(r.Context(), createReq.Name, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
 	res := infrastructure.ListResponse{
 		ID:         newList.ID,
-		Name:       string(newList.Name),
+		Name:       newList.Name.String(),
 		ItemsCount: newList.ItemsCount,
 	}
 

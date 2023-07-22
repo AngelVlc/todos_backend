@@ -55,13 +55,15 @@ func TestMySqlListsRepository_FindList_WhenTheQueryDoesNotFail(t *testing.T) {
 			WithArgs(listID, userID)
 	}
 
+	listName, _ := domain.NewListNameValueObject("list1")
+
 	expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(listColumns).AddRow(listID, "list1", userID, int32(3)))
 
 	res, err := repo.FindList(context.Background(), &domain.ListEntity{ID: listID, UserID: userID})
 
 	require.NotNil(t, res)
 	assert.Equal(t, listID, res.ID)
-	assert.Equal(t, domain.ListNameValueObject("list1"), res.Name)
+	assert.Equal(t, listName, res.Name)
 	assert.Equal(t, userID, res.UserID)
 	assert.Equal(t, int32(3), res.ItemsCount)
 	assert.Nil(t, err)
@@ -73,13 +75,13 @@ func TestMySqlListsRepository_ExistsList_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	name := domain.ListNameValueObject("list name")
+	listName, _ := domain.NewListNameValueObject("list name")
 	userID := int32(1)
-	list := &domain.ListEntity{Name: name, UserID: userID}
+	list := &domain.ListEntity{Name: listName, UserID: userID}
 
 	expectedExistsListQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
-			WithArgs(name, userID)
+			WithArgs(listName, userID)
 	}
 
 	expectedExistsListQuery().WillReturnError(fmt.Errorf("some error"))
@@ -96,13 +98,13 @@ func TestMySqlListsRepository_ExistsList_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	name := domain.ListNameValueObject("list name")
+	listName, _ := domain.NewListNameValueObject("list name")
 	userID := int32(1)
-	list := &domain.ListEntity{Name: name, UserID: userID}
+	list := &domain.ListEntity{Name: listName, UserID: userID}
 
 	expectedExistsListQuery := func() *sqlmock.ExpectedQuery {
 		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `lists` WHERE `lists`.`name` = ? AND `lists`.`userId` = ?")).
-			WithArgs(name, userID)
+			WithArgs(listName, userID)
 	}
 
 	expectedExistsListQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
@@ -151,15 +153,18 @@ func TestMySqlListsRepository_GetAllLists_WhenItDoesNotFail(t *testing.T) {
 
 	res, err := repo.GetAllLists(context.Background(), userID)
 
+	list1Name, _ := domain.NewListNameValueObject("list1")
+	list2Name, _ := domain.NewListNameValueObject("list2")
+
 	assert.Nil(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
-	assert.Equal(t, domain.ListNameValueObject("list1"), res[0].Name)
+	assert.Equal(t, list1Name, res[0].Name)
 	assert.Equal(t, userID, res[0].UserID)
 	assert.Equal(t, int32(3), res[0].ItemsCount)
 	assert.Equal(t, int32(12), res[1].ID)
-	assert.Equal(t, domain.ListNameValueObject("list2"), res[1].Name)
+	assert.Equal(t, list2Name, res[1].Name)
 	assert.Equal(t, userID, res[1].UserID)
 	assert.Equal(t, int32(4), res[1].ItemsCount)
 
@@ -168,7 +173,8 @@ func TestMySqlListsRepository_GetAllLists_WhenItDoesNotFail(t *testing.T) {
 
 func TestMySqlListsRepository_CreateList_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	list := domain.ListEntity{UserID: 1, Name: "list1"}
+	listName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{UserID: 1, Name: listName}
 
 	repo := NewMySqlListsRepository(db)
 
@@ -190,7 +196,8 @@ func TestMySqlListsRepository_CreateList_When_It_Fails(t *testing.T) {
 
 func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	list := domain.ListEntity{UserID: 1, Name: "list1"}
+	listName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{UserID: 1, Name: listName}
 
 	repo := NewMySqlListsRepository(db)
 
@@ -295,7 +302,8 @@ func TestMySqlListsRepository_Update_When_It_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	list := domain.ListEntity{ID: 11, UserID: 1, Name: "list1"}
+	listName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: 11, UserID: 1, Name: listName}
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=? WHERE `id` = ?")).
@@ -317,7 +325,8 @@ func TestMySqlListsRepository_Update_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlListsRepository(db)
 
-	list := domain.ListEntity{ID: 11, UserID: 1, Name: "list1"}
+	listName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: 11, UserID: 1, Name: listName}
 
 	expectedUpdateListExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=? WHERE `id` = ?")).

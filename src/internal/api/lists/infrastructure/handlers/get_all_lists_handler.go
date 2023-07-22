@@ -24,7 +24,7 @@ func GetAllListsHandler(w http.ResponseWriter, r *http.Request, h handler.Handle
 	for i, v := range foundLists {
 		res[i] = infrastructure.ListResponse{
 			ID:         v.ID,
-			Name:       string(v.Name),
+			Name:       v.Name.String(),
 			ItemsCount: v.ItemsCount,
 		}
 	}

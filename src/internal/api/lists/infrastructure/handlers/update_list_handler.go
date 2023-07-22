@@ -12,8 +12,8 @@ import (
 )
 
 type updateListRequest struct {
-	Name          string  `json:"name"`
-	IDsByPosition []int32 `json:"idsByPosition"`
+	Name          domain.ListNameValueObject `json:"name"`
+	IDsByPosition []int32                    `json:"idsByPosition"`
 }
 
 func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
@@ -26,20 +26,15 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 		return results.ErrorResult{Err: err}
 	}
 
-	listName, err := domain.NewListNameValueObject(updateReq.Name)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
-
 	srv := application.NewUpdateListService(h.ListsRepository)
-	list, err := srv.UpdateList(r.Context(), listID, listName, userID, updateReq.IDsByPosition)
+	list, err := srv.UpdateList(r.Context(), listID, updateReq.Name, userID, updateReq.IDsByPosition)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
 	res := infrastructure.ListResponse{
 		ID:         list.ID,
-		Name:       string(list.Name),
+		Name:       list.Name.String(),
 		ItemsCount: list.ItemsCount,
 	}
 

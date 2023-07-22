@@ -56,31 +56,13 @@ func TestUpdateListHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestE
 	results.CheckBadRequestErrorResult(t, result, "Invalid body")
 }
 
-func TestUpdateListHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_UpdateListRquest_Has_An_Empty_Name(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
-
-	h := handler.Handler{}
-
-	updateReq := updateListRequest{Name: ""}
-	json, _ := json.Marshal(updateReq)
-	body := bytes.NewBuffer(json)
-
-	result := UpdateListHandler(httptest.NewRecorder(), request(body), h)
-
-	results.CheckBadRequestErrorResult(t, result, "The list name can not be empty")
-}
-
 func TestUpdateListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	request := func() *http.Request {
-		updateReq := updateListRequest{Name: "list1", IDsByPosition: []int32{int32(2), int32(1)}}
+		listName, _ := domain.NewListNameValueObject("list1")
+		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
 		json, _ := json.Marshal(updateReq)
 		body := bytes.NewBuffer(json)
 
@@ -106,7 +88,8 @@ func TestUpdateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Is
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	request := func() *http.Request {
-		updateReq := updateListRequest{Name: "list1", IDsByPosition: []int32{int32(2), int32(1)}}
+		listName, _ := domain.NewListNameValueObject("list1")
+		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
 		json, _ := json.Marshal(updateReq)
 		body := bytes.NewBuffer(json)
 
@@ -119,9 +102,11 @@ func TestUpdateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Is
 		return request.WithContext(ctx)
 	}
 
-	list := domain.ListEntity{ID: int32(11), Name: domain.ListNameValueObject("oldName"), UserID: int32(11)}
+	oldListName, _ := domain.NewListNameValueObject("oldName")
+	listName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: int32(11), Name: oldListName, UserID: int32(11)}
 	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -134,7 +119,8 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Upd
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	request := func() *http.Request {
-		updateReq := updateListRequest{Name: "list1", IDsByPosition: []int32{int32(2), int32(1)}}
+		listName, _ := domain.NewListNameValueObject("list1")
+		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
 		json, _ := json.Marshal(updateReq)
 		body := bytes.NewBuffer(json)
 
@@ -147,7 +133,8 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Upd
 		return request.WithContext(ctx)
 	}
 
-	list := domain.ListEntity{ID: int32(11), Name: domain.ListNameValueObject("list1"), UserID: int32(11)}
+	listName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: int32(11), Name: listName, UserID: int32(11)}
 	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(fmt.Errorf("some error")).Once()
 
@@ -162,7 +149,8 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Get
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	request := func() *http.Request {
-		updateReq := updateListRequest{Name: "list1", IDsByPosition: []int32{int32(2), int32(1)}}
+		listName, _ := domain.NewListNameValueObject("list1")
+		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
 		json, _ := json.Marshal(updateReq)
 		body := bytes.NewBuffer(json)
 
@@ -175,12 +163,14 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Get
 		return request.WithContext(ctx)
 	}
 
-	list := domain.ListEntity{ID: int32(11), Name: domain.ListNameValueObject("originalName"), UserID: int32(1)}
+	originalListName, _ := domain.NewListNameValueObject("originalName")
+	newListName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: int32(11), Name: originalListName, UserID: int32(1)}
 	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}).Return(false, nil).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: newListName, UserID: int32(1)}).Return(false, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
 		arg := args.Get(1).(*domain.ListEntity)
-		*arg = domain.ListEntity{Name: "list1"}
+		*arg = domain.ListEntity{Name: newListName}
 	})
 	mockedRepo.On("GetAllListItems", request().Context(), list.ID, list.UserID).Return(nil, fmt.Errorf("some error")).Once()
 
@@ -195,7 +185,8 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	request := func() *http.Request {
-		updateReq := updateListRequest{Name: "list1", IDsByPosition: []int32{int32(2), int32(1)}}
+		listName, _ := domain.NewListNameValueObject("list1")
+		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
 		json, _ := json.Marshal(updateReq)
 		body := bytes.NewBuffer(json)
 
@@ -208,12 +199,14 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 		return request.WithContext(ctx)
 	}
 
-	list := domain.ListEntity{ID: int32(11), Name: domain.ListNameValueObject("originalName"), UserID: int32(1)}
+	originalListName, _ := domain.NewListNameValueObject("originalName")
+	newListName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: int32(11), Name: originalListName, UserID: int32(1)}
 	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}).Return(false, nil).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: newListName, UserID: int32(1)}).Return(false, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
 		arg := args.Get(1).(*domain.ListEntity)
-		*arg = domain.ListEntity{Name: "list1"}
+		*arg = domain.ListEntity{Name: newListName}
 	})
 	listItems := []domain.ListItemEntity{{ID: int32(1), Position: int32(0)}, {ID: int32(2), Position: int32(1)}}
 	mockedRepo.On("GetAllListItems", request().Context(), list.ID, list.UserID).Return(listItems, nil).Once()
@@ -230,7 +223,8 @@ func TestUpdateListHandler_Updates_The_List_And_The_Position_Of_Their_Items(t *t
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	request := func() *http.Request {
-		updateReq := updateListRequest{Name: "list1", IDsByPosition: []int32{int32(2), int32(1)}}
+		listName, _ := domain.NewListNameValueObject("list1")
+		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
 		json, _ := json.Marshal(updateReq)
 		body := bytes.NewBuffer(json)
 
@@ -243,12 +237,14 @@ func TestUpdateListHandler_Updates_The_List_And_The_Position_Of_Their_Items(t *t
 		return request.WithContext(ctx)
 	}
 
-	list := domain.ListEntity{ID: int32(11), Name: domain.ListNameValueObject("originalName"), UserID: int32(1)}
+	originalListName, _ := domain.NewListNameValueObject("originalName")
+	newListName, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: int32(11), Name: originalListName, UserID: int32(1)}
 	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: domain.ListNameValueObject("list1"), UserID: int32(1)}).Return(false, nil).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: newListName, UserID: int32(1)}).Return(false, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
 		arg := args.Get(1).(*domain.ListEntity)
-		*arg = domain.ListEntity{Name: "list1"}
+		*arg = domain.ListEntity{Name: newListName}
 	})
 	listItems := []domain.ListItemEntity{{ID: int32(1), Position: int32(0)}, {ID: int32(2), Position: int32(1)}}
 	mockedRepo.On("GetAllListItems", request().Context(), list.ID, list.UserID).Return(listItems, nil).Once()

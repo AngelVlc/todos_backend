@@ -22,7 +22,7 @@ func GetListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) h
 
 	res := infrastructure.ListResponse{
 		ID:         foundList.ID,
-		Name:       string(foundList.Name),
+		Name:       foundList.Name.String(),
 		ItemsCount: foundList.ItemsCount,
 	}
 

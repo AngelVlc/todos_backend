@@ -9,14 +9,10 @@ import (
 )
 
 func DeleteRefreshTokensHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	req := []int32{}
-	err := h.ParseBody(r, &req)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
+	input, _ := h.RequestInput.(*[]int32)
 
 	srv := application.NewDeleteRefreshTokensService(h.AuthRepository)
-	err = srv.DeleteRefreshTokens(r.Context(), req)
+	err := srv.DeleteRefreshTokens(r.Context(), *input)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

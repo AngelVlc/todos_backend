@@ -4,13 +4,10 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 
@@ -25,44 +22,24 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
-	h := handler.Handler{}
+func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginInput_Has_An_Empty_UserName(t *testing.T) {
+	h := handler.Handler{
+		RequestInput: &domain.LoginInput{UserName: ""},
+	}
 
-	request, _ := http.NewRequest(http.MethodGet, "/", nil)
-
-	result := LoginHandler(httptest.NewRecorder(), request, h)
-
-	results.CheckBadRequestErrorResult(t, result, "Invalid body")
-}
-
-func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_LoginRequest(t *testing.T) {
-	h := handler.Handler{}
-
-	request, _ := http.NewRequest(http.MethodGet, "/", strings.NewReader("wadus"))
-
-	result := LoginHandler(httptest.NewRecorder(), request, h)
-
-	results.CheckBadRequestErrorResult(t, result, "Invalid body")
-}
-
-func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginRequest_Has_An_Empty_UserName(t *testing.T) {
-	h := handler.Handler{}
-
-	loginReq := loginRequest{UserName: ""}
-	body, _ := json.Marshal(loginReq)
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 
 	result := LoginHandler(httptest.NewRecorder(), request, h)
 
 	results.CheckBadRequestErrorResult(t, result, "The user name can not be empty")
 }
 
-func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginRequest_Does_Not_Have_Password(t *testing.T) {
-	h := handler.Handler{}
+func TestLoginHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_LoginInput_Does_Not_Have_Password(t *testing.T) {
+	h := handler.Handler{
+		RequestInput: &domain.LoginInput{UserName: "wadus", Password: ""},
+	}
 
-	loginReq := loginRequest{UserName: "wadus", Password: ""}
-	body, _ := json.Marshal(loginReq)
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 
 	result := LoginHandler(httptest.NewRecorder(), request, h)
 
@@ -74,12 +51,15 @@ func TestLoginHandler_Returns_An_Error_If_The_Query_To_Find_The_User_Fails(t *te
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	mockedTokenSrv := domain.MockedTokenService{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
+	h := handler.Handler{
+		AuthRepository:  &mockedAuthRepo,
+		UsersRepository: &mockedUsersRepo,
+		CfgSrv:          &mockedCfgSrv,
+		TokenSrv:        &mockedTokenSrv,
+		RequestInput:    &domain.LoginInput{UserName: "wadus", Password: "pass"},
+	}
 
-	loginReq := loginRequest{UserName: "wadus", Password: "pass"}
-	body, _ := json.Marshal(loginReq)
-
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -93,12 +73,15 @@ func TestLoginHandler_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Passw
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	mockedTokenSrv := domain.MockedTokenService{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
+	h := handler.Handler{
+		AuthRepository:  &mockedAuthRepo,
+		UsersRepository: &mockedUsersRepo,
+		CfgSrv:          &mockedCfgSrv,
+		TokenSrv:        &mockedTokenSrv,
+		RequestInput:    &domain.LoginInput{UserName: "wadus", Password: "pass"},
+	}
 
-	loginReq := loginRequest{UserName: "wadus", Password: "pass"}
-	body, _ := json.Marshal(loginReq)
-
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	foundUser := domain.UserEntity{PasswordHash: "hash"}
 	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
 
@@ -113,12 +96,15 @@ func TestLoginHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Generati
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	mockedTokenSrv := domain.MockedTokenService{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
+	h := handler.Handler{
+		AuthRepository:  &mockedAuthRepo,
+		UsersRepository: &mockedUsersRepo,
+		CfgSrv:          &mockedCfgSrv,
+		TokenSrv:        &mockedTokenSrv,
+		RequestInput:    &domain.LoginInput{UserName: "wadus", Password: "pass"},
+	}
 
-	loginReq := loginRequest{UserName: "wadus", Password: "pass"}
-	body, _ := json.Marshal(loginReq)
-
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 	hashedPass := string(hashedBytes)
 	foundUser := domain.UserEntity{ID: 1, PasswordHash: hashedPass}
@@ -137,12 +123,15 @@ func TestLoginHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Generati
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	mockedTokenSrv := domain.MockedTokenService{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
+	h := handler.Handler{
+		AuthRepository:  &mockedAuthRepo,
+		UsersRepository: &mockedUsersRepo,
+		CfgSrv:          &mockedCfgSrv,
+		TokenSrv:        &mockedTokenSrv,
+		RequestInput:    &domain.LoginInput{UserName: "wadus", Password: "pass"},
+	}
 
-	loginReq := loginRequest{UserName: "wadus", Password: "pass"}
-	body, _ := json.Marshal(loginReq)
-
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 	hashedPass := string(hashedBytes)
 	foundUser := domain.UserEntity{ID: 1, PasswordHash: hashedPass}
@@ -165,12 +154,15 @@ func TestLoginHandler_Returns_An_OkResult_With_A_LoginResponse_And_Creates_The_C
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	mockedTokenSrv := domain.MockedTokenService{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
+	h := handler.Handler{
+		AuthRepository:  &mockedAuthRepo,
+		UsersRepository: &mockedUsersRepo,
+		CfgSrv:          &mockedCfgSrv,
+		TokenSrv:        &mockedTokenSrv,
+		RequestInput:    &domain.LoginInput{UserName: "wadus", Password: "pass"},
+	}
 
-	loginReq := loginRequest{UserName: "wadus", Password: "pass"}
-	body, _ := json.Marshal(loginReq)
-
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 	hashedPass := string(hashedBytes)
 	foundUser := domain.UserEntity{ID: 1, Name: domain.UserNameValueObject("user"), IsAdmin: true, PasswordHash: hashedPass}
@@ -214,12 +206,15 @@ func TestLoginHandler_Returns_An_OkResult_With_A_LoginResponse_And_Creates_The_C
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	mockedCfgSrv := sharedApp.MockedConfigurationService{}
 	mockedTokenSrv := domain.MockedTokenService{}
-	h := handler.Handler{AuthRepository: &mockedAuthRepo, UsersRepository: &mockedUsersRepo, CfgSrv: &mockedCfgSrv, TokenSrv: &mockedTokenSrv}
+	h := handler.Handler{
+		AuthRepository:  &mockedAuthRepo,
+		UsersRepository: &mockedUsersRepo,
+		CfgSrv:          &mockedCfgSrv,
+		TokenSrv:        &mockedTokenSrv,
+		RequestInput:    &domain.LoginInput{UserName: "wadus", Password: "pass"},
+	}
 
-	loginReq := loginRequest{UserName: "wadus", Password: "pass"}
-	body, _ := json.Marshal(loginReq)
-
-	request, _ := http.NewRequest(http.MethodPost, "/", bytes.NewBuffer(body))
+	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 	hashedPass := string(hashedBytes)
 	foundUser := domain.UserEntity{ID: 1, Name: domain.UserNameValueObject("user"), IsAdmin: true, PasswordHash: hashedPass}

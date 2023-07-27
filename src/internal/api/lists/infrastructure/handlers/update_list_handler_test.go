@@ -4,14 +4,10 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
@@ -26,47 +22,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateListHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Any_Body(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
-
-	h := handler.Handler{}
-
-	result := UpdateListHandler(httptest.NewRecorder(), request(nil), h)
-
-	results.CheckBadRequestErrorResult(t, result, "Invalid body")
-}
-
-func TestUpdateListHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_UpdateListRequest(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
-
-	h := handler.Handler{}
-
-	result := UpdateListHandler(httptest.NewRecorder(), request(strings.NewReader("wadus")), h)
-
-	results.CheckBadRequestErrorResult(t, result, "Invalid body")
-}
-
 func TestUpdateListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListInput{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}},
+	}
 
 	request := func() *http.Request {
-		listName, _ := domain.NewListNameValueObject("list1")
-		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "11",
 		})
@@ -85,15 +50,14 @@ func TestUpdateListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(
 
 func TestUpdateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Is_Trying_To_Update_The_List_Name_But_The_Query_To_Check_The_Name_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListInput{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}},
+	}
 
 	request := func() *http.Request {
-		listName, _ := domain.NewListNameValueObject("list1")
-		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "11",
 		})
@@ -103,7 +67,6 @@ func TestUpdateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Is
 	}
 
 	oldListName, _ := domain.NewListNameValueObject("oldName")
-	listName, _ := domain.NewListNameValueObject("list1")
 	list := domain.ListEntity{ID: int32(11), Name: oldListName, UserID: int32(11)}
 	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
@@ -116,15 +79,14 @@ func TestUpdateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Is
 
 func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Updating_The_List_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListInput{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}},
+	}
 
 	request := func() *http.Request {
-		listName, _ := domain.NewListNameValueObject("list1")
-		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "11",
 		})
@@ -133,7 +95,6 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Upd
 		return request.WithContext(ctx)
 	}
 
-	listName, _ := domain.NewListNameValueObject("list1")
 	list := domain.ListEntity{ID: int32(11), Name: listName, UserID: int32(11)}
 	mockedRepo.On("FindList", request().Context(), &domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
 	mockedRepo.On("UpdateList", request().Context(), &list).Return(fmt.Errorf("some error")).Once()
@@ -146,15 +107,14 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Upd
 
 func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Getting_The_List_Items_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListInput{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}},
+	}
 
 	request := func() *http.Request {
-		listName, _ := domain.NewListNameValueObject("list1")
-		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "11",
 		})
@@ -182,15 +142,14 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Get
 
 func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Bulk_Update_Of_Their_Items_Position_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListInput{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}},
+	}
 
 	request := func() *http.Request {
-		listName, _ := domain.NewListNameValueObject("list1")
-		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "11",
 		})
@@ -220,15 +179,14 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 
 func TestUpdateListHandler_Updates_The_List_And_The_Position_Of_Their_Items(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListInput{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}},
+	}
 
 	request := func() *http.Request {
-		listName, _ := domain.NewListNameValueObject("list1")
-		updateReq := updateListRequest{Name: listName, IDsByPosition: []int32{int32(2), int32(1)}}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id": "11",
 		})

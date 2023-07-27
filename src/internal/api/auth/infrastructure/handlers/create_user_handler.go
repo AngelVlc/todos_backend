@@ -11,19 +11,8 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
-type createUserRequest struct {
-	Name            string `json:"name"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirmPassword"`
-	IsAdmin         bool   `json:"isAdmin"`
-}
-
 func CreateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	createReq := createUserRequest{}
-	err := h.ParseBody(r, &createReq)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
+	createReq, _ := h.RequestInput.(*domain.CreateUserInput)
 
 	if r.RequestURI == "/auth/createadmin" && createReq.Name != "admin" {
 		return results.ErrorResult{Err: &appErrors.BadRequestError{Msg: "/auth/createadmin only can be used to create the admin user"}}

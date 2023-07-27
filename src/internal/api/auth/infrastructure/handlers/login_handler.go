@@ -9,18 +9,9 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
-type loginRequest struct {
-	UserName string `json:"userName"`
-	Password string `json:"password"`
-}
-
 // LoginHandler is the handler for the /auth/login endpoint
 func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	loginReq := loginRequest{}
-	err := h.ParseBody(r, &loginReq)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
+	loginReq, _ := h.RequestInput.(*domain.LoginInput)
 
 	userName, err := domain.NewUserNameValueObject(loginReq.UserName)
 	if err != nil {

@@ -4,14 +4,10 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
@@ -27,9 +23,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateListItemInput_Has_An_Empty_Title(t *testing.T) {
+	request := func() *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"listId": "11",
 		})
@@ -38,46 +34,11 @@ func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequ
 		return request.WithContext(ctx)
 	}
 
-	h := handler.Handler{}
-	result := CreateListItemHandler(httptest.NewRecorder(), request(nil), h)
-
-	results.CheckBadRequestErrorResult(t, result, "Invalid body")
-}
-
-func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_CreateListItemRequest(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		request = mux.SetURLVars(request, map[string]string{
-			"listId": "11",
-		})
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
+	h := handler.Handler{
+		RequestInput: &domain.CreateListItemInput{Title: ""},
 	}
 
-	h := handler.Handler{}
-	result := CreateListItemHandler(httptest.NewRecorder(), request(strings.NewReader("wadus")), h)
-
-	results.CheckBadRequestErrorResult(t, result, "Invalid body")
-}
-
-func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_CreateListItemRequest_Has_An_Empty_Title(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		request = mux.SetURLVars(request, map[string]string{
-			"listId": "11",
-		})
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
-
-	h := handler.Handler{}
-	createReq := createListItemRequest{Title: ""}
-	json, _ := json.Marshal(createReq)
-	body := bytes.NewBuffer(json)
-
-	result := CreateListItemHandler(httptest.NewRecorder(), request(body), h)
+	result := CreateListItemHandler(httptest.NewRecorder(), request(), h)
 
 	results.CheckBadRequestErrorResult(t, result, "The item title can not be empty")
 }
@@ -85,14 +46,14 @@ func TestCreateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequ
 func TestCreateListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	mockedEventBus := events.MockedEventBus{}
-	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		EventBus:        &mockedEventBus,
+		RequestInput:    &domain.CreateListItemInput{Title: "title", Description: "desc"},
+	}
 
 	request := func() *http.Request {
-		createReq := createListItemRequest{Title: "title", Description: "desc"}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"listId": "11",
 		})
@@ -112,14 +73,14 @@ func TestCreateListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fa
 func TestCreateListItemHandler_Returns_An_Error_With_An_UnexpectedError_If_The_Creation_Of_The_ListItem_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	mockedEventBus := events.MockedEventBus{}
-	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		EventBus:        &mockedEventBus,
+		RequestInput:    &domain.CreateListItemInput{Title: "title", Description: "desc"},
+	}
 
 	request := func() *http.Request {
-		createReq := createListItemRequest{Title: "title", Description: "desc"}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"listId": "11",
 		})
@@ -143,14 +104,14 @@ func TestCreateListItemHandler_Returns_An_Error_With_An_UnexpectedError_If_The_C
 func TestCreateListItemHandler_Creates_The_New_ListItem_When_The_List_Does_Not_Have_Any_Items_Yet(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	mockedEventBus := events.MockedEventBus{}
-	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		EventBus:        &mockedEventBus,
+		RequestInput:    &domain.CreateListItemInput{Title: "title", Description: "desc"},
+	}
 
 	request := func() *http.Request {
-		createReq := createListItemRequest{Title: "title", Description: "desc"}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"listId": "11",
 		})
@@ -186,14 +147,14 @@ func TestCreateListItemHandler_Creates_The_New_ListItem_When_The_List_Does_Not_H
 func TestCreateListItemHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_List_Has_Some_Item_But_GetMaxPosition_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	mockedEventBus := events.MockedEventBus{}
-	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		EventBus:        &mockedEventBus,
+		RequestInput:    &domain.CreateListItemInput{Title: "title", Description: "desc"},
+	}
 
 	request := func() *http.Request {
-		createReq := createListItemRequest{Title: "title", Description: "desc"}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"listId": "11",
 		})
@@ -216,14 +177,14 @@ func TestCreateListItemHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If
 func TestCreateListItemHandler_Creates_The_New_ListItem_When_The_List_Already_Has_Some_Item(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	mockedEventBus := events.MockedEventBus{}
-	h := handler.Handler{ListsRepository: &mockedRepo, EventBus: &mockedEventBus}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		EventBus:        &mockedEventBus,
+		RequestInput:    &domain.CreateListItemInput{Title: "title", Description: "desc"},
+	}
 
 	request := func() *http.Request {
-		createReq := createListItemRequest{Title: "title", Description: "desc"}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"listId": "11",
 		})

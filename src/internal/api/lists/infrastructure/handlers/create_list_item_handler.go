@@ -11,20 +11,11 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
-type createListItemRequest struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-}
-
 func CreateListItemHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	listID := helpers.ParseInt32UrlVar(r, "listId")
 	userID := helpers.GetUserIDFromContext(r)
 
-	createReq := createListItemRequest{}
-	err := h.ParseBody(r, &createReq)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
+	createReq, _ := h.RequestInput.(*domain.CreateListItemInput)
 
 	listItemTitle, err := domain.NewItemTitleValueObject(createReq.Title)
 	if err != nil {

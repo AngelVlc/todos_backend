@@ -12,21 +12,10 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
-type updateUserRequest struct {
-	Name            string `json:"name"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirmPassword"`
-	IsAdmin         bool   `json:"isAdmin"`
-}
-
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	userID := helpers.ParseInt32UrlVar(r, "id")
 
-	updateReq := updateUserRequest{}
-	err := h.ParseBody(r, &updateReq)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
+	updateReq, _ := h.RequestInput.(*domain.UpdateUserInput)
 
 	userName, err := domain.NewUserNameValueObject(updateReq.Name)
 	if err != nil {

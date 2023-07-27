@@ -55,7 +55,7 @@ func (s *RealTokenService) GetTokenInfo(token *jwt.Token) *TokenClaimsInfo {
 	return &info
 }
 
-/// GetRefreshTokenInfo returns a RefreshTokenClaimsInfo got from the refresh token claims
+// / GetRefreshTokenInfo returns a RefreshTokenClaimsInfo got from the refresh token claims
 func (s *RealTokenService) GetRefreshTokenInfo(refreshToken *jwt.Token) *RefreshTokenClaimsInfo {
 	claims := s.getTokenClaims(refreshToken)
 

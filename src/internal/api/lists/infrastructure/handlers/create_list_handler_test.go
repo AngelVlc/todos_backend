@@ -4,14 +4,10 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
@@ -25,51 +21,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCreateListHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Request_Does_Not_Have_Body(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
-
-	h := handler.Handler{}
-
-	result := CreateListHandler(httptest.NewRecorder(), request(nil), h)
-
-	results.CheckBadRequestErrorResult(t, result, "Invalid body")
-}
-
-func TestCreateListHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Body_Is_Not_A_CreateListRequest(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
-
-	h := handler.Handler{}
-
-	result := CreateListHandler(httptest.NewRecorder(), request(strings.NewReader("wadus")), h)
-
-	results.CheckBadRequestErrorResult(t, result, "Invalid body")
-}
-
 func TestCreateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_To_Check_If_A_List_With_The_Same_Name_Already_Exists_Fails(t *testing.T) {
-	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
-
-	listName, _ := domain.NewListNameValueObject("list1")
-
 	request := func() *http.Request {
-		createReq := createListRequest{Name: listName}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		ctx := request.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
 		return request.WithContext(ctx)
+	}
+
+	mockedRepo := listsRepository.MockedListsRepository{}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.CreateListInput{Name: listName},
 	}
 
 	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
@@ -81,20 +45,18 @@ func TestCreateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 }
 
 func TestCreateListHandler_Returns_An_Error_Result_With_A_BadRequestError_If_A_List_With_The_Same_Name_Already_Exists(t *testing.T) {
-	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
-
-	listName, _ := domain.NewListNameValueObject("list1")
-
 	request := func() *http.Request {
-		createReq := createListRequest{Name: listName}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		ctx := request.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
 		return request.WithContext(ctx)
+	}
+
+	mockedRepo := listsRepository.MockedListsRepository{}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.CreateListInput{Name: listName},
 	}
 
 	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(true, nil).Once()
@@ -106,20 +68,18 @@ func TestCreateListHandler_Returns_An_Error_Result_With_A_BadRequestError_If_A_L
 }
 
 func TestCreateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Creating_The_List_Fails(t *testing.T) {
-	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
-
-	listName, _ := domain.NewListNameValueObject("list1")
-
 	request := func() *http.Request {
-		createReq := createListRequest{Name: listName}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		ctx := request.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
 		return request.WithContext(ctx)
+	}
+
+	mockedRepo := listsRepository.MockedListsRepository{}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.CreateListInput{Name: listName},
 	}
 
 	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, nil).Once()
@@ -133,20 +93,18 @@ func TestCreateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Cr
 }
 
 func TestCreateListHandler_Creates_A_New_List(t *testing.T) {
-	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
-
-	listName, _ := domain.NewListNameValueObject("list1")
-
 	request := func() *http.Request {
-		createReq := createListRequest{Name: listName}
-		json, _ := json.Marshal(createReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		ctx := request.Context()
 		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
 		return request.WithContext(ctx)
+	}
+
+	mockedRepo := listsRepository.MockedListsRepository{}
+	listName, _ := domain.NewListNameValueObject("list1")
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.CreateListInput{Name: listName},
 	}
 
 	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, nil).Once()

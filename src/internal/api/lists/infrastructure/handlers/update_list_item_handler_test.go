@@ -4,11 +4,8 @@
 package handlers
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -25,50 +22,15 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestUpdateListItemHandler_Validations_Returns_An_Error_If_The_Request_Does_Not_Have_Body(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
-
-	h := handler.Handler{}
-
-	result := UpdateListItemHandler(httptest.NewRecorder(), request(nil), h)
-
-	results.CheckError(t, result, "Invalid body")
-}
-
-func TestUpdateListItemHandler_Validations_Returns_An_ErrorResult_With_A_BadRequestError_If_The_UpdateListItemRequest_Has_An_Empty_Title(t *testing.T) {
-	request := func(body io.Reader) *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
-
-	h := handler.Handler{}
-
-	updateReq := updateListItemRequest{Title: ""}
-	json, _ := json.Marshal(updateReq)
-	body := bytes.NewBuffer(json)
-
-	result := UpdateListItemHandler(httptest.NewRecorder(), request(body), h)
-
-	results.CheckBadRequestErrorResult(t, result, "The item title can not be empty")
-}
-
 func TestUpdateListItemHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_To_Find_The_ListItem_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListItemInput{Title: "title", Description: "desc"},
+	}
 
 	request := func() *http.Request {
-		updateReq := updateListItemRequest{Title: "title", Description: "desc"}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id":     "111",
 			"listId": "11",
@@ -88,14 +50,13 @@ func TestUpdateListItemHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If
 
 func TestUpdateListItemHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Update_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListItemInput{Title: "title", Description: "desc"},
+	}
 
 	request := func() *http.Request {
-		updateReq := updateListItemRequest{Title: "title", Description: "desc"}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id":     "111",
 			"listId": "11",
@@ -117,14 +78,13 @@ func TestUpdateListItemHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If
 
 func TestUpdateListItemHandler_Updates_The_ListItem(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		RequestInput:    &domain.UpdateListItemInput{Title: "title", Description: "desc"},
+	}
 
 	request := func() *http.Request {
-		updateReq := updateListItemRequest{Title: "title", Description: "desc"}
-		json, _ := json.Marshal(updateReq)
-		body := bytes.NewBuffer(json)
-
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", body)
+		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
 			"id":     "111",
 			"listId": "11",

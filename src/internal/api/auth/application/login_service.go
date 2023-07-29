@@ -22,7 +22,7 @@ func NewLoginService(authRepo domain.AuthRepository, usersRepo domain.UsersRepos
 }
 
 func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPassword) (*domain.LoginResponse, error) {
-	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserEntity{Name: userName})
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserRecord{Name: userName})
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +48,7 @@ func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueO
 	go func(txn *newrelic.Transaction) {
 		ctx = newrelic.NewContext(context.Background(), txn)
 		defer txn.End()
-		err = s.authRepo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
+		err = s.authRepo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshTokenRecord{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
 		if err != nil {
 			log.Printf("Error saving the refresh token. Error: %v", err)
 		}

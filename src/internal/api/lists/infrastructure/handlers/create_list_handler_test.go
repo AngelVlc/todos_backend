@@ -36,7 +36,7 @@ func TestCreateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 		RequestInput:    &domain.CreateListInput{Name: listName},
 	}
 
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.ListRecord{Name: listName, UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := CreateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -59,7 +59,7 @@ func TestCreateListHandler_Returns_An_Error_Result_With_A_BadRequestError_If_A_L
 		RequestInput:    &domain.CreateListInput{Name: listName},
 	}
 
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(true, nil).Once()
+	mockedRepo.On("ExistsList", request().Context(), &domain.ListRecord{Name: listName, UserID: int32(1)}).Return(true, nil).Once()
 
 	result := CreateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -82,8 +82,8 @@ func TestCreateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Cr
 		RequestInput:    &domain.CreateListInput{Name: listName},
 	}
 
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, nil).Once()
-	list := domain.ListEntity{Name: listName, UserID: int32(1)}
+	mockedRepo.On("ExistsList", request().Context(), &domain.ListRecord{Name: listName, UserID: int32(1)}).Return(false, nil).Once()
+	list := domain.ListRecord{Name: listName, UserID: int32(1)}
 	mockedRepo.On("CreateList", request().Context(), &list).Return(fmt.Errorf("some error")).Once()
 
 	result := CreateListHandler(httptest.NewRecorder(), request(), h)
@@ -107,11 +107,11 @@ func TestCreateListHandler_Creates_A_New_List(t *testing.T) {
 		RequestInput:    &domain.CreateListInput{Name: listName},
 	}
 
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, nil).Once()
-	list := domain.ListEntity{Name: listName, UserID: int32(1)}
+	mockedRepo.On("ExistsList", request().Context(), &domain.ListRecord{Name: listName, UserID: int32(1)}).Return(false, nil).Once()
+	list := domain.ListRecord{Name: listName, UserID: int32(1)}
 	mockedRepo.On("CreateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
-		arg := args.Get(1).(*domain.ListEntity)
-		*arg = domain.ListEntity{ID: int32(1), Name: listName}
+		arg := args.Get(1).(*domain.ListRecord)
+		*arg = domain.ListRecord{ID: int32(1), Name: listName}
 	})
 
 	result := CreateListHandler(httptest.NewRecorder(), request(), h)

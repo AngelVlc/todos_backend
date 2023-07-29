@@ -24,7 +24,7 @@ func NewUserNameValueObject(name string) (UserNameValueObject, error) {
 }
 
 func (u UserNameValueObject) CheckIfAlreadyExists(ctx context.Context, repo UsersRepository) error {
-	existsUser, err := repo.ExistsUser(ctx, &UserEntity{Name: u})
+	existsUser, err := repo.ExistsUser(ctx, &UserRecord{Name: u})
 	if err != nil {
 		return err
 	}

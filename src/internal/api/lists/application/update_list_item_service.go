@@ -15,8 +15,8 @@ func NewUpdateListItemService(repo domain.ListsRepository) *UpdateListItemServic
 	return &UpdateListItemService{repo}
 }
 
-func (s *UpdateListItemService) UpdateListItem(ctx context.Context, itemID int32, listID int32, title domain.ItemTitleValueObject, description domain.ItemDescriptionValueObject, userID int32) (*domain.ListItemEntity, error) {
-	foundItem, err := s.repo.FindListItem(ctx, &domain.ListItemEntity{ID: itemID, ListID: listID, UserID: userID})
+func (s *UpdateListItemService) UpdateListItem(ctx context.Context, itemID int32, listID int32, title domain.ItemTitleValueObject, description domain.ItemDescriptionValueObject, userID int32) (*domain.ListItemRecord, error) {
+	foundItem, err := s.repo.FindListItem(ctx, &domain.ListItemRecord{ID: itemID, ListID: listID, UserID: userID})
 	if err != nil {
 		return nil, err
 	}

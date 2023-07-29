@@ -21,9 +21,9 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
-func (r *MySqlAuthRepository) FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*domain.RefreshToken, error) {
-	found := domain.RefreshToken{}
-	err := r.db.WithContext(ctx).Where(domain.RefreshToken{RefreshToken: refreshToken, UserID: userID}).Take(&found).Error
+func (r *MySqlAuthRepository) FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*domain.RefreshTokenRecord, error) {
+	found := domain.RefreshTokenRecord{}
+	err := r.db.WithContext(ctx).Where(domain.RefreshTokenRecord{RefreshToken: refreshToken, UserID: userID}).Take(&found).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
@@ -36,7 +36,7 @@ func (r *MySqlAuthRepository) FindRefreshTokenForUser(ctx context.Context, refre
 	return &found, nil
 }
 
-func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *domain.RefreshToken) error {
+func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *domain.RefreshTokenRecord) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -47,11 +47,11 @@ func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context, 
 }
 
 func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error {
-	return r.db.WithContext(ctx).Delete(domain.RefreshToken{}, "expirationDate <= ?", expTime).Error
+	return r.db.WithContext(ctx).Delete(domain.RefreshTokenRecord{}, "expirationDate <= ?", expTime).Error
 }
 
-func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]domain.RefreshToken, error) {
-	res := []domain.RefreshToken{}
+func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]domain.RefreshTokenRecord, error) {
+	res := []domain.RefreshTokenRecord{}
 	if err := r.db.WithContext(ctx).
 		Select("id,userId,expirationDate").
 		Limit(paginationInfo.Limit).Offset(paginationInfo.Offset).
@@ -65,15 +65,15 @@ func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context, paginatio
 }
 
 func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids []int32) error {
-	if err := r.db.WithContext(ctx).Delete(domain.RefreshToken{}, ids).Error; err != nil {
+	if err := r.db.WithContext(ctx).Delete(domain.RefreshTokenRecord{}, ids).Error; err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (r *MySqlAuthRepository) findUser(ctx context.Context, where domain.UserEntity) (*domain.UserEntity, error) {
-	foundUser := domain.UserEntity{}
+func (r *MySqlAuthRepository) findUser(ctx context.Context, where domain.UserRecord) (*domain.UserRecord, error) {
+	foundUser := domain.UserRecord{}
 	err := r.db.WithContext(ctx).Where(where).Take(&foundUser).Error
 
 	if err != nil {

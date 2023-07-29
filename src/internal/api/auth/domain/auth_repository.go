@@ -8,9 +8,9 @@ import (
 )
 
 type AuthRepository interface {
-	FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*RefreshToken, error)
-	CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *RefreshToken) error
+	FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*RefreshTokenRecord, error)
+	CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *RefreshTokenRecord) error
 	DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error
-	GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]RefreshToken, error)
+	GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]RefreshTokenRecord, error)
 	DeleteRefreshTokensByID(ctx context.Context, ids []int32) error
 }

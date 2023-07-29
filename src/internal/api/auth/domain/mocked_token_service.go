@@ -15,13 +15,13 @@ func NewMockedTokenService() *MockedTokenService {
 	return &MockedTokenService{}
 }
 
-func (m *MockedTokenService) GenerateToken(user *UserEntity) (string, error) {
+func (m *MockedTokenService) GenerateToken(user *UserRecord) (string, error) {
 	args := m.Called(user)
 
 	return args.String(0), args.Error(1)
 }
 
-func (m *MockedTokenService) GenerateRefreshToken(user *UserEntity, expirationDate time.Time) (string, error) {
+func (m *MockedTokenService) GenerateRefreshToken(user *UserRecord, expirationDate time.Time) (string, error) {
 	args := m.Called(user, expirationDate)
 
 	return args.String(0), args.Error(1)

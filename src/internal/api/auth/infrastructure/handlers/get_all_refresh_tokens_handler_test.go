@@ -39,7 +39,7 @@ func TestGetAllRefreshTokensHandler_Returns_The_RefreshTokens(t *testing.T) {
 
 	time1 := time.Now()
 	time2 := time1.Add(1 * time.Hour)
-	found := []domain.RefreshToken{
+	found := []domain.RefreshTokenRecord{
 		{ID: 2, UserID: 1, ExpirationDate: time1},
 		{ID: 5, UserID: 3, ExpirationDate: time2},
 	}

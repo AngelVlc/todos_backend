@@ -53,7 +53,7 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 	list1Name, _ := domain.NewListNameValueObject("list1")
 	list2Name, _ := domain.NewListNameValueObject("list2")
 
-	found := []domain.ListEntity{
+	found := []domain.ListRecord{
 		{ID: 11, Name: list1Name, ItemsCount: 4},
 		{ID: 12, Name: list2Name, ItemsCount: 8},
 	}

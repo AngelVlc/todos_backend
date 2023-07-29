@@ -36,7 +36,7 @@ func TestGetAllUsersHandler_Returns_The_Users(t *testing.T) {
 	h := handler.Handler{UsersRepository: &mockedRepo}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
-	found := []domain.UserEntity{
+	found := []domain.UserRecord{
 		{ID: 2, Name: "user1", IsAdmin: true},
 		{ID: 5, Name: "user2", IsAdmin: false},
 	}

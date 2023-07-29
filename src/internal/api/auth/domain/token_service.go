@@ -7,8 +7,8 @@ import (
 )
 
 type TokenService interface {
-	GenerateToken(user *UserEntity) (string, error)
-	GenerateRefreshToken(user *UserEntity, expirationDate time.Time) (string, error)
+	GenerateToken(user *UserRecord) (string, error)
+	GenerateRefreshToken(user *UserRecord, expirationDate time.Time) (string, error)
 	ParseToken(tokenString string) (*jwt.Token, error)
 	GetTokenInfo(token *jwt.Token) *TokenClaimsInfo
 	GetRefreshTokenInfo(refreshToken *jwt.Token) *RefreshTokenClaimsInfo

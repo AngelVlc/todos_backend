@@ -96,7 +96,7 @@ func TestMySqlAuthRepository_CreateRefreshTokenIfNotExist_Returns_An_Error_If_Cr
 	repo := NewMySqlAuthRepository(db)
 
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
-	rt := domain.RefreshToken{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
+	rt := domain.RefreshTokenRecord{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
 
 	expectedInsertExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `id`=`id`")).
@@ -119,7 +119,7 @@ func TestMySqlAuthRepository_CreateRefreshTokenIfNotExist_Creates_A_New_RefreshT
 	repo := NewMySqlAuthRepository(db)
 
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
-	rt := domain.RefreshToken{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
+	rt := domain.RefreshTokenRecord{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
 
 	expectedInsertExec := func() *sqlmock.ExpectedExec {
 		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `id`=`id`")).

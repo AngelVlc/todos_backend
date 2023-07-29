@@ -60,7 +60,7 @@ func TestLoginHandler_Returns_An_Error_If_The_Query_To_Find_The_User_Fails(t *te
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserRecord{Name: domain.UserNameValueObject("wadus")}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := LoginHandler(httptest.NewRecorder(), request, h)
 
@@ -82,8 +82,8 @@ func TestLoginHandler_Returns_An_ErrorResult_With_A_BadRequestError_If_The_Passw
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	foundUser := domain.UserEntity{PasswordHash: "hash"}
-	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
+	foundUser := domain.UserRecord{PasswordHash: "hash"}
+	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserRecord{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
 
 	result := LoginHandler(httptest.NewRecorder(), request, h)
 
@@ -107,8 +107,8 @@ func TestLoginHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Generati
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 	hashedPass := string(hashedBytes)
-	foundUser := domain.UserEntity{ID: 1, PasswordHash: hashedPass}
-	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
+	foundUser := domain.UserRecord{ID: 1, PasswordHash: hashedPass}
+	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserRecord{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
 	mockedTokenSrv.On("GenerateToken", &foundUser).Return("", fmt.Errorf("some error")).Once()
 
 	result := LoginHandler(httptest.NewRecorder(), request, h)
@@ -134,8 +134,8 @@ func TestLoginHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Generati
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 	hashedPass := string(hashedBytes)
-	foundUser := domain.UserEntity{ID: 1, PasswordHash: hashedPass}
-	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
+	foundUser := domain.UserRecord{ID: 1, PasswordHash: hashedPass}
+	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserRecord{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
 	mockedTokenSrv.On("GenerateToken", &foundUser).Return("token", nil).Once()
 	expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 	mockedCfgSrv.On("GetRefreshTokenExpirationTime").Return(expDate).Once()
@@ -165,14 +165,14 @@ func TestLoginHandler_Returns_An_OkResult_With_A_LoginResponse_And_Creates_The_C
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 	hashedPass := string(hashedBytes)
-	foundUser := domain.UserEntity{ID: 1, Name: domain.UserNameValueObject("user"), IsAdmin: true, PasswordHash: hashedPass}
-	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
+	foundUser := domain.UserRecord{ID: 1, Name: domain.UserNameValueObject("user"), IsAdmin: true, PasswordHash: hashedPass}
+	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserRecord{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
 	mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 	expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 	mockedCfgSrv.On("GetRefreshTokenExpirationTime").Return(expDate).Once()
 	mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
 	ctx := newrelic.NewContext(context.Background(), nil)
-	mockedAuthRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
+	mockedAuthRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshTokenRecord{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
 
 	recorder := httptest.NewRecorder()
 
@@ -217,14 +217,14 @@ func TestLoginHandler_Returns_An_OkResult_With_A_LoginResponse_And_Creates_The_C
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	hashedBytes, _ := bcrypt.GenerateFromPassword([]byte("pass"), 10)
 	hashedPass := string(hashedBytes)
-	foundUser := domain.UserEntity{ID: 1, Name: domain.UserNameValueObject("user"), IsAdmin: true, PasswordHash: hashedPass}
-	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserEntity{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
+	foundUser := domain.UserRecord{ID: 1, Name: domain.UserNameValueObject("user"), IsAdmin: true, PasswordHash: hashedPass}
+	mockedUsersRepo.On("FindUser", request.Context(), &domain.UserRecord{Name: domain.UserNameValueObject("wadus")}).Return(&foundUser, nil).Once()
 	mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 	expDate, _ := time.Parse(time.RFC3339, "2021-04-03T19:00:00+00:00")
 	mockedCfgSrv.On("GetRefreshTokenExpirationTime").Return(expDate).Once()
 	mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
 	ctx := newrelic.NewContext(context.Background(), nil)
-	mockedAuthRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
+	mockedAuthRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshTokenRecord{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
 
 	recorder := httptest.NewRecorder()
 

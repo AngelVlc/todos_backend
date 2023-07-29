@@ -15,13 +15,13 @@ func NewCreateListService(repo domain.ListsRepository) *CreateListService {
 	return &CreateListService{repo}
 }
 
-func (s *CreateListService) CreateList(ctx context.Context, name domain.ListNameValueObject, userID int32) (*domain.ListEntity, error) {
+func (s *CreateListService) CreateList(ctx context.Context, name domain.ListNameValueObject, userID int32) (*domain.ListRecord, error) {
 	err := name.CheckIfAlreadyExists(ctx, userID, s.repo)
 	if err != nil {
 		return nil, err
 	}
 
-	list := domain.ListEntity{
+	list := domain.ListRecord{
 		Name:   name,
 		UserID: userID,
 	}

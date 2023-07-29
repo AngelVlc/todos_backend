@@ -57,7 +57,7 @@ func TestGetAllListItemsHandler_Returns_The_ListItems(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	found := []domain.ListItemEntity{
+	found := []domain.ListItemRecord{
 		{ID: 111, ListID: 11, Title: "title1", Description: "desc1", Position: int32(0)},
 		{ID: 112, ListID: 11, Title: "title2", Description: "desc2", Position: int32(1)},
 	}

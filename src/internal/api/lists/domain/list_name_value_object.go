@@ -55,7 +55,7 @@ func (nvo *ListNameValueObject) Scan(value interface{}) error {
 }
 
 func (l ListNameValueObject) CheckIfAlreadyExists(ctx context.Context, userID int32, repo ListsRepository) error {
-	existsList, err := repo.ExistsList(ctx, &ListEntity{Name: l, UserID: userID})
+	existsList, err := repo.ExistsList(ctx, &ListRecord{Name: l, UserID: userID})
 	if err != nil {
 		return err
 	}

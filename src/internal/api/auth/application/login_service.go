@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
 	sharedApp "github.com/AngelVlc/todos_backend/src/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -21,7 +22,7 @@ func NewLoginService(authRepo domain.AuthRepository, usersRepo domain.UsersRepos
 	return &LoginService{authRepo, usersRepo, cfgSvr, tokenSrv}
 }
 
-func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPassword) (*domain.LoginResponse, error) {
+func (s *LoginService) Login(ctx context.Context, userName string, password string) (*infrastructure.LoginResponse, error) {
 	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserRecord{Name: userName})
 	if err != nil {
 		return nil, err
@@ -54,7 +55,7 @@ func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueO
 		}
 	}(txn.NewGoroutine())
 
-	res := domain.LoginResponse{Token: token, RefreshToken: refreshToken, UserID: foundUser.ID, UserName: string(foundUser.Name), IsAdmin: foundUser.IsAdmin}
+	res := infrastructure.LoginResponse{Token: token, RefreshToken: refreshToken, UserID: foundUser.ID, UserName: string(foundUser.Name), IsAdmin: foundUser.IsAdmin}
 
 	return &res, nil
 }

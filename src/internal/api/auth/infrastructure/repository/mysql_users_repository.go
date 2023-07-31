@@ -15,22 +15,18 @@ func NewMySqlUsersRepository(db *gorm.DB) *MySqlUsersRepository {
 	return &MySqlUsersRepository{db}
 }
 
-func (r *MySqlUsersRepository) FindUser(ctx context.Context, filter *domain.UserRecord) (*domain.UserRecord, error) {
+func (r *MySqlUsersRepository) FindUser(ctx context.Context, query *domain.UserRecord) (*domain.UserRecord, error) {
 	foundUser := domain.UserRecord{}
-	err := r.db.WithContext(ctx).Where(filter).Take(&foundUser).Error
-
-	if err != nil {
+	if err := r.db.WithContext(ctx).Where(query).Take(&foundUser).Error; err != nil {
 		return nil, err
 	}
 
 	return &foundUser, nil
 }
 
-func (r *MySqlUsersRepository) ExistsUser(ctx context.Context, filter *domain.UserRecord) (bool, error) {
+func (r *MySqlUsersRepository) ExistsUser(ctx context.Context, query *domain.UserRecord) (bool, error) {
 	count := int64(0)
-	err := r.db.WithContext(ctx).Model(&domain.UserRecord{}).Where(filter).Count(&count).Error
-
-	if err != nil {
+	if err := r.db.WithContext(ctx).Model(&domain.UserRecord{}).Where(query).Count(&count).Error; err != nil {
 		return false, err
 	}
 
@@ -42,6 +38,7 @@ func (r *MySqlUsersRepository) GetAll(ctx context.Context) ([]domain.UserRecord,
 	if err := r.db.WithContext(ctx).Find(&res).Error; err != nil {
 		return nil, err
 	}
+
 	return res, nil
 }
 
@@ -49,8 +46,8 @@ func (r *MySqlUsersRepository) Create(ctx context.Context, user *domain.UserReco
 	return r.db.WithContext(ctx).Create(user).Error
 }
 
-func (r *MySqlUsersRepository) Delete(ctx context.Context, filter *domain.UserRecord) error {
-	return r.db.WithContext(ctx).Delete(filter).Error
+func (r *MySqlUsersRepository) Delete(ctx context.Context, query *domain.UserRecord) error {
+	return r.db.WithContext(ctx).Delete(query).Error
 }
 
 func (r *MySqlUsersRepository) Update(ctx context.Context, user *domain.UserRecord) error {

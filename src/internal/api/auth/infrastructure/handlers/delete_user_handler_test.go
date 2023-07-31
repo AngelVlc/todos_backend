@@ -48,7 +48,7 @@ func TestDeleteUserHandler_Returns_An_ErrorResult_With_A_BadRequestError_When_De
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
-	foundUser := domain.UserRecord{Name: domain.UserNameValueObject("admin")}
+	foundUser := domain.UserRecord{Name: "admin"}
 	mockedUsersRepo.On("FindUser", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(&foundUser, nil).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
@@ -69,7 +69,7 @@ func TestDeleteUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
-	foundUser := domain.UserRecord{Name: domain.UserNameValueObject("wadus")}
+	foundUser := domain.UserRecord{Name: "wadus"}
 	mockedUsersRepo.On("FindUser", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(&foundUser, nil).Once()
 	mockedUsersRepo.On("Delete", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(fmt.Errorf("some error")).Once()
 
@@ -91,7 +91,7 @@ func TestDeleteUserHandler_Deletes_The_User(t *testing.T) {
 	mockedUsersRepo := authRepository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
-	foundUser := domain.UserRecord{Name: domain.UserNameValueObject("wadus")}
+	foundUser := domain.UserRecord{Name: "wadus"}
 	mockedUsersRepo.On("FindUser", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(&foundUser, nil).Once()
 	mockedUsersRepo.On("Delete", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(nil).Once()
 

@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
-	"github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
 	listsRepository "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
@@ -57,15 +56,14 @@ func TestGetListHandler_Returns_The_List(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	listName, _ := domain.NewListNameValueObject("list1")
-	list := domain.ListRecord{ID: 11, Name: listName, ItemsCount: 4}
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	foundList := domain.ListRecord{ID: 11, Name: "list1", ItemsCount: 4}
+	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&foundList, nil).Once()
 
 	result := GetListHandler(httptest.NewRecorder(), request(), h)
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
-	listRes, isOk := okRes.Content.(*infrastructure.ListResponse)
-	require.Equal(t, true, isOk, "should be a list response")
+	listRes, isOk := okRes.Content.(*domain.ListRecord)
+	require.Equal(t, true, isOk, "should be a list record")
 
 	assert.Equal(t, int32(11), listRes.ID)
 	assert.Equal(t, "list1", listRes.Name)

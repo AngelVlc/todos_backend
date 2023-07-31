@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/application"
-	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
@@ -13,20 +12,18 @@ import (
 
 func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	userID := helpers.GetUserIDFromContext(r)
+	input, _ := h.RequestInput.(*infrastructure.ListInput)
 
-	createReq, _ := h.RequestInput.(*domain.CreateListInput)
+	listRecord := input.ToListRecord()
+	listRecord.UserID = userID
+	for _, v := range listRecord.Items {
+		v.UserID = userID
+	}
 
-	srv := application.NewCreateListService(h.ListsRepository)
-	newList, err := srv.CreateList(r.Context(), createReq.Name, userID)
-	if err != nil {
+	srv := application.NewCreateListService(h.ListsRepository, h.EventBus)
+	if err := srv.CreateList(r.Context(), listRecord); err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	res := infrastructure.ListResponse{
-		ID:         newList.ID,
-		Name:       newList.Name.String(),
-		ItemsCount: newList.ItemsCount,
-	}
-
-	return results.OkResult{Content: res, StatusCode: http.StatusCreated}
+	return results.OkResult{Content: listRecord, StatusCode: http.StatusCreated}
 }

@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/application"
-	"github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
@@ -19,15 +18,5 @@ func GetAllListsHandler(w http.ResponseWriter, r *http.Request, h handler.Handle
 		return results.ErrorResult{Err: err}
 	}
 
-	res := make([]infrastructure.ListResponse, len(foundLists))
-
-	for i, v := range foundLists {
-		res[i] = infrastructure.ListResponse{
-			ID:         v.ID,
-			Name:       v.Name.String(),
-			ItemsCount: v.ItemsCount,
-		}
-	}
-
-	return results.OkResult{Content: res, StatusCode: http.StatusOK}
+	return results.OkResult{Content: foundLists, StatusCode: http.StatusOK}
 }

@@ -18,7 +18,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func TestDeletesListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *testing.T) {
+func TestDeletesListHandler_Returns_An_Error_If_The_Query_To_Find_The_Existing_List_Fails(t *testing.T) {
 	request := func() *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 		request = mux.SetURLVars(request, map[string]string{
@@ -54,10 +54,9 @@ func TestDeletesListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Th
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	listName, _ := domain.NewListNameValueObject("list1")
-	list := domain.ListRecord{ID: 11, Name: listName}
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(fmt.Errorf("some error")).Once()
+	existingList := domain.ListRecord{ID: 11, Name: "list1"}
+	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&existingList, nil).Once()
+	mockedRepo.On("DeleteList", request().Context(), &existingList).Return(fmt.Errorf("some error")).Once()
 
 	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
 
@@ -79,10 +78,9 @@ func TestDeletesListHandler_Deletes_The_List(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	listName, _ := domain.NewListNameValueObject("list1")
-	list := domain.ListRecord{ID: 11, Name: listName}
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("DeleteList", request().Context(), int32(11), int32(1)).Return(nil).Once()
+	existingList := domain.ListRecord{ID: 11, Name: "list1"}
+	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&existingList, nil).Once()
+	mockedRepo.On("DeleteList", request().Context(), &existingList).Return(nil).Once()
 
 	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
 

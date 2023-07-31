@@ -24,9 +24,8 @@ func TestMain(m *testing.M) {
 
 func initServer(t *testing.T) *server {
 	mockedEventBus := events.MockedEventBus{}
-	mockedEventBus.On("Subscribe", "listItemCreated", mock.AnythingOfType("events.DataChannel")).Once()
-	mockedEventBus.On("Subscribe", "listItemDeleted", mock.AnythingOfType("events.DataChannel")).Once()
-	mockedEventBus.Wg.Add(2)
+	mockedEventBus.On("Subscribe", "listCreatedOrUpdated", mock.AnythingOfType("events.DataChannel")).Once()
+	mockedEventBus.Wg.Add(1)
 	s := NewServer(nil, &mockedEventBus, nil)
 	mockedEventBus.Wg.Wait()
 	mockedEventBus.AssertExpectations(t)
@@ -113,10 +112,6 @@ func TestServerPrivateRoutes(t *testing.T) {
 		{"/lists/12", http.MethodPatch},
 		{"/lists/12", http.MethodGet},
 		{"/lists/12", http.MethodDelete},
-		{"/lists/12/items", http.MethodPost},
-		{"/lists/12/items/3", http.MethodGet},
-		{"/lists/12/items/3", http.MethodDelete},
-		{"/lists/12/items/3", http.MethodPatch},
 	}
 
 	for _, r := range privateRoutes {

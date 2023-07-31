@@ -12,18 +12,18 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
-func TestListItemCreatedEventSubscriber(t *testing.T) {
+func TestListCreatedOrUpdatedEventSubscriber(t *testing.T) {
 	ch := make(chan events.DataEvent)
 	mockedRepo := listsRepository.MockedListsRepository{}
 	ctx := newrelic.NewContext(context.Background(), nil)
-	mockedRepo.On("IncrementListCounter", ctx, int32(11)).Return(nil).Once()
+	mockedRepo.On("UpdateListItemsCounter", ctx, int32(11)).Return(nil).Once()
 
 	doneChan := make(chan bool)
 	f := func(listID int32) {
 		doneChan <- true
 	}
 
-	subscriber := &ListItemCreatedEventSubscriber{
+	subscriber := &ListCreatedOrUpdatedEventSubscriber{
 		channel:   ch,
 		listsRepo: &mockedRepo,
 		doneFunc:  f,

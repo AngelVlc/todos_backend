@@ -14,6 +14,7 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
@@ -23,7 +24,7 @@ import (
 func TestHandlerServeHTTP(t *testing.T) {
 	t.Run("Returns a 400 with invalid body if the request requires an input but the body is empty", func(t *testing.T) {
 		handler := Handler{
-			RequestInput: &domain.CreateListInput{},
+			RequestInput: &infrastructure.ListInput{},
 		}
 
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
@@ -37,7 +38,7 @@ func TestHandlerServeHTTP(t *testing.T) {
 
 	t.Run("Returns a 400 with invalid body if the request requires an input but the body is not the expected input", func(t *testing.T) {
 		handler := Handler{
-			RequestInput: &domain.CreateListInput{},
+			RequestInput: &infrastructure.ListInput{},
 		}
 
 		request, _ := http.NewRequest(http.MethodGet, "/wadus", strings.NewReader("wadus"))
@@ -56,11 +57,11 @@ func TestHandlerServeHTTP(t *testing.T) {
 
 		handler := Handler{
 			HandlerFunc:  f,
-			RequestInput: &domain.CreateListInput{},
+			RequestInput: &infrastructure.ListInput{},
 		}
 
 		listName, _ := domain.NewListNameValueObject("list1")
-		createReq := domain.CreateListInput{Name: listName}
+		createReq := infrastructure.ListInput{Name: listName}
 		json, _ := json.Marshal(createReq)
 		body := bytes.NewBuffer(json)
 

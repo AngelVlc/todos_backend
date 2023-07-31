@@ -6,6 +6,7 @@ import (
 
 	authDomain "github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain/passgen"
+	authInfra "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
 	authHandlers "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/handlers"
 	listsDomain "github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
@@ -65,23 +66,18 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
 	listsSubRouter.Handle("", s.getHandler(listsHandlers.GetAllListsHandler, nil)).Methods(http.MethodGet)
-	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler, &listsDomain.CreateListInput{})).Methods(http.MethodPost)
+	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler, &listsInfra.ListInput{})).Methods(http.MethodPost)
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetListHandler, nil)).Methods(http.MethodGet)
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListHandler, nil)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler, &listsDomain.UpdateListInput{})).Methods(http.MethodPatch)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.GetAllListItemsHandler, nil)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.CreateListItemHandler, &listsDomain.CreateListItemInput{})).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.GetListItemHandler, nil)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListItemHandler, nil)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListItemHandler, &listsDomain.UpdateListItemInput{})).Methods(http.MethodPatch)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler, &listsInfra.ListInput{})).Methods(http.MethodPatch)
 	listsSubRouter.Use(authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
-	usersSubRouter.Handle("", s.getHandler(authHandlers.CreateUserHandler, &authDomain.CreateUserInput{})).Methods(http.MethodPost)
+	usersSubRouter.Handle("", s.getHandler(authHandlers.CreateUserHandler, &authInfra.CreateUserInput{})).Methods(http.MethodPost)
 	usersSubRouter.Handle("", s.getHandler(authHandlers.GetAllUsersHandler, nil)).Methods(http.MethodGet)
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.GetUserHandler, nil)).Methods(http.MethodGet)
 	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.DeleteUserHandler, nil)).Methods(http.MethodDelete)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.UpdateUserHandler, &authDomain.UpdateUserInput{})).Methods(http.MethodPatch)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.UpdateUserHandler, &authInfra.UpdateUserInput{})).Methods(http.MethodPatch)
 	usersSubRouter.Use(authMdw.Middleware)
 	usersSubRouter.Use(requireAdminMdw.Middleware)
 
@@ -92,9 +88,9 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	refreshTokensSubRouter.Use(requireAdminMdw.Middleware)
 
 	authSubRouter := router.PathPrefix("/auth").Subrouter()
-	authSubRouter.Handle("/login", s.getHandler(authHandlers.LoginHandler, &authDomain.LoginInput{})).Methods(http.MethodPost)
+	authSubRouter.Handle("/login", s.getHandler(authHandlers.LoginHandler, &authInfra.LoginInput{})).Methods(http.MethodPost)
 	authSubRouter.Handle("/refreshtoken", s.getHandler(authHandlers.RefreshTokenHandler, nil)).Methods(http.MethodPost)
-	authSubRouter.Handle("/createadmin", s.getHandler(authHandlers.CreateUserHandler, &authDomain.CreateUserInput{})).Methods(http.MethodPost)
+	authSubRouter.Handle("/createadmin", s.getHandler(authHandlers.CreateUserHandler, &authInfra.CreateUserInput{})).Methods(http.MethodPost)
 
 	pprofSubRouter := router.PathPrefix("/debug/pprof").Subrouter()
 	pprofSubRouter.Handle("/heap", pprof.Handler("heap"))
@@ -104,8 +100,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 
 	s.Handler = router
 
-	s.addSubscriber(listsInfra.NewListItemCreatedEventSubscriber(s.eventBus, s.listsRepo, s.newRelicApp))
-	s.addSubscriber(listsInfra.NewListItemDeletedEventSubscriber(s.eventBus, s.listsRepo, s.newRelicApp))
+	s.addSubscriber(listsInfra.NewListCreatedOrUpdatedEventSubscriber(s.eventBus, s.listsRepo, s.newRelicApp))
 
 	s.startSubscribers()
 

@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
 	sharedApp "github.com/AngelVlc/todos_backend/src/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -21,8 +22,8 @@ func NewLoginService(authRepo domain.AuthRepository, usersRepo domain.UsersRepos
 	return &LoginService{authRepo, usersRepo, cfgSvr, tokenSrv}
 }
 
-func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPassword) (*domain.LoginResponse, error) {
-	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserEntity{Name: userName})
+func (s *LoginService) Login(ctx context.Context, userName string, password string) (*infrastructure.LoginResponse, error) {
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserRecord{Name: userName})
 	if err != nil {
 		return nil, err
 	}
@@ -48,13 +49,13 @@ func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueO
 	go func(txn *newrelic.Transaction) {
 		ctx = newrelic.NewContext(context.Background(), txn)
 		defer txn.End()
-		err = s.authRepo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshToken{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
+		err = s.authRepo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshTokenRecord{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate})
 		if err != nil {
 			log.Printf("Error saving the refresh token. Error: %v", err)
 		}
 	}(txn.NewGoroutine())
 
-	res := domain.LoginResponse{Token: token, RefreshToken: refreshToken, UserID: foundUser.ID, UserName: string(foundUser.Name), IsAdmin: foundUser.IsAdmin}
+	res := infrastructure.LoginResponse{Token: token, RefreshToken: refreshToken, UserID: foundUser.ID, UserName: string(foundUser.Name), IsAdmin: foundUser.IsAdmin}
 
 	return &res, nil
 }

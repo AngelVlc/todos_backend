@@ -5,64 +5,37 @@ import (
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
 )
 
 type UpdateListService struct {
-	repo domain.ListsRepository
+	repo     domain.ListsRepository
+	eventBus events.EventBus
 }
 
-func NewUpdateListService(repo domain.ListsRepository) *UpdateListService {
-	return &UpdateListService{repo}
+func NewUpdateListService(repo domain.ListsRepository, eventBus events.EventBus) *UpdateListService {
+	return &UpdateListService{repo, eventBus}
 }
 
-func (s *UpdateListService) UpdateList(ctx context.Context,
-	listID int32,
-	name domain.ListNameValueObject,
-	userID int32,
-	idsByPosition []int32) (*domain.ListEntity, error) {
-
-	foundList, err := s.repo.FindList(ctx, &domain.ListEntity{ID: listID, UserID: userID})
+func (s *UpdateListService) UpdateList(ctx context.Context, listRecordToUpdate *domain.ListRecord) error {
+	foundList, err := s.repo.FindList(ctx, &domain.ListRecord{ID: listRecordToUpdate.ID, UserID: listRecordToUpdate.UserID})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if foundList.Name != name {
-		err = name.CheckIfAlreadyExists(ctx, userID, s.repo)
-		if err != nil {
-			return nil, err
+	if foundList.Name != listRecordToUpdate.Name {
+		if existsList, err := s.repo.ExistsList(ctx, &domain.ListRecord{Name: listRecordToUpdate.Name, UserID: listRecordToUpdate.UserID}); err != nil {
+			return &appErrors.UnexpectedError{Msg: "Error checking if a list with the same name already exists", InternalError: err}
+		} else if existsList {
+			return &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
 		}
 	}
 
-	foundList.Name = name
-
-	err = s.repo.UpdateList(ctx, foundList)
-
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}
+	if err := s.repo.UpdateList(ctx, listRecordToUpdate); err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}
 	}
 
-	foundItems, err := s.repo.GetAllListItems(ctx, listID, userID)
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error getting all list items", InternalError: err}
-	}
+	go s.eventBus.Publish("listCreatedOrUpdated", listRecordToUpdate.ID)
 
-	if len(foundItems) == 0 {
-		return foundList, nil
-	}
-
-	for i := 0; i < len(idsByPosition); i++ {
-		for j := 0; j < len(foundItems); j++ {
-			if foundItems[j].ID == int32(idsByPosition[i]) {
-				foundItems[j].Position = int32(i)
-				break
-			}
-		}
-	}
-
-	err = s.repo.BulkUpdateListItems(ctx, foundItems)
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error bulk updating", InternalError: err}
-	}
-
-	return foundList, nil
+	return nil
 }

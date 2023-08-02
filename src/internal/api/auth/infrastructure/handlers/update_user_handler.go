@@ -4,7 +4,6 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/application"
-	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
@@ -12,35 +11,17 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
-type updateUserRequest struct {
-	Name            string `json:"name"`
-	Password        string `json:"password"`
-	ConfirmPassword string `json:"confirmPassword"`
-	IsAdmin         bool   `json:"isAdmin"`
-}
-
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	userID := helpers.ParseInt32UrlVar(r, "id")
 
-	updateReq := updateUserRequest{}
-	err := h.ParseBody(r, &updateReq)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
+	input, _ := h.RequestInput.(*infrastructure.UpdateUserInput)
 
-	userName, err := domain.NewUserNameValueObject(updateReq.Name)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
-
-	password := domain.UserPassword(updateReq.Password)
-
-	if len(updateReq.Password) > 0 && updateReq.Password != updateReq.ConfirmPassword {
+	if len(input.Password) > 0 && input.Password != input.ConfirmPassword {
 		return results.ErrorResult{Err: &appErrors.BadRequestError{Msg: "Passwords don't match"}}
 	}
 
 	srv := application.NewUpdateUserService(h.UsersRepository, h.PassGen)
-	user, err := srv.UpdateUser(r.Context(), userID, userName, password, updateReq.IsAdmin)
+	user, err := srv.UpdateUser(r.Context(), userID, input.Name.String(), input.Password, input.IsAdmin)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

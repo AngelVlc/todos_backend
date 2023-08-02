@@ -5,31 +5,31 @@ import (
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
 )
 
 type CreateListService struct {
-	repo domain.ListsRepository
+	repo     domain.ListsRepository
+	eventBus events.EventBus
 }
 
-func NewCreateListService(repo domain.ListsRepository) *CreateListService {
-	return &CreateListService{repo}
+func NewCreateListService(repo domain.ListsRepository, eventBus events.EventBus) *CreateListService {
+	return &CreateListService{repo, eventBus}
 }
 
-func (s *CreateListService) CreateList(ctx context.Context, name domain.ListNameValueObject, userID int32) (*domain.ListEntity, error) {
-	err := name.CheckIfAlreadyExists(ctx, userID, s.repo)
+func (s *CreateListService) CreateList(ctx context.Context, listRecordToCreate *domain.ListRecord) error {
+	if existsList, err := s.repo.ExistsList(ctx, &domain.ListRecord{Name: listRecordToCreate.Name, UserID: listRecordToCreate.UserID}); err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error checking if a list with the same name already exists", InternalError: err}
+	} else if existsList {
+		return &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
+	}
+
+	err := s.repo.CreateList(ctx, listRecordToCreate)
 	if err != nil {
-		return nil, err
+		return &appErrors.UnexpectedError{Msg: "Error creating the user list", InternalError: err}
 	}
 
-	list := domain.ListEntity{
-		Name:   name,
-		UserID: userID,
-	}
+	go s.eventBus.Publish("listCreatedOrUpdated", listRecordToCreate.ID)
 
-	err = s.repo.CreateList(ctx, &list)
-	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user list", InternalError: err}
-	}
-
-	return &list, nil
+	return nil
 }

@@ -13,7 +13,6 @@ import (
 	"testing"
 	"time"
 
-	authDomain "github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
 	authInfra "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
 	listsDomain "github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	"github.com/stretchr/testify/require"
@@ -37,7 +36,7 @@ func TestEndtoEnd(t *testing.T) {
 	res, err := client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
-	loginRes := authDomain.LoginResponse{}
+	loginRes := authInfra.LoginResponse{}
 	err = objFromRes(res.Body, &loginRes)
 	require.Nil(t, err)
 
@@ -68,7 +67,7 @@ func TestEndtoEnd(t *testing.T) {
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 201, res.StatusCode)
-	createdRes := listsDomain.ListEntity{}
+	createdRes := listsDomain.ListRecord{}
 	err = objFromRes(res.Body, &createdRes)
 	require.Nil(t, err)
 	listID := fmt.Sprint(createdRes.ID)

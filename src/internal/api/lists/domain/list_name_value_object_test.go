@@ -27,9 +27,9 @@ func TestNewListName_Validates_MaxLength(t *testing.T) {
 	assert.Equal(t, "The list name can not have more than 50 characters", badReqErr.Error())
 }
 
-func TestNewListName_Returns_A_Valid_ItemTitle(t *testing.T) {
+func TestNewListName_Returns_A_Valid_ListName(t *testing.T) {
 	listName, err := NewListNameValueObject("a valid name")
 
-	assert.Equal(t, "a valid name", string(listName))
+	assert.Equal(t, "a valid name", listName.String())
 	assert.NoError(t, err)
 }

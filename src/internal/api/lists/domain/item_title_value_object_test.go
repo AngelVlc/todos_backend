@@ -30,6 +30,6 @@ func TestNewItemTitle_Validates_MaxLength(t *testing.T) {
 func TestNewItemTitle_Returns_A_Valid_ItemTitle(t *testing.T) {
 	itemTitle, err := NewItemTitleValueObject("a valid title")
 
-	assert.Equal(t, "a valid title", string(itemTitle))
+	assert.Equal(t, "a valid title", itemTitle.String())
 	assert.NoError(t, err)
 }

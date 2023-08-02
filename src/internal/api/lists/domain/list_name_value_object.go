@@ -1,37 +1,55 @@
 package domain
 
 import (
-	"context"
+	"database/sql/driver"
+	"errors"
 	"fmt"
 
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 )
 
-type ListNameValueObject string
+type ListNameValueObject struct {
+	listName string
+}
 
-const list_name_max_length = 50
+const listNameMaxLength = 50
 
 func NewListNameValueObject(name string) (ListNameValueObject, error) {
 	if len(name) == 0 {
-		return "", &appErrors.BadRequestError{Msg: "The list name can not be empty"}
+		return ListNameValueObject{}, &appErrors.BadRequestError{Msg: "The list name can not be empty"}
 	}
 
-	if len(name) > list_name_max_length {
-		return "", &appErrors.BadRequestError{Msg: fmt.Sprintf("The list name can not have more than %v characters", list_name_max_length)}
+	if len(name) > listNameMaxLength {
+		return ListNameValueObject{}, &appErrors.BadRequestError{Msg: fmt.Sprintf("The list name can not have more than %v characters", listNameMaxLength)}
 	}
 
-	return ListNameValueObject(name), nil
+	return ListNameValueObject{listName: name}, nil
 }
 
-func (l ListNameValueObject) CheckIfAlreadyExists(ctx context.Context, userID int32, repo ListsRepository) error {
-	existsList, err := repo.ExistsList(ctx, &ListEntity{Name: l, UserID: userID})
-	if err != nil {
-		return err
+func (v ListNameValueObject) String() string {
+	return v.listName
+}
+
+func (v ListNameValueObject) MarshalText() ([]byte, error) {
+	return []byte(v.listName), nil
+}
+
+func (v *ListNameValueObject) UnmarshalText(d []byte) error {
+	var err error
+	*v, err = NewListNameValueObject(string(d))
+
+	return err
+}
+
+func (v ListNameValueObject) Value() (driver.Value, error) {
+	return v.String(), nil
+}
+
+func (v *ListNameValueObject) Scan(value interface{}) error {
+	if sv, err := driver.String.ConvertValue(value); err == nil {
+		*v, _ = NewListNameValueObject(fmt.Sprintf("%s", sv))
+		return nil
 	}
 
-	if existsList {
-		return &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
-	}
-
-	return nil
+	return errors.New("failed to scan ListNameValueObject")
 }

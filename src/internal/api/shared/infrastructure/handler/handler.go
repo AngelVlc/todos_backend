@@ -27,6 +27,7 @@ type Handler struct {
 	TokenSrv        authDomain.TokenService
 	PassGen         passgen.PasswordGenerator
 	EventBus        events.EventBus
+	RequestInput    interface{}
 }
 
 type HandlerResult interface {
@@ -40,7 +41,8 @@ func NewHandler(f HandlerFunc,
 	cfgSrv sharedApp.ConfigurationService,
 	tokenSrv authDomain.TokenService,
 	passGen passgen.PasswordGenerator,
-	eventBus events.EventBus) Handler {
+	eventBus events.EventBus,
+	requestInput interface{}) Handler {
 
 	return Handler{
 		HandlerFunc:     f,
@@ -51,6 +53,7 @@ func NewHandler(f HandlerFunc,
 		PassGen:         passGen,
 		TokenSrv:        tokenSrv,
 		EventBus:        eventBus,
+		RequestInput:    requestInput,
 	}
 }
 
@@ -58,6 +61,18 @@ func NewHandler(f HandlerFunc,
 type HandlerFunc func(http.ResponseWriter, *http.Request, Handler) HandlerResult
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if h.RequestInput != nil {
+		err := h.parseBody(r, h.RequestInput)
+		if err != nil {
+			if badRequestErr, ok := err.(*appErrors.BadRequestError); ok {
+				helpers.WriteErrorResponse(r, w, http.StatusBadRequest, badRequestErr.Error(), badRequestErr.InternalError)
+			} else {
+				helpers.WriteErrorResponse(r, w, http.StatusBadRequest, "Invalid body", err)
+			}
+			return
+		}
+	}
+
 	res := h.HandlerFunc(w, r, h)
 
 	if res.IsError() {
@@ -81,7 +96,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h Handler) ParseBody(r *http.Request, result interface{}) error {
+func (h Handler) parseBody(r *http.Request, result interface{}) error {
 	if r.Body == nil {
 		return &appErrors.BadRequestError{Msg: "Invalid body"}
 	}
@@ -89,7 +104,11 @@ func (h Handler) ParseBody(r *http.Request, result interface{}) error {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(result)
 	if err != nil {
-		return &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+		if badRequestErr, ok := err.(*appErrors.BadRequestError); ok {
+			return badRequestErr
+		} else {
+			return &appErrors.BadRequestError{Msg: "Invalid body", InternalError: err}
+		}
 	}
 
 	return nil

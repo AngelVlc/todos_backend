@@ -6,6 +6,7 @@ import (
 
 	authDomain "github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain/passgen"
+	authInfra "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
 	authHandlers "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/handlers"
 	listsDomain "github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	listsInfra "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
@@ -64,37 +65,32 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	router.HandleFunc("/", rootHandler).Methods(http.MethodGet)
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
-	listsSubRouter.Handle("", s.getHandler(listsHandlers.GetAllListsHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler)).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetListHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListHandler)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler)).Methods(http.MethodPatch)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.GetAllListItemsHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items", s.getHandler(listsHandlers.CreateListItemHandler)).Methods(http.MethodPost)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.GetListItemHandler)).Methods(http.MethodGet)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListItemHandler)).Methods(http.MethodDelete)
-	listsSubRouter.Handle("/{listId:[0-9]+}/items/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListItemHandler)).Methods(http.MethodPatch)
+	listsSubRouter.Handle("", s.getHandler(listsHandlers.GetAllListsHandler, nil)).Methods(http.MethodGet)
+	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler, &listsInfra.ListInput{})).Methods(http.MethodPost)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetListHandler, nil)).Methods(http.MethodGet)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListHandler, nil)).Methods(http.MethodDelete)
+	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler, &listsInfra.ListInput{})).Methods(http.MethodPatch)
 	listsSubRouter.Use(authMdw.Middleware)
 
 	usersSubRouter := router.PathPrefix("/users").Subrouter()
-	usersSubRouter.Handle("", s.getHandler(authHandlers.CreateUserHandler)).Methods(http.MethodPost)
-	usersSubRouter.Handle("", s.getHandler(authHandlers.GetAllUsersHandler)).Methods(http.MethodGet)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.GetUserHandler)).Methods(http.MethodGet)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.DeleteUserHandler)).Methods(http.MethodDelete)
-	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.UpdateUserHandler)).Methods(http.MethodPatch)
+	usersSubRouter.Handle("", s.getHandler(authHandlers.CreateUserHandler, &authInfra.CreateUserInput{})).Methods(http.MethodPost)
+	usersSubRouter.Handle("", s.getHandler(authHandlers.GetAllUsersHandler, nil)).Methods(http.MethodGet)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.GetUserHandler, nil)).Methods(http.MethodGet)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.DeleteUserHandler, nil)).Methods(http.MethodDelete)
+	usersSubRouter.Handle("/{id:[0-9]+}", s.getHandler(authHandlers.UpdateUserHandler, &authInfra.UpdateUserInput{})).Methods(http.MethodPatch)
 	usersSubRouter.Use(authMdw.Middleware)
 	usersSubRouter.Use(requireAdminMdw.Middleware)
 
 	refreshTokensSubRouter := router.PathPrefix("/refreshtokens").Subrouter()
-	refreshTokensSubRouter.Handle("", s.getHandler(authHandlers.GetAllRefreshTokensHandler)).Methods(http.MethodGet)
-	refreshTokensSubRouter.Handle("", s.getHandler(authHandlers.DeleteRefreshTokensHandler)).Methods(http.MethodDelete)
+	refreshTokensSubRouter.Handle("", s.getHandler(authHandlers.GetAllRefreshTokensHandler, nil)).Methods(http.MethodGet)
+	refreshTokensSubRouter.Handle("", s.getHandler(authHandlers.DeleteRefreshTokensHandler, &[]int32{})).Methods(http.MethodDelete)
 	refreshTokensSubRouter.Use(authMdw.Middleware)
 	refreshTokensSubRouter.Use(requireAdminMdw.Middleware)
 
 	authSubRouter := router.PathPrefix("/auth").Subrouter()
-	authSubRouter.Handle("/login", s.getHandler(authHandlers.LoginHandler)).Methods(http.MethodPost)
-	authSubRouter.Handle("/refreshtoken", s.getHandler(authHandlers.RefreshTokenHandler)).Methods(http.MethodPost)
-	authSubRouter.Handle("/createadmin", s.getHandler(authHandlers.CreateUserHandler)).Methods(http.MethodPost)
+	authSubRouter.Handle("/login", s.getHandler(authHandlers.LoginHandler, &authInfra.LoginInput{})).Methods(http.MethodPost)
+	authSubRouter.Handle("/refreshtoken", s.getHandler(authHandlers.RefreshTokenHandler, nil)).Methods(http.MethodPost)
+	authSubRouter.Handle("/createadmin", s.getHandler(authHandlers.CreateUserHandler, &authInfra.CreateUserInput{})).Methods(http.MethodPost)
 
 	pprofSubRouter := router.PathPrefix("/debug/pprof").Subrouter()
 	pprofSubRouter.Handle("/heap", pprof.Handler("heap"))
@@ -104,16 +100,15 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 
 	s.Handler = router
 
-	s.addSubscriber(listsInfra.NewListItemCreatedEventSubscriber(s.eventBus, s.listsRepo, s.newRelicApp))
-	s.addSubscriber(listsInfra.NewListItemDeletedEventSubscriber(s.eventBus, s.listsRepo, s.newRelicApp))
+	s.addSubscriber(listsInfra.NewListCreatedOrUpdatedEventSubscriber(s.eventBus, s.listsRepo, s.newRelicApp))
 
 	s.startSubscribers()
 
 	return &s
 }
 
-func (s *server) getHandler(handlerFunc handler.HandlerFunc) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.authRepo, s.usersRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus)
+func (s *server) getHandler(handlerFunc handler.HandlerFunc, requestInput interface{}) handler.Handler {
+	return handler.NewHandler(handlerFunc, s.authRepo, s.usersRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus, requestInput)
 }
 
 func (s *server) addSubscriber(subscriber events.Subscriber) {

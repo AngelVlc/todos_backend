@@ -4,44 +4,30 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/application"
-	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
-type updateListRequest struct {
-	Name          string  `json:"name"`
-	IDsByPosition []int32 `json:"idsByPosition"`
-}
-
 func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	listID := helpers.ParseInt32UrlVar(r, "id")
 	userID := helpers.GetUserIDFromContext(r)
+	input, _ := h.RequestInput.(*infrastructure.ListInput)
 
-	updateReq := updateListRequest{}
-	err := h.ParseBody(r, &updateReq)
+	listRecord := input.ToListRecord()
+	listRecord.ID = listID
+	listRecord.UserID = userID
+	for _, v := range listRecord.Items {
+		v.ListID = listID
+		v.UserID = userID
+	}
+
+	srv := application.NewUpdateListService(h.ListsRepository, h.EventBus)
+	err := srv.UpdateList(r.Context(), listRecord)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	listName, err := domain.NewListNameValueObject(updateReq.Name)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
-
-	srv := application.NewUpdateListService(h.ListsRepository)
-	list, err := srv.UpdateList(r.Context(), listID, listName, userID, updateReq.IDsByPosition)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
-
-	res := infrastructure.ListResponse{
-		ID:         list.ID,
-		Name:       string(list.Name),
-		ItemsCount: list.ItemsCount,
-	}
-
-	return results.OkResult{Content: res, StatusCode: http.StatusOK}
+	return results.OkResult{Content: listRecord, StatusCode: http.StatusOK}
 }

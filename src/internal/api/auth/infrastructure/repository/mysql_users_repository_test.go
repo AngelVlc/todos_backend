@@ -22,14 +22,11 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryFails(t *testing.T) {
 
 	userID := int32(1)
 
-	expectedFindByIDQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`id` = ? LIMIT 1")).
-			WithArgs(userID)
-	}
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`id` = ? LIMIT 1")).
+		WithArgs(userID).
+		WillReturnError(fmt.Errorf("some error"))
 
-	expectedFindByIDQuery().WillReturnError(fmt.Errorf("some error"))
-
-	res, err := repo.FindUser(context.Background(), &domain.UserEntity{ID: userID})
+	res, err := repo.FindUser(context.Background(), &domain.UserRecord{ID: userID})
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -41,19 +38,14 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	userName := domain.UserNameValueObject("userName")
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`name` = ? LIMIT 1")).
+		WithArgs("userName").
+		WillReturnRows(sqlmock.NewRows(userColumns).AddRow(int32(1), "userName", "hash", true))
 
-	expectedFindByIDQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`name` = ? LIMIT 1")).
-			WithArgs(userName)
-	}
-
-	expectedFindByIDQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(int32(1), userName, "hash", true))
-
-	res, err := repo.FindUser(context.Background(), &domain.UserEntity{Name: userName})
+	res, err := repo.FindUser(context.Background(), &domain.UserRecord{Name: "userName"})
 
 	require.NotNil(t, res)
-	assert.Equal(t, userName, res.Name)
+	assert.Equal(t, "userName", res.Name)
 	assert.True(t, res.IsAdmin)
 	assert.Equal(t, int32(1), res.ID)
 	assert.Nil(t, err)
@@ -65,14 +57,11 @@ func TestMySqlAuthRepository_ExistsUser_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	user := &domain.UserEntity{Name: domain.UserNameValueObject("userName")}
+	user := &domain.UserRecord{Name: "userName"}
 
-	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
-			WithArgs("userName")
-	}
-
-	expectedExistsQuery().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
+		WithArgs("userName").
+		WillReturnError(fmt.Errorf("some error"))
 
 	res, err := repo.ExistsUser(context.Background(), user)
 
@@ -86,14 +75,11 @@ func TestMySqlAuthRepository_ExistsUser_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	user := &domain.UserEntity{Name: domain.UserNameValueObject("userName")}
+	user := &domain.UserRecord{Name: "userName"}
 
-	expectedExistsQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
-			WithArgs("userName")
-	}
-
-	expectedExistsQuery().WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT count(*) FROM `users` WHERE `users`.`name` = ?")).
+		WithArgs("userName").
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	res, err := repo.ExistsUser(context.Background(), user)
 
@@ -107,11 +93,8 @@ func TestMySqlUsersRepository_GetAll_WhenTheQueryFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	expectedQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`"))
-	}
-
-	expectedQuery().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+		WillReturnError(fmt.Errorf("some error"))
 
 	res, err := repo.GetAll(context.Background())
 
@@ -125,22 +108,21 @@ func TestMySqlUsersRepository_GetAll_WhenTheQueryDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	expectedQuery := func() *sqlmock.ExpectedQuery {
-		return mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`"))
-	}
-
-	expectedQuery().WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user1", "pass1", true).AddRow(12, "user2", "pass2", false))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users`")).
+		WillReturnRows(sqlmock.NewRows(userColumns).
+			AddRow(11, "user1", "pass1", true).
+			AddRow(12, "user2", "pass2", false))
 
 	res, err := repo.GetAll(context.Background())
 
 	assert.Nil(t, err)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
-	assert.Equal(t, domain.UserNameValueObject("user1"), res[0].Name)
+	assert.Equal(t, "user1", res[0].Name)
 	assert.Equal(t, "pass1", res[0].PasswordHash)
 	assert.True(t, res[0].IsAdmin)
 	assert.Equal(t, int32(12), res[1].ID)
-	assert.Equal(t, domain.UserNameValueObject("user2"), res[1].Name)
+	assert.Equal(t, "user2", res[1].Name)
 	assert.Equal(t, "pass2", res[1].PasswordHash)
 	assert.False(t, res[1].IsAdmin)
 
@@ -149,17 +131,14 @@ func TestMySqlUsersRepository_GetAll_WhenTheQueryDoesNotFail(t *testing.T) {
 
 func TestMySqlUsersRepository_Create_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	user := domain.UserEntity{Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserRecord{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlUsersRepository(db)
 
-	expectedInsertExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
-			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
-	}
-
 	mock.ExpectBegin()
-	expectedInsertExec().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
+		WithArgs(user.Name, user.PasswordHash, user.IsAdmin).
+		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
 	err := repo.Create(context.Background(), &user)
@@ -171,19 +150,16 @@ func TestMySqlUsersRepository_Create_WhenItFails(t *testing.T) {
 
 func TestMySqlUsersRepository_Create_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	user := domain.UserEntity{Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserRecord{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlUsersRepository(db)
-
-	expectedInsertExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
-			WithArgs(user.Name, user.PasswordHash, user.IsAdmin)
-	}
 
 	result := sqlmock.NewResult(12, 1)
 
 	mock.ExpectBegin()
-	expectedInsertExec().WillReturnResult(result)
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
+		WithArgs(user.Name, user.PasswordHash, user.IsAdmin).
+		WillReturnResult(result)
 	mock.ExpectCommit()
 
 	err := repo.Create(context.Background(), &user)
@@ -197,18 +173,15 @@ func TestMySqlUsersRepository_Delete_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	expectedDeleteExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE `users`.`id` = ?")).
-			WithArgs(1)
-	}
-
 	userID := int32(1)
 
 	mock.ExpectBegin()
-	expectedDeleteExec().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE `users`.`id` = ?")).
+		WithArgs(1).
+		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.Delete(context.Background(), &domain.UserEntity{ID: userID})
+	err := repo.Delete(context.Background(), &domain.UserRecord{ID: userID})
 
 	assert.EqualError(t, err, "some error")
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -219,18 +192,15 @@ func TestMySqlUsersRepository_Delete_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlUsersRepository(db)
 
-	expectedDeleteExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE `users`.`id` = ?")).
-			WithArgs(1)
-	}
-
 	userID := int32(1)
 
 	mock.ExpectBegin()
-	expectedDeleteExec().WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `users` WHERE `users`.`id` = ?")).
+		WithArgs(1).
+		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
-	err := repo.Delete(context.Background(), &domain.UserEntity{ID: userID})
+	err := repo.Delete(context.Background(), &domain.UserRecord{ID: userID})
 
 	assert.Nil(t, err)
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -238,17 +208,14 @@ func TestMySqlUsersRepository_Delete_WhenItDoesNotFail(t *testing.T) {
 
 func TestMySqlUsersRepository_Update_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	user := domain.UserEntity{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserRecord{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlUsersRepository(db)
 
-	expectedUpdateExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`passwordHash`=?,`isAdmin`=? WHERE `id` = ?")).
-			WithArgs("userName", "hash", false, 11)
-	}
-
 	mock.ExpectBegin()
-	expectedUpdateExec().WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`passwordHash`=?,`isAdmin`=? WHERE `id` = ?")).
+		WithArgs("userName", "hash", false, 11).
+		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
 	err := repo.Update(context.Background(), &user)
@@ -259,21 +226,20 @@ func TestMySqlUsersRepository_Update_WhenItFails(t *testing.T) {
 
 func TestMySqlUsersRepository_Update_WhenItDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	user := domain.UserEntity{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserRecord{ID: int32(11), Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
 	repo := NewMySqlUsersRepository(db)
 
-	expectedUpdateExec := func() *sqlmock.ExpectedExec {
-		return mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`passwordHash`=?,`isAdmin`=? WHERE `id` = ?")).
-			WithArgs("userName", "hash", false, 11)
-	}
-
 	mock.ExpectBegin()
-	expectedUpdateExec().WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `users` SET `name`=?,`passwordHash`=?,`isAdmin`=? WHERE `id` = ?")).
+		WithArgs("userName", "hash", false, 11).
+		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `id` = ? LIMIT 1")).
-		WithArgs(11).
-		WillReturnRows(sqlmock.NewRows(userColumns).AddRow(11, "user", "", false))
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`,`id`) VALUES (?,?,?,?) ON DUPLICATE KEY UPDATE `name`=VALUES(`name`),`passwordHash`=VALUES(`passwordHash`),`isAdmin`=VALUES(`isAdmin`)")).
+		WithArgs("userName", "hash", false, 11).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectCommit()
 
 	err := repo.Update(context.Background(), &user)
 

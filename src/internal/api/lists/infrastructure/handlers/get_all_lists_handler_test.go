@@ -11,7 +11,6 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
-	"github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
 	listsRepository "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure/repository"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
@@ -50,7 +49,7 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	found := []domain.ListEntity{
+	found := []domain.ListRecord{
 		{ID: 11, Name: "list1", ItemsCount: 4},
 		{ID: 12, Name: "list2", ItemsCount: 8},
 	}
@@ -60,7 +59,7 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 	result := GetAllListsHandler(httptest.NewRecorder(), request(), h)
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
-	listRes, isOk := okRes.Content.([]infrastructure.ListResponse)
+	listRes, isOk := okRes.Content.([]domain.ListRecord)
 	require.Equal(t, true, isOk, "should be an array of list response")
 
 	require.Equal(t, len(listRes), 2)

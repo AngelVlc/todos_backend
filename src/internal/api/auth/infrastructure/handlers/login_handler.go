@@ -4,36 +4,17 @@ import (
 	"net/http"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/application"
-	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
-type loginRequest struct {
-	UserName string `json:"userName"`
-	Password string `json:"password"`
-}
-
 // LoginHandler is the handler for the /auth/login endpoint
 func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	loginReq := loginRequest{}
-	err := h.ParseBody(r, &loginReq)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
-
-	userName, err := domain.NewUserNameValueObject(loginReq.UserName)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
-
-	password, err := domain.NewUserPassword(loginReq.Password)
-	if err != nil {
-		return results.ErrorResult{Err: err}
-	}
+	input, _ := h.RequestInput.(*infrastructure.LoginInput)
 
 	srv := application.NewLoginService(h.AuthRepository, h.UsersRepository, h.CfgSrv, h.TokenSrv)
-	res, err := srv.Login(r.Context(), userName, password)
+	res, err := srv.Login(r.Context(), input.UserName.String(), input.Password.String())
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

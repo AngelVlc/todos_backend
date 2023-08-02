@@ -17,14 +17,14 @@ func NewUpdateUserService(usersRepo domain.UsersRepository, passGen passgen.Pass
 	return &UpdateUserService{usersRepo, passGen}
 }
 
-func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserNameValueObject, password domain.UserPassword, isAdmin bool) (*domain.UserEntity, error) {
-	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserEntity{ID: userID})
+func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName string, password string, isAdmin bool) (*domain.UserRecord, error) {
+	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserRecord{ID: userID})
 	if err != nil {
 		return nil, err
 	}
 
 	if foundUser.IsTheAdminUser() {
-		if userName != domain.UserNameValueObject("admin") {
+		if userName != "admin" {
 			return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
 		}
 
@@ -34,9 +34,10 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 	}
 
 	if foundUser.Name != userName {
-		err = userName.CheckIfAlreadyExists(ctx, s.usersRepo)
-		if err != nil {
-			return nil, err
+		if existsUser, err := s.usersRepo.ExistsUser(ctx, &domain.UserRecord{Name: userName}); err != nil {
+			return nil, &appErrors.UnexpectedError{Msg: "Error checking if a user with the same name already exists", InternalError: err}
+		} else if existsUser {
+			return nil, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
 		}
 	}
 

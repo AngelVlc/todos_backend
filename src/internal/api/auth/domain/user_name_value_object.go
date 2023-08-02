@@ -1,37 +1,55 @@
 package domain
 
 import (
-	"context"
+	"database/sql/driver"
+	"errors"
 	"fmt"
 
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 )
 
-type UserNameValueObject string
+type UserNameValueObject struct {
+	userName string
+}
 
-const user_name_max_length = 10
+const userNameMaxLength = 10
 
 func NewUserNameValueObject(name string) (UserNameValueObject, error) {
 	if len(name) == 0 {
-		return "", &appErrors.BadRequestError{Msg: "The user name can not be empty"}
+		return UserNameValueObject{}, &appErrors.BadRequestError{Msg: "The user name can not be empty"}
 	}
 
-	if len(name) > user_name_max_length {
-		return "", &appErrors.BadRequestError{Msg: fmt.Sprintf("The user name can not have more than %v characters", user_name_max_length)}
+	if len(name) > userNameMaxLength {
+		return UserNameValueObject{}, &appErrors.BadRequestError{Msg: fmt.Sprintf("The user name can not have more than %v characters", userNameMaxLength)}
 	}
 
-	return UserNameValueObject(name), nil
+	return UserNameValueObject{userName: name}, nil
 }
 
-func (u UserNameValueObject) CheckIfAlreadyExists(ctx context.Context, repo UsersRepository) error {
-	existsUser, err := repo.ExistsUser(ctx, &UserEntity{Name: u})
-	if err != nil {
-		return err
+func (v UserNameValueObject) String() string {
+	return v.userName
+}
+
+func (v UserNameValueObject) MarshalText() ([]byte, error) {
+	return []byte(v.userName), nil
+}
+
+func (v *UserNameValueObject) UnmarshalText(d []byte) error {
+	var err error
+	*v, err = NewUserNameValueObject(string(d))
+
+	return err
+}
+
+func (v UserNameValueObject) Value() (driver.Value, error) {
+	return v.String(), nil
+}
+
+func (v *UserNameValueObject) Scan(value interface{}) error {
+	if sv, err := driver.String.ConvertValue(value); err == nil {
+		*v, _ = NewUserNameValueObject(fmt.Sprintf("%s", sv))
+		return nil
 	}
 
-	if existsUser {
-		return &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
-	}
-
-	return nil
+	return errors.New("failed to scan UserNameValueObject")
 }

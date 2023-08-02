@@ -9,7 +9,7 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
-type ListItemCreatedEventSubscriber struct {
+type ListCreatedOrUpdatedEventSubscriber struct {
 	eventName   string
 	eventBus    events.EventBus
 	channel     chan events.DataEvent
@@ -18,13 +18,13 @@ type ListItemCreatedEventSubscriber struct {
 	newRelicApp *newrelic.Application
 }
 
-func NewListItemCreatedEventSubscriber(eventBus events.EventBus, listsRepo domain.ListsRepository, newRelicApp *newrelic.Application) *ListItemCreatedEventSubscriber {
+func NewListCreatedOrUpdatedEventSubscriber(eventBus events.EventBus, listsRepo domain.ListsRepository, newRelicApp *newrelic.Application) *ListCreatedOrUpdatedEventSubscriber {
 	doneFunc := func(listID int32) {
-		log.Printf("Incremented items counter for list with ID %v\n", listID)
+		log.Printf("Updated items counter for list with ID %v\n", listID)
 	}
 
-	return &ListItemCreatedEventSubscriber{
-		eventName:   "listItemCreated",
+	return &ListCreatedOrUpdatedEventSubscriber{
+		eventName:   "listCreatedOrUpdated",
 		eventBus:    eventBus,
 		channel:     make(chan events.DataEvent),
 		listsRepo:   listsRepo,
@@ -33,18 +33,18 @@ func NewListItemCreatedEventSubscriber(eventBus events.EventBus, listsRepo domai
 	}
 }
 
-func (s *ListItemCreatedEventSubscriber) Subscribe() {
+func (s *ListCreatedOrUpdatedEventSubscriber) Subscribe() {
 	s.eventBus.Subscribe(s.eventName, s.channel)
 }
 
-func (s *ListItemCreatedEventSubscriber) Start() {
+func (s *ListCreatedOrUpdatedEventSubscriber) Start() {
 	for {
 		select {
 		case d := <-s.channel:
 			listID, _ := d.Data.(int32)
-			txn := s.newRelicApp.StartTransaction("incrementListCounter")
+			txn := s.newRelicApp.StartTransaction("updateListCounter")
 			ctx := newrelic.NewContext(context.Background(), txn)
-			s.listsRepo.IncrementListCounter(ctx, listID)
+			s.listsRepo.UpdateListItemsCounter(ctx, listID)
 			txn.End()
 			s.doneFunc(listID)
 		}

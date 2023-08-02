@@ -16,14 +16,14 @@ func NewRealTokenService(cfgSvc sharedApp.ConfigurationService) *RealTokenServic
 	return &RealTokenService{cfgSvc}
 }
 
-func (s *RealTokenService) GenerateToken(user *UserEntity) (string, error) {
+func (s *RealTokenService) GenerateToken(user *UserRecord) (string, error) {
 	t := s.getNewToken(user.ID, user.Name, user.IsAdmin)
 
 	return s.signToken(t, s.cfgSvc.GetJwtSecret())
 
 }
 
-func (s *RealTokenService) GenerateRefreshToken(user *UserEntity, expirationDate time.Time) (string, error) {
+func (s *RealTokenService) GenerateRefreshToken(user *UserRecord, expirationDate time.Time) (string, error) {
 	rt := s.getNewRefreshToken(user.ID, expirationDate)
 
 	return s.signToken(rt, s.cfgSvc.GetJwtSecret())
@@ -55,7 +55,7 @@ func (s *RealTokenService) GetTokenInfo(token *jwt.Token) *TokenClaimsInfo {
 	return &info
 }
 
-/// GetRefreshTokenInfo returns a RefreshTokenClaimsInfo got from the refresh token claims
+// / GetRefreshTokenInfo returns a RefreshTokenClaimsInfo got from the refresh token claims
 func (s *RealTokenService) GetRefreshTokenInfo(refreshToken *jwt.Token) *RefreshTokenClaimsInfo {
 	claims := s.getTokenClaims(refreshToken)
 
@@ -66,7 +66,7 @@ func (s *RealTokenService) GetRefreshTokenInfo(refreshToken *jwt.Token) *Refresh
 	return &info
 }
 
-func (s *RealTokenService) getNewToken(userID int32, userName UserNameValueObject, userIsAdmin bool) *jwt.Token {
+func (s *RealTokenService) getNewToken(userID int32, userName string, userIsAdmin bool) *jwt.Token {
 	t := s.newToken()
 
 	tc := s.getTokenClaims(t)

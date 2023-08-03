@@ -11,7 +11,7 @@ import (
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
-	authRepository "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
@@ -19,7 +19,7 @@ import (
 )
 
 func TestGetAllUsersHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_Fails(t *testing.T) {
-	mockedRepo := authRepository.MockedUsersRepository{}
+	mockedRepo := repository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedRepo}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -32,13 +32,15 @@ func TestGetAllUsersHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Th
 }
 
 func TestGetAllUsersHandler_Returns_The_Users(t *testing.T) {
-	mockedRepo := authRepository.MockedUsersRepository{}
+	mockedRepo := repository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedRepo}
+	user1vo, _ := domain.NewUserNameValueObject("user1")
+	user2vo, _ := domain.NewUserNameValueObject("user2")
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
-	found := []domain.UserRecord{
-		{ID: 2, Name: "user1", IsAdmin: true},
-		{ID: 5, Name: "user2", IsAdmin: false},
+	found := []*domain.UserEntity{
+		{ID: 2, Name: user1vo, IsAdmin: true},
+		{ID: 5, Name: user2vo, IsAdmin: false},
 	}
 	mockedRepo.On("GetAll", request.Context()).Return(found, nil)
 	result := GetAllUsersHandler(httptest.NewRecorder(), request, h)

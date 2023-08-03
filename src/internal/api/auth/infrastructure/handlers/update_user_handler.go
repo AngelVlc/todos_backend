@@ -21,14 +21,14 @@ func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewUpdateUserService(h.UsersRepository, h.PassGen)
-	user, err := srv.UpdateUser(r.Context(), userID, input.Name.String(), input.Password, input.IsAdmin)
+	user, err := srv.UpdateUser(r.Context(), userID, input.Name, input.Password, input.IsAdmin)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
 	res := infrastructure.UserResponse{
 		ID:      user.ID,
-		Name:    string(user.Name),
+		Name:    user.Name.String(),
 		IsAdmin: user.IsAdmin,
 	}
 

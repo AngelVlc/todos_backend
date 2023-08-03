@@ -1,11 +1,5 @@
 package domain
 
-import (
-	"strings"
-
-	"golang.org/x/crypto/bcrypt"
-)
-
 type UserRecord struct {
 	ID           int32  `gorm:"type:int(32);primary_key" json:"id"`
 	Name         string `gorm:"type:varchar(10);index:idx_users_name,unique" json:"name"`
@@ -17,12 +11,13 @@ func (UserRecord) TableName() string {
 	return "users"
 }
 
-func (u *UserRecord) HasPassword(value string) error {
-	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(value))
-}
+func (r *UserRecord) ToUserEntity() *UserEntity {
+	nvo, _ := NewUserNameValueObject(r.Name)
 
-func (u *UserRecord) IsTheAdminUser() bool {
-	userNameLowerCase := strings.ToLower(string(u.Name))
-
-	return userNameLowerCase == "admin"
+	return &UserEntity{
+		ID:           r.ID,
+		Name:         nvo,
+		PasswordHash: r.PasswordHash,
+		IsAdmin:      r.IsAdmin,
+	}
 }

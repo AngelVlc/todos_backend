@@ -17,14 +17,14 @@ func NewUpdateUserService(usersRepo domain.UsersRepository, passGen passgen.Pass
 	return &UpdateUserService{usersRepo, passGen}
 }
 
-func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName string, password string, isAdmin bool) (*domain.UserRecord, error) {
-	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserRecord{ID: userID})
+func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userName domain.UserNameValueObject, password string, isAdmin bool) (*domain.UserEntity, error) {
+	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserEntity{ID: userID})
 	if err != nil {
 		return nil, err
 	}
 
 	if foundUser.IsTheAdminUser() {
-		if userName != "admin" {
+		if userName.String() != "admin" {
 			return nil, &appErrors.BadRequestError{Msg: "It is not possible to change the admin user name"}
 		}
 
@@ -33,8 +33,8 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 		}
 	}
 
-	if foundUser.Name != userName {
-		if existsUser, err := s.usersRepo.ExistsUser(ctx, &domain.UserRecord{Name: userName}); err != nil {
+	if foundUser.Name.String() != userName.String() {
+		if existsUser, err := s.usersRepo.ExistsUser(ctx, domain.UserEntity{Name: userName}); err != nil {
 			return nil, &appErrors.UnexpectedError{Msg: "Error checking if a user with the same name already exists", InternalError: err}
 		} else if existsUser {
 			return nil, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
@@ -53,10 +53,10 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 	foundUser.Name = userName
 	foundUser.IsAdmin = isAdmin
 
-	err = s.usersRepo.Update(ctx, foundUser)
+	r, err := s.usersRepo.Update(ctx, foundUser)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user", InternalError: err}
 	}
 
-	return foundUser, nil
+	return r, nil
 }

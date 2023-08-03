@@ -15,7 +15,7 @@ func NewGetAllUsersService(repo domain.UsersRepository) *GetAllUsersService {
 	return &GetAllUsersService{repo}
 }
 
-func (s *GetAllUsersService) GetAllUsers(ctx context.Context) ([]domain.UserRecord, error) {
+func (s *GetAllUsersService) GetAllUsers(ctx context.Context) ([]*domain.UserEntity, error) {
 	foundUsers, err := s.repo.GetAll(ctx)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting users", InternalError: err}

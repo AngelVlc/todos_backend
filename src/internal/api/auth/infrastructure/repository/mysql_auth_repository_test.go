@@ -18,44 +18,20 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	userColumns         = []string{"id", "name", "passwordHash", "isAdmin"}
-	refreshTokenColumns = []string{"id", "userId", "refreshToken", "expirationDate"}
-)
-
-func TestMySqlAuthRepository_FindRefreshTokenForUser_Does_Not_Return_A_RefreshToken_If_Does_Not_Exist(t *testing.T) {
+func TestMySqlAuthRepository_ExistsRefreshToken_Returns_An_Error_If_The_Query_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
 	rt := "rt"
 	userID := int32(1)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `refresh_tokens` WHERE `refresh_tokens`.`userId` = ? AND `refresh_tokens`.`refreshToken` = ? LIMIT 1")).
-		WithArgs(userID, rt).
-		WillReturnRows(sqlmock.NewRows(refreshTokenColumns))
-
-	res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
-
-	assert.Nil(t, res)
-	assert.Nil(t, err)
-
-	helpers.CheckSqlMockExpectations(mock, t)
-}
-
-func TestMySqlAuthRepository_FindRefreshTokenForUser_Returns_An_Error_If_The_Query_Fails(t *testing.T) {
-	mock, db := helpers.GetMockedDb(t)
-	repo := NewMySqlAuthRepository(db)
-
-	rt := "rt"
-	userID := int32(1)
-
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `refresh_tokens` WHERE `refresh_tokens`.`userId` = ? AND `refresh_tokens`.`refreshToken` = ? LIMIT 1")).
+	mock.ExpectQuery(regexp.QuoteMeta("ELECT count(*) FROM `refresh_tokens` WHERE `refresh_tokens`.`userId` = ? AND `refresh_tokens`.`refreshToken` = ?")).
 		WithArgs(userID, rt).
 		WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
+	res, err := repo.ExistsRefreshToken(context.Background(), domain.RefreshTokenEntity{RefreshToken: rt, UserID: userID})
 
-	assert.Nil(t, res)
+	assert.False(t, res)
 	assert.EqualError(t, err, "some error")
 
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -68,15 +44,13 @@ func TestMySqlAuthRepository_FindRefreshTokenForUser_Returns_A_RefreshToken_If_E
 	rt := "rt"
 	userID := int32(1)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `refresh_tokens` WHERE `refresh_tokens`.`userId` = ? AND `refresh_tokens`.`refreshToken` = ? LIMIT 1")).
+	mock.ExpectQuery(regexp.QuoteMeta("ELECT count(*) FROM `refresh_tokens` WHERE `refresh_tokens`.`userId` = ? AND `refresh_tokens`.`refreshToken` = ?")).
 		WithArgs(userID, rt).
-		WillReturnRows(sqlmock.NewRows(refreshTokenColumns).AddRow(int32(111), userID, rt, time.Now()))
+		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
-	res, err := repo.FindRefreshTokenForUser(context.Background(), rt, userID)
+	res, err := repo.ExistsRefreshToken(context.Background(), domain.RefreshTokenEntity{RefreshToken: rt, UserID: userID})
 
-	require.NotNil(t, res)
-	assert.Equal(t, userID, res.UserID)
-	assert.Equal(t, int32(111), res.ID)
+	assert.True(t, res)
 	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -87,7 +61,7 @@ func TestMySqlAuthRepository_CreateRefreshTokenIfNotExist_Returns_An_Error_If_Cr
 	repo := NewMySqlAuthRepository(db)
 
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
-	rt := domain.RefreshTokenRecord{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
+	rt := domain.RefreshTokenEntity{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `id`=`id`")).
@@ -107,7 +81,7 @@ func TestMySqlAuthRepository_CreateRefreshTokenIfNotExist_Creates_A_New_RefreshT
 	repo := NewMySqlAuthRepository(db)
 
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
-	rt := domain.RefreshTokenRecord{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
+	rt := domain.RefreshTokenEntity{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
 
 	result := sqlmock.NewResult(12, 1)
 
@@ -193,6 +167,7 @@ func TestMySqlAuthRepository_GetAllRefreshTokens_Returns_The_RefreshTokens(t *te
 	res, err := repo.GetAllRefreshTokens(context.Background(), paginationInfo)
 
 	assert.Nil(t, err)
+	require.IsType(t, []*domain.RefreshTokenEntity{}, res)
 	require.Equal(t, 1, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
 	assert.Equal(t, int32(1), res[0].UserID)

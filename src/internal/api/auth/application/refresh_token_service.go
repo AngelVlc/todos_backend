@@ -32,12 +32,9 @@ func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (stri
 		return "", err
 	}
 
-	foundRt, err := s.authRepo.FindRefreshTokenForUser(ctx, rt, rtInfo.UserID)
-	if err != nil {
+	if existsRt, err := s.authRepo.ExistsRefreshToken(ctx, domain.RefreshTokenEntity{RefreshToken: rt, UserID: rtInfo.UserID}); err != nil {
 		return "", &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
-	}
-
-	if foundRt == nil {
+	} else if !existsRt {
 		return "", &appErrors.UnauthorizedError{Msg: "The refresh token is not valid"}
 	}
 

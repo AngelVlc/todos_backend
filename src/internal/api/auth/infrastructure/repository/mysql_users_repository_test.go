@@ -16,6 +16,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+var (
+	userColumns = []string{"id", "name", "passwordHash", "isAdmin"}
+)
+
 func TestMySqlUsersRepository_FindUser_WhenTheQueryFails(t *testing.T) {
 	userID := int32(1)
 	mock, db := helpers.GetMockedDb(t)

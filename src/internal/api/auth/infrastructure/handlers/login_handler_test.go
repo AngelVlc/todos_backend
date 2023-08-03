@@ -160,7 +160,7 @@ func TestLoginHandler_Returns_An_OkResult_With_A_LoginResponse_And_Creates_The_C
 	mockedCfgSrv.On("GetRefreshTokenExpirationTime").Return(expDate).Once()
 	mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
 	ctx := newrelic.NewContext(context.Background(), nil)
-	mockedAuthRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshTokenRecord{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
+	mockedAuthRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshTokenEntity{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(fmt.Errorf("some error")).Once()
 
 	recorder := httptest.NewRecorder()
 
@@ -213,7 +213,7 @@ func TestLoginHandler_Returns_An_OkResult_With_A_LoginResponse_And_Creates_The_C
 	mockedCfgSrv.On("GetRefreshTokenExpirationTime").Return(expDate).Once()
 	mockedTokenSrv.On("GenerateRefreshToken", &foundUser, expDate).Return("theRefreshToken", nil).Once()
 	ctx := newrelic.NewContext(context.Background(), nil)
-	mockedAuthRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshTokenRecord{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
+	mockedAuthRepo.On("CreateRefreshTokenIfNotExist", ctx, &domain.RefreshTokenEntity{UserID: foundUser.ID, RefreshToken: "theRefreshToken", ExpirationDate: expDate}).Return(nil).Once()
 
 	recorder := httptest.NewRecorder()
 

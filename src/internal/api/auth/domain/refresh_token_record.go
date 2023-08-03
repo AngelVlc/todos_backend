@@ -12,3 +12,12 @@ type RefreshTokenRecord struct {
 func (RefreshTokenRecord) TableName() string {
 	return "refresh_tokens"
 }
+
+func (r *RefreshTokenRecord) ToRefreshTokenEntity() *RefreshTokenEntity {
+	return &RefreshTokenEntity{
+		ID:             r.ID,
+		UserID:         r.UserID,
+		RefreshToken:   r.RefreshToken,
+		ExpirationDate: r.ExpirationDate,
+	}
+}

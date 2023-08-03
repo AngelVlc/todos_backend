@@ -49,7 +49,8 @@ func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueO
 		ctx = newrelic.NewContext(context.Background(), txn)
 		defer txn.End()
 
-		if s.authRepo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshTokenRecord{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate}); err != nil {
+		// I use CreateRefreshTokenIfNotExist because can happer that the same user logs in twice at the same time
+		if s.authRepo.CreateRefreshTokenIfNotExist(ctx, &domain.RefreshTokenEntity{UserID: foundUser.ID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate}); err != nil {
 			log.Printf("Error saving the refresh token. Error: %v", err)
 		}
 	}(txn.NewGoroutine())

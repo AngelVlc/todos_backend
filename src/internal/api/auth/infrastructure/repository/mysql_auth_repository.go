@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"sync"
 	"time"
 
@@ -21,44 +20,44 @@ func NewMySqlAuthRepository(db *gorm.DB) *MySqlAuthRepository {
 	return &MySqlAuthRepository{db, sync.Mutex{}}
 }
 
-func (r *MySqlAuthRepository) FindRefreshTokenForUser(ctx context.Context, refreshToken string, userID int32) (*domain.RefreshTokenRecord, error) {
-	found := domain.RefreshTokenRecord{}
-	err := r.db.WithContext(ctx).Where(domain.RefreshTokenRecord{RefreshToken: refreshToken, UserID: userID}).Take(&found).Error
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return nil, nil
+func (r *MySqlAuthRepository) ExistsRefreshToken(ctx context.Context, query domain.RefreshTokenEntity) (bool, error) {
+	count := int64(0)
+	if err := r.db.WithContext(ctx).Model(&domain.RefreshTokenRecord{}).Where(query.ToRefreshTokenRecord()).Count(&count).Error; err != nil {
+		return false, err
 	}
 
-	if err != nil {
-		return nil, err
-	}
-
-	return &found, nil
+	return count > 0, nil
 }
 
-func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *domain.RefreshTokenRecord) error {
+func (r *MySqlAuthRepository) CreateRefreshTokenIfNotExist(ctx context.Context, refreshToken *domain.RefreshTokenEntity) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	return r.db.WithContext(ctx).Clauses(clause.OnConflict{
 		Columns:   []clause.Column{{Name: "id"}, {Name: "userId"}, {Name: "refreshToken"}},
 		DoNothing: true,
-	}).Create(refreshToken).Error
+	}).Create(refreshToken.ToRefreshTokenRecord()).Error
 }
 
 func (r *MySqlAuthRepository) DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error {
 	return r.db.WithContext(ctx).Delete(domain.RefreshTokenRecord{}, "expirationDate <= ?", expTime).Error
 }
 
-func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]domain.RefreshTokenRecord, error) {
-	res := []domain.RefreshTokenRecord{}
+func (r *MySqlAuthRepository) GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]*domain.RefreshTokenEntity, error) {
+	foundRts := []domain.RefreshTokenRecord{}
 	if err := r.db.WithContext(ctx).
 		Select("id,userId,expirationDate").
 		Limit(paginationInfo.Limit).Offset(paginationInfo.Offset).
 		Order(paginationInfo.Order).
-		Find(&res).
+		Find(&foundRts).
 		Error; err != nil {
 		return nil, err
+	}
+
+	res := make([]*domain.RefreshTokenEntity, len(foundRts))
+
+	for i, u := range foundRts {
+		res[i] = u.ToRefreshTokenEntity()
 	}
 
 	return res, nil
@@ -70,15 +69,4 @@ func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids [
 	}
 
 	return nil
-}
-
-func (r *MySqlAuthRepository) findUser(ctx context.Context, where domain.UserRecord) (*domain.UserRecord, error) {
-	foundUser := domain.UserRecord{}
-	err := r.db.WithContext(ctx).Where(where).Take(&foundUser).Error
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &foundUser, nil
 }

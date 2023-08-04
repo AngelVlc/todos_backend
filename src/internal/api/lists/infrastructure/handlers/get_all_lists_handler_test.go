@@ -49,9 +49,11 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	found := []domain.ListRecord{
-		{ID: 11, Name: "list1", ItemsCount: 4},
-		{ID: 12, Name: "list2", ItemsCount: 8},
+	l1vo, _ := domain.NewListNameValueObject("list1")
+	l2vo, _ := domain.NewListNameValueObject("list2")
+	found := []*domain.ListEntity{
+		{ID: 11, Name: l1vo, ItemsCount: 4},
+		{ID: 12, Name: l2vo, ItemsCount: 8},
 	}
 
 	mockedRepo.On("GetAllLists", request().Context(), int32(1)).Return(found, nil)
@@ -59,15 +61,15 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 	result := GetAllListsHandler(httptest.NewRecorder(), request(), h)
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
-	listRes, isOk := okRes.Content.([]domain.ListRecord)
-	require.Equal(t, true, isOk, "should be an array of list response")
+	listRes, isOk := okRes.Content.([]*domain.ListEntity)
+	require.Equal(t, true, isOk, "should be an array of ListEntity")
 
 	require.Equal(t, len(listRes), 2)
 	assert.Equal(t, int32(11), listRes[0].ID)
-	assert.Equal(t, "list1", listRes[0].Name)
+	assert.Equal(t, "list1", listRes[0].Name.String())
 	assert.Equal(t, int32(4), listRes[0].ItemsCount)
 	assert.Equal(t, int32(12), listRes[1].ID)
-	assert.Equal(t, "list2", listRes[1].Name)
+	assert.Equal(t, "list2", listRes[1].Name.String())
 	assert.Equal(t, int32(8), listRes[1].ItemsCount)
 
 	mockedRepo.AssertExpectations(t)

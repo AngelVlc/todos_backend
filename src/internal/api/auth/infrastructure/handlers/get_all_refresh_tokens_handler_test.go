@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
-	authRepository "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/repository"
 	sharedDomain "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
@@ -20,7 +20,7 @@ import (
 )
 
 func TestGetAllRefreshTokensHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_Fails(t *testing.T) {
-	mockedRepo := authRepository.MockedAuthRepository{}
+	mockedRepo := repository.MockedAuthRepository{}
 	h := handler.Handler{AuthRepository: &mockedRepo}
 
 	request, _ := http.NewRequest(http.MethodGet, "/", nil)
@@ -34,12 +34,12 @@ func TestGetAllRefreshTokensHandler_Returns_An_ErrorResult_With_An_UnexpectedErr
 }
 
 func TestGetAllRefreshTokensHandler_Returns_The_RefreshTokens(t *testing.T) {
-	mockedRepo := authRepository.MockedAuthRepository{}
+	mockedRepo := repository.MockedAuthRepository{}
 	h := handler.Handler{AuthRepository: &mockedRepo}
 
 	time1 := time.Now()
 	time2 := time1.Add(1 * time.Hour)
-	found := []domain.RefreshTokenRecord{
+	found := []*domain.RefreshTokenEntity{
 		{ID: 2, UserID: 1, ExpirationDate: time1},
 		{ID: 5, UserID: 3, ExpirationDate: time2},
 	}

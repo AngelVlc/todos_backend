@@ -17,8 +17,8 @@ func NewCreateUserService(usersRepo domain.UsersRepository, passGen passgen.Pass
 	return &CreateUserService{usersRepo, passGen}
 }
 
-func (s *CreateUserService) CreateUser(ctx context.Context, userName string, password string, isAdmin bool) (*domain.UserRecord, error) {
-	if existsUser, err := s.usersRepo.ExistsUser(ctx, &domain.UserRecord{Name: userName}); err != nil {
+func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.UserNameValueObject, password string, isAdmin bool) (*domain.UserEntity, error) {
+	if existsUser, err := s.usersRepo.ExistsUser(ctx, domain.UserEntity{Name: userName}); err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error checking if a user with the same name already exists", InternalError: err}
 	} else if existsUser {
 		return nil, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}
@@ -29,16 +29,16 @@ func (s *CreateUserService) CreateUser(ctx context.Context, userName string, pas
 		return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 	}
 
-	user := domain.UserRecord{
+	user := &domain.UserEntity{
 		Name:         userName,
 		PasswordHash: hasshedPass,
 		IsAdmin:      isAdmin,
 	}
 
-	err = s.usersRepo.Create(ctx, &user)
+	r, err := s.usersRepo.Create(ctx, user)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user", InternalError: err}
 	}
 
-	return &user, nil
+	return r, nil
 }

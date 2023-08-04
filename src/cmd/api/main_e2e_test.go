@@ -36,7 +36,7 @@ func TestEndtoEnd(t *testing.T) {
 	res, err := client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
-	loginRes := authInfra.LoginResponse{}
+	loginRes := authInfra.UserResponse{}
 	err = objFromRes(res.Body, &loginRes)
 	require.Nil(t, err)
 

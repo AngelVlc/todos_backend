@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
-	authRepository "github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure/repository"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/gorilla/mux"
@@ -25,10 +25,10 @@ func TestDeleteUserHandler_Returns_An_Error_If_The_Query_To_Find_The_User_Fails(
 		return request
 	}
 
-	mockedUsersRepo := authRepository.MockedUsersRepository{}
+	mockedUsersRepo := repository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
-	mockedUsersRepo.On("FindUser", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -45,11 +45,12 @@ func TestDeleteUserHandler_Returns_An_ErrorResult_With_A_BadRequestError_When_De
 		return request
 	}
 
-	mockedUsersRepo := authRepository.MockedUsersRepository{}
+	mockedUsersRepo := repository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
-	foundUser := domain.UserRecord{Name: "admin"}
-	mockedUsersRepo.On("FindUser", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(&foundUser, nil).Once()
+	nvo, _ := domain.NewUserNameValueObject("admin")
+	foundUser := domain.UserEntity{Name: nvo}
+	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -66,12 +67,13 @@ func TestDeleteUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 		return request
 	}
 
-	mockedUsersRepo := authRepository.MockedUsersRepository{}
+	mockedUsersRepo := repository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
-	foundUser := domain.UserRecord{Name: "wadus"}
-	mockedUsersRepo.On("FindUser", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(&foundUser, nil).Once()
-	mockedUsersRepo.On("Delete", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(fmt.Errorf("some error")).Once()
+	nvo, _ := domain.NewUserNameValueObject("wadus")
+	foundUser := domain.UserEntity{Name: nvo}
+	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
+	mockedUsersRepo.On("Delete", request().Context(), domain.UserEntity{ID: 1}).Return(fmt.Errorf("some error")).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -88,12 +90,13 @@ func TestDeleteUserHandler_Deletes_The_User(t *testing.T) {
 		return request
 	}
 
-	mockedUsersRepo := authRepository.MockedUsersRepository{}
+	mockedUsersRepo := repository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
-	foundUser := domain.UserRecord{Name: "wadus"}
-	mockedUsersRepo.On("FindUser", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(&foundUser, nil).Once()
-	mockedUsersRepo.On("Delete", request().Context(), &domain.UserRecord{ID: int32(1)}).Return(nil).Once()
+	nvo, _ := domain.NewUserNameValueObject("wadus")
+	foundUser := domain.UserEntity{Name: nvo}
+	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
+	mockedUsersRepo.On("Delete", request().Context(), domain.UserEntity{ID: 1}).Return(nil).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 

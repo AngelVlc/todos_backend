@@ -21,7 +21,7 @@ func GetAllUsersHandler(w http.ResponseWriter, r *http.Request, h handler.Handle
 	for i, v := range foundUsers {
 		res[i] = &infrastructure.UserResponse{
 			ID:      v.ID,
-			Name:    string(v.Name),
+			Name:    v.Name.String(),
 			IsAdmin: v.IsAdmin,
 		}
 	}

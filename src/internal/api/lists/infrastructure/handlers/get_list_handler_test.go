@@ -34,7 +34,7 @@ func TestGetListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetListHandler(httptest.NewRecorder(), request(), h)
 
@@ -56,17 +56,18 @@ func TestGetListHandler_Returns_The_List(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	foundList := domain.ListRecord{ID: 11, Name: "list1", ItemsCount: 4}
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&foundList, nil).Once()
+	nvo, _ := domain.NewListNameValueObject("list1")
+	foundList := domain.ListEntity{ID: 11, Name: nvo, ItemsCount: 4}
+	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&foundList, nil).Once()
 
 	result := GetListHandler(httptest.NewRecorder(), request(), h)
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
-	listRes, isOk := okRes.Content.(*domain.ListRecord)
-	require.Equal(t, true, isOk, "should be a list record")
+	listRes, isOk := okRes.Content.(*domain.ListEntity)
+	require.Equal(t, true, isOk, "should be a ListEntity")
 
 	assert.Equal(t, int32(11), listRes.ID)
-	assert.Equal(t, "list1", listRes.Name)
+	assert.Equal(t, "list1", listRes.Name.String())
 	assert.Equal(t, int32(4), listRes.ItemsCount)
 	mockedRepo.AssertExpectations(t)
 }

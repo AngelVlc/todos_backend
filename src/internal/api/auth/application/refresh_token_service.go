@@ -27,17 +27,14 @@ func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (stri
 
 	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
-	foundUser, err := s.usersRepo.FindUser(ctx, &domain.UserRecord{ID: rtInfo.UserID})
+	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserEntity{ID: rtInfo.UserID})
 	if err != nil {
 		return "", err
 	}
 
-	foundRefreshToken, err := s.authRepo.FindRefreshTokenForUser(ctx, rt, rtInfo.UserID)
-	if err != nil {
+	if existsRt, err := s.authRepo.ExistsRefreshToken(ctx, domain.RefreshTokenEntity{RefreshToken: rt, UserID: rtInfo.UserID}); err != nil {
 		return "", &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
-	}
-
-	if foundRefreshToken == nil {
+	} else if !existsRt {
 		return "", &appErrors.UnauthorizedError{Msg: "The refresh token is not valid"}
 	}
 

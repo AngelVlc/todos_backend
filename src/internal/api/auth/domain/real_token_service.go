@@ -16,14 +16,14 @@ func NewRealTokenService(cfgSvc sharedApp.ConfigurationService) *RealTokenServic
 	return &RealTokenService{cfgSvc}
 }
 
-func (s *RealTokenService) GenerateToken(user *UserRecord) (string, error) {
-	t := s.getNewToken(user.ID, user.Name, user.IsAdmin)
+func (s *RealTokenService) GenerateToken(user *UserEntity) (string, error) {
+	t := s.getNewToken(user.ID, user.Name.String(), user.IsAdmin)
 
 	return s.signToken(t, s.cfgSvc.GetJwtSecret())
 
 }
 
-func (s *RealTokenService) GenerateRefreshToken(user *UserRecord, expirationDate time.Time) (string, error) {
+func (s *RealTokenService) GenerateRefreshToken(user *UserEntity, expirationDate time.Time) (string, error) {
 	rt := s.getNewRefreshToken(user.ID, expirationDate)
 
 	return s.signToken(rt, s.cfgSvc.GetJwtSecret())

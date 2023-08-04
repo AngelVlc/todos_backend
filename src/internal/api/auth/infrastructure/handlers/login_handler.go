@@ -9,21 +9,25 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
+const (
+	tokenCookieName        = "token"
+	refreshTokenCookieName = "refreshToken"
+)
+
 // LoginHandler is the handler for the /auth/login endpoint
 func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	input, _ := h.RequestInput.(*infrastructure.LoginInput)
 
 	srv := application.NewLoginService(h.AuthRepository, h.UsersRepository, h.CfgSrv, h.TokenSrv)
-	res, err := srv.Login(r.Context(), input.UserName.String(), input.Password.String())
+	t, rt, u, err := srv.Login(r.Context(), input.UserName, input.Password)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	addTokenCookie(w, res.Token)
-	addRefreshTokenCookie(w, res.RefreshToken)
+	addTokenCookie(w, t)
+	addRefreshTokenCookie(w, rt)
 
-	res.Token = ""
-	res.RefreshToken = ""
+	res := infrastructure.UserResponse{ID: u.ID, Name: u.Name.String(), IsAdmin: u.IsAdmin}
 
 	return results.OkResult{Content: res, StatusCode: http.StatusOK}
 }

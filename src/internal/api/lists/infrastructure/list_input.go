@@ -7,20 +7,20 @@ type ListInput struct {
 	Items []ListItemInput            `json:"items"`
 }
 
-func (i *ListInput) ToListRecord() *domain.ListRecord {
-	r := &domain.ListRecord{
-		Name:  i.Name.String(),
-		Items: make([]*domain.ListItemRecord, len(i.Items)),
+func (i *ListInput) ToListEntity() *domain.ListEntity {
+	list := &domain.ListEntity{
+		Name:  i.Name,
+		Items: make([]*domain.ListItemEntity, len(i.Items)),
 	}
 
 	for i, v := range i.Items {
-		r.Items[i] = &domain.ListItemRecord{
+		list.Items[i] = &domain.ListItemEntity{
 			ID:          v.ID,
-			Title:       v.Title.String(),
-			Description: v.Description.String(),
+			Title:       v.Title,
+			Description: v.Description,
 			Position:    int32(i),
 		}
 	}
 
-	return r
+	return list
 }

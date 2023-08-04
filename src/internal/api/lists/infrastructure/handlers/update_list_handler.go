@@ -15,19 +15,19 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	userID := helpers.GetUserIDFromContext(r)
 	input, _ := h.RequestInput.(*infrastructure.ListInput)
 
-	listRecord := input.ToListRecord()
-	listRecord.ID = listID
-	listRecord.UserID = userID
-	for _, v := range listRecord.Items {
+	listEntity := input.ToListEntity()
+	listEntity.ID = listID
+	listEntity.UserID = userID
+	for _, v := range listEntity.Items {
 		v.ListID = listID
 		v.UserID = userID
 	}
 
 	srv := application.NewUpdateListService(h.ListsRepository, h.EventBus)
-	err := srv.UpdateList(r.Context(), listRecord)
+	updatedList, err := srv.UpdateList(r.Context(), listEntity)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{Content: listRecord, StatusCode: http.StatusOK}
+	return results.OkResult{Content: updatedList, StatusCode: http.StatusOK}
 }

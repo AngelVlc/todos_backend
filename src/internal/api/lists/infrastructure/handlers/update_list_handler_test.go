@@ -19,7 +19,6 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -41,7 +40,7 @@ func TestUpdateListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(
 		return request.WithContext(ctx)
 	}
 
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -67,9 +66,10 @@ func TestUpdateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Is
 		return request.WithContext(ctx)
 	}
 
-	list := domain.ListRecord{ID: int32(11), Name: "oldName", UserID: int32(11)}
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsList", request().Context(), &domain.ListRecord{Name: "list1", UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
+	oldListName, _ := domain.NewListNameValueObject("oldName")
+	list := domain.ListEntity{ID: int32(11), Name: oldListName, UserID: int32(11)}
+	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	mockedRepo.On("ExistsList", request().Context(), domain.ListEntity{Name: listName, UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -95,14 +95,14 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Upd
 		return request.WithContext(ctx)
 	}
 
-	list := domain.ListRecord{
+	list := domain.ListEntity{
 		ID:     int32(11),
-		Name:   "list1",
+		Name:   listName,
 		UserID: int32(1),
-		Items:  []*domain.ListItemRecord{},
+		Items:  []*domain.ListItemEntity{},
 	}
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("UpdateList", request().Context(), &list).Return(fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
+	mockedRepo.On("UpdateList", request().Context(), &list).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 
@@ -130,28 +130,25 @@ func TestUpdateListHandler_Updates_The_List_And_Sends_The_ListCreatedOrUpdated_E
 		return request.WithContext(ctx)
 	}
 
-	list := domain.ListRecord{
+	listToUpdate := domain.ListEntity{
 		ID:     int32(11),
-		Name:   "list1",
+		Name:   listName,
 		UserID: int32(1),
-		Items:  []*domain.ListItemRecord{},
+		Items:  []*domain.ListItemEntity{},
 	}
-	mockedRepo.On("FindList", request().Context(), &domain.ListRecord{ID: int32(11), UserID: int32(1)}).Return(&list, nil).Once()
-	mockedRepo.On("UpdateList", request().Context(), &list).Return(nil).Once().Run(func(args mock.Arguments) {
-		arg := args.Get(1).(*domain.ListRecord)
-		*arg = domain.ListRecord{ID: int32(1), Name: "list1"}
-	})
+	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&listToUpdate, nil).Once()
+	mockedRepo.On("UpdateList", request().Context(), &listToUpdate).Return(&listToUpdate, nil).Once()
 
-	mockedEventBus.On("Publish", "listCreatedOrUpdated", int32(1))
+	mockedEventBus.On("Publish", "listCreatedOrUpdated", int32(11))
 
 	mockedEventBus.Wg.Add(1)
 	result := UpdateListHandler(httptest.NewRecorder(), request(), h)
 	mockedEventBus.Wg.Wait()
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
-	res, isOk := okRes.Content.(*domain.ListRecord)
-	require.True(t, isOk, "should be a ListResponse")
-	assert.Equal(t, "list1", res.Name)
+	res, isOk := okRes.Content.(*domain.ListEntity)
+	require.True(t, isOk, "should be a ListEntity")
+	assert.Equal(t, "list1", res.Name.String())
 
 	mockedRepo.AssertExpectations(t)
 }

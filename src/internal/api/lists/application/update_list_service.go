@@ -17,25 +17,26 @@ func NewUpdateListService(repo domain.ListsRepository, eventBus events.EventBus)
 	return &UpdateListService{repo, eventBus}
 }
 
-func (s *UpdateListService) UpdateList(ctx context.Context, listRecordToUpdate *domain.ListRecord) error {
-	foundList, err := s.repo.FindList(ctx, &domain.ListRecord{ID: listRecordToUpdate.ID, UserID: listRecordToUpdate.UserID})
+func (s *UpdateListService) UpdateList(ctx context.Context, listToUpdate *domain.ListEntity) (*domain.ListEntity, error) {
+	foundList, err := s.repo.FindList(ctx, domain.ListEntity{ID: listToUpdate.ID, UserID: listToUpdate.UserID})
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if foundList.Name != listRecordToUpdate.Name {
-		if existsList, err := s.repo.ExistsList(ctx, &domain.ListRecord{Name: listRecordToUpdate.Name, UserID: listRecordToUpdate.UserID}); err != nil {
-			return &appErrors.UnexpectedError{Msg: "Error checking if a list with the same name already exists", InternalError: err}
+	if foundList.Name != listToUpdate.Name {
+		if existsList, err := s.repo.ExistsList(ctx, domain.ListEntity{Name: listToUpdate.Name, UserID: listToUpdate.UserID}); err != nil {
+			return nil, &appErrors.UnexpectedError{Msg: "Error checking if a list with the same name already exists", InternalError: err}
 		} else if existsList {
-			return &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
+			return nil, &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
 		}
 	}
 
-	if err := s.repo.UpdateList(ctx, listRecordToUpdate); err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}
+	updatedList, err := s.repo.UpdateList(ctx, listToUpdate)
+	if err != nil {
+		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}
 	}
 
-	go s.eventBus.Publish("listCreatedOrUpdated", listRecordToUpdate.ID)
+	go s.eventBus.Publish("listCreatedOrUpdated", listToUpdate.ID)
 
-	return nil
+	return updatedList, nil
 }

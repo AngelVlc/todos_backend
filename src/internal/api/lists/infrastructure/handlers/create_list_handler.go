@@ -14,16 +14,17 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	userID := helpers.GetUserIDFromContext(r)
 	input, _ := h.RequestInput.(*infrastructure.ListInput)
 
-	listRecord := input.ToListRecord()
-	listRecord.UserID = userID
-	for _, v := range listRecord.Items {
+	listEntity := input.ToListEntity()
+	listEntity.UserID = userID
+	for _, v := range listEntity.Items {
 		v.UserID = userID
 	}
 
 	srv := application.NewCreateListService(h.ListsRepository, h.EventBus)
-	if err := srv.CreateList(r.Context(), listRecord); err != nil {
+	createdList, err := srv.CreateList(r.Context(), listEntity)
+	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{Content: listRecord, StatusCode: http.StatusCreated}
+	return results.OkResult{Content: createdList, StatusCode: http.StatusCreated}
 }

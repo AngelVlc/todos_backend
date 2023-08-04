@@ -28,7 +28,7 @@ func TestDeleteUserHandler_Returns_An_Error_If_The_Query_To_Find_The_User_Fails(
 	mockedUsersRepo := repository.MockedUsersRepository{}
 	h := handler.Handler{UsersRepository: &mockedUsersRepo}
 
-	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -50,7 +50,7 @@ func TestDeleteUserHandler_Returns_An_ErrorResult_With_A_BadRequestError_When_De
 
 	nvo, _ := domain.NewUserNameValueObject("admin")
 	foundUser := domain.UserEntity{Name: nvo}
-	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: int32(1)}).Return(&foundUser, nil).Once()
+	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -72,8 +72,8 @@ func TestDeleteUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 
 	nvo, _ := domain.NewUserNameValueObject("wadus")
 	foundUser := domain.UserEntity{Name: nvo}
-	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: int32(1)}).Return(&foundUser, nil).Once()
-	mockedUsersRepo.On("Delete", request().Context(), domain.UserEntity{ID: int32(1)}).Return(fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
+	mockedUsersRepo.On("Delete", request().Context(), domain.UserEntity{ID: 1}).Return(fmt.Errorf("some error")).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 
@@ -95,8 +95,8 @@ func TestDeleteUserHandler_Deletes_The_User(t *testing.T) {
 
 	nvo, _ := domain.NewUserNameValueObject("wadus")
 	foundUser := domain.UserEntity{Name: nvo}
-	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: int32(1)}).Return(&foundUser, nil).Once()
-	mockedUsersRepo.On("Delete", request().Context(), domain.UserEntity{ID: int32(1)}).Return(nil).Once()
+	mockedUsersRepo.On("FindUser", request().Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
+	mockedUsersRepo.On("Delete", request().Context(), domain.UserEntity{ID: 1}).Return(nil).Once()
 
 	result := DeleteUserHandler(httptest.NewRecorder(), request(), h)
 

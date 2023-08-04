@@ -68,7 +68,7 @@ func TestRefreshTokenHandler_Returns_An_Error_If_Getting_The_User_By_Id_Fails(t 
 	mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	request.AddCookie(getRefreshTokenCookie("token"))
-	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
@@ -96,8 +96,8 @@ func TestRefreshTokenHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_C
 	mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	request.AddCookie(getRefreshTokenCookie("token"))
-	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: int32(1)}).Return(&domain.UserEntity{}, nil).Once()
-	mockedAuthRepo.On("ExistsRefreshToken", request.Context(), domain.RefreshTokenEntity{RefreshToken: "token", UserID: int32(1)}).Return(false, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: 1}).Return(&domain.UserEntity{}, nil).Once()
+	mockedAuthRepo.On("ExistsRefreshToken", request.Context(), domain.RefreshTokenEntity{RefreshToken: "token", UserID: 1}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
@@ -125,8 +125,8 @@ func TestRefreshTokenHandler_Returns_An_ErrorResult_With_An_UnauthorizedError_If
 	mockedTokenSrv.On("GetRefreshTokenInfo", &token).Return(&rtClaims).Once()
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	request.AddCookie(getRefreshTokenCookie("token"))
-	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: int32(1)}).Return(&domain.UserEntity{}, nil).Once()
-	mockedAuthRepo.On("ExistsRefreshToken", request.Context(), domain.RefreshTokenEntity{RefreshToken: "token", UserID: int32(1)}).Return(false, nil).Once()
+	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: 1}).Return(&domain.UserEntity{}, nil).Once()
+	mockedAuthRepo.On("ExistsRefreshToken", request.Context(), domain.RefreshTokenEntity{RefreshToken: "token", UserID: 1}).Return(false, nil).Once()
 
 	result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
 
@@ -155,8 +155,8 @@ func TestRefreshTokenHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_G
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	request.AddCookie(getRefreshTokenCookie("token"))
 	foundUser := domain.UserEntity{}
-	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: int32(1)}).Return(&foundUser, nil).Once()
-	mockedAuthRepo.On("ExistsRefreshToken", request.Context(), domain.RefreshTokenEntity{RefreshToken: "token", UserID: int32(1)}).Return(true, nil).Once()
+	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
+	mockedAuthRepo.On("ExistsRefreshToken", request.Context(), domain.RefreshTokenEntity{RefreshToken: "token", UserID: 1}).Return(true, nil).Once()
 	mockedTokenSrv.On("GenerateToken", &foundUser).Return("", fmt.Errorf("some error")).Once()
 
 	result := RefreshTokenHandler(httptest.NewRecorder(), request, h)
@@ -186,8 +186,8 @@ func TestRefreshTokenHandler_Returns_An_OkResult_With_The_Token_And_Creates_The_
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
 	request.AddCookie(getRefreshTokenCookie("token"))
 	foundUser := domain.UserEntity{}
-	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: int32(1)}).Return(&foundUser, nil).Once()
-	mockedAuthRepo.On("ExistsRefreshToken", request.Context(), domain.RefreshTokenEntity{RefreshToken: "token", UserID: int32(1)}).Return(true, nil).Once()
+	mockedUsersRepo.On("FindUser", request.Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
+	mockedAuthRepo.On("ExistsRefreshToken", request.Context(), domain.RefreshTokenEntity{RefreshToken: "token", UserID: 1}).Return(true, nil).Once()
 	mockedTokenSrv.On("GenerateToken", &foundUser).Return("theToken", nil).Once()
 
 	recorder := httptest.NewRecorder()

@@ -180,11 +180,11 @@ func TestMySqlAuthRepository_DeleteRefreshTokensByID_Returns_An_Error_If_The_Del
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
-	ids := []int32{int32(1), int32(2), int32(3)}
+	ids := []int32{1, 2, 3}
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE `refresh_tokens`.`id` IN (?,?,?)")).
-		WithArgs(int32(1), int32(2), int32(3)).
+		WithArgs(1, 2, 3).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
@@ -198,11 +198,11 @@ func TestMySqlAuthRepository_DeleteRefreshTokensByID_Deletes_The_RefreshTokens(t
 	mock, db := helpers.GetMockedDb(t)
 	repo := NewMySqlAuthRepository(db)
 
-	ids := []int32{int32(1), int32(2), int32(3)}
+	ids := []int32{1, 2, 3}
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE `refresh_tokens`.`id` IN (?,?,?)")).
-		WithArgs(int32(1), int32(2), int32(3)).
+		WithArgs(1, 2, 3).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 

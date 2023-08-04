@@ -50,12 +50,12 @@ func TestMySqlListsRepository_FindList_WhenTheQueryDoesNotFail(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")).
 		WithArgs(listID, userID).
 		WillReturnRows(sqlmock.NewRows(listColumns).
-			AddRow(listID, "list1", userID, int32(3)))
+			AddRow(listID, "list1", userID, 3))
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`listId` = ? ORDER BY position ASC")).
 		WithArgs(listID).
 		WillReturnRows(sqlmock.NewRows(listItemsColumns).
-			AddRow(int32(21), listID, userID, "item1_title", "item1_desc", 0).
-			AddRow(int32(31), listID, userID, "item2_title", "item2_desc", 1))
+			AddRow(21, listID, userID, "item1_title", "item1_desc", 0).
+			AddRow(31, listID, userID, "item2_title", "item2_desc", 1))
 
 	res, err := repo.FindList(context.Background(), domain.ListEntity{ID: listID, UserID: userID})
 
@@ -148,8 +148,8 @@ func TestMySqlListsRepository_GetAllLists_WhenItDoesNotFail(t *testing.T) {
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`userId` = ?")).
 		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows(listColumns).
-			AddRow(int32(11), "list1", userID, int32(3)).
-			AddRow(int32(12), "list2", userID, int32(4)))
+			AddRow(11, "list1", userID, 3).
+			AddRow(12, "list2", userID, 4))
 
 	res, err := repo.GetAllLists(context.Background(), userID)
 
@@ -290,7 +290,7 @@ func TestMySqlListsRepository_UpdateList_When_The_Update_Fails(t *testing.T) {
 	repo := NewMySqlListsRepository(db)
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=?,`userId`=? WHERE `id` = ?")).
-		WithArgs("list1", int32(1), int32(11)).
+		WithArgs("list1", 1, 11).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
@@ -308,10 +308,10 @@ func TestMySqlListsRepository_UpdateList_When_The_Update_Does_Not_Fail(t *testin
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=?,`userId`=? WHERE `id` = ?")).
-		WithArgs("list1", int32(1), int32(11)).
+		WithArgs("list1", 1, 11).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE listId = ?")).
-		WithArgs(int32(11)).
+		WithArgs(11).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
@@ -334,11 +334,11 @@ func TestMySqlListsRepository_IncrementListCounter_When_It_Fails(t *testing.T) {
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `itemsCount`=(SELECT COUNT(id) FROM `listItems` WHERE `listItems`.`listId` = ?) WHERE `lists`.`id` = ?")).
-		WithArgs(int32(11), int32(11)).
+		WithArgs(11, 11).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.UpdateListItemsCounter(context.Background(), int32(11))
+	err := repo.UpdateListItemsCounter(context.Background(), 11)
 
 	assert.EqualError(t, err, "some error")
 
@@ -351,11 +351,11 @@ func TestMySqlListsRepository_UpdateListItemsCounter_When_The_Update_Does_Not_Fa
 
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `itemsCount`=(SELECT COUNT(id) FROM `listItems` WHERE `listItems`.`listId` = ?) WHERE `lists`.`id` = ?")).
-		WithArgs(int32(11), int32(11)).
+		WithArgs(11, 11).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
-	err := repo.UpdateListItemsCounter(context.Background(), int32(11))
+	err := repo.UpdateListItemsCounter(context.Background(), 11)
 
 	assert.Nil(t, err)
 

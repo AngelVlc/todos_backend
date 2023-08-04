@@ -42,7 +42,7 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `users` WHERE `users`.`name` = ? LIMIT 1")).
 		WithArgs("userName").
-		WillReturnRows(sqlmock.NewRows(userColumns).AddRow(int32(1), "userName", "hash", true))
+		WillReturnRows(sqlmock.NewRows(userColumns).AddRow(1, "userName", "hash", true))
 
 	repo := NewMySqlUsersRepository(db)
 	nvo, _ := domain.NewUserNameValueObject("userName")
@@ -220,7 +220,7 @@ func TestMySqlUsersRepository_Update_WhenItFails(t *testing.T) {
 
 	repo := NewMySqlUsersRepository(db)
 	nvo, _ := domain.NewUserNameValueObject("userName")
-	user := domain.UserEntity{ID: int32(11), Name: nvo, PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserEntity{ID: 11, Name: nvo, PasswordHash: "hash", IsAdmin: false}
 
 	_, err := repo.Update(context.Background(), &user)
 
@@ -243,7 +243,7 @@ func TestMySqlUsersRepository_Update_WhenItDoesNotFail(t *testing.T) {
 
 	repo := NewMySqlUsersRepository(db)
 	nvo, _ := domain.NewUserNameValueObject("userName")
-	user := domain.UserEntity{ID: int32(11), Name: nvo, PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserEntity{ID: 11, Name: nvo, PasswordHash: "hash", IsAdmin: false}
 
 	res, err := repo.Update(context.Background(), &user)
 

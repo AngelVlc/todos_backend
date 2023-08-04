@@ -13,7 +13,7 @@ import (
 
 func TestDeleteRefreshTokensHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_To_Find_The_User_Fails(t *testing.T) {
 	mockedRepo := repository.MockedAuthRepository{}
-	ids := []int32{int32(1), int32(2)}
+	ids := []int32{1, 2}
 	h := handler.Handler{
 		AuthRepository: &mockedRepo,
 		RequestInput:   &ids,
@@ -30,7 +30,7 @@ func TestDeleteRefreshTokensHandler_Returns_An_ErrorResult_With_An_UnexpectedErr
 
 func TestDeleteRefreshTokensHandler_Returns_An_Ok_Result_If_The_RefreshTokens_Are_Deleted(t *testing.T) {
 	mockedRepo := repository.MockedAuthRepository{}
-	ids := []int32{int32(1), int32(2)}
+	ids := []int32{1, 2}
 	h := handler.Handler{
 		AuthRepository: &mockedRepo,
 		RequestInput:   &ids,

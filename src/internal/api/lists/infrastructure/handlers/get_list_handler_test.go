@@ -34,7 +34,7 @@ func TestGetListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetListHandler(httptest.NewRecorder(), request(), h)
 
@@ -58,7 +58,7 @@ func TestGetListHandler_Returns_The_List(t *testing.T) {
 
 	nvo, _ := domain.NewListNameValueObject("list1")
 	foundList := domain.ListEntity{ID: 11, Name: nvo, ItemsCount: 4}
-	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: int32(11), UserID: int32(1)}).Return(&foundList, nil).Once()
+	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&foundList, nil).Once()
 
 	result := GetListHandler(httptest.NewRecorder(), request(), h)
 

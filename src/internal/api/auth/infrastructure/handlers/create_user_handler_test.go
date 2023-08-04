@@ -136,7 +136,7 @@ func TestCreateUserHandler_Creates_The_User(t *testing.T) {
 	hassedPass := "hassed"
 	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 	user := domain.UserEntity{Name: userName, PasswordHash: hassedPass, IsAdmin: true}
-	createdUser := domain.UserEntity{ID: int32(1), Name: userName, PasswordHash: hassedPass, IsAdmin: true}
+	createdUser := domain.UserEntity{ID: 1, Name: userName, PasswordHash: hassedPass, IsAdmin: true}
 	mockedUsersRepo.On("Create", request.Context(), &user).Return(&createdUser, nil).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)

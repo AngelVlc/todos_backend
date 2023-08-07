@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	"gorm.io/gorm"
@@ -67,11 +66,6 @@ func (r *MySqlListsRepository) DeleteList(ctx context.Context, query domain.List
 
 func (r *MySqlListsRepository) UpdateList(ctx context.Context, list *domain.ListEntity) (*domain.ListEntity, error) {
 	record := list.ToListRecord()
-
-	fmt.Println(*record)
-	for _, v := range record.Items {
-		fmt.Println(*v)
-	}
 
 	error := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(record).Error; err != nil {

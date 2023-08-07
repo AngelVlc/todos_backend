@@ -112,6 +112,7 @@ func TestServerPrivateRoutes(t *testing.T) {
 		{"/lists/12", http.MethodPatch},
 		{"/lists/12", http.MethodGet},
 		{"/lists/12", http.MethodDelete},
+		{"/lists/12/move-item", http.MethodPost},
 	}
 
 	for _, r := range privateRoutes {

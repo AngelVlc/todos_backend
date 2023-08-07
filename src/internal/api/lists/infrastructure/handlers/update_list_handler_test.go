@@ -151,4 +151,5 @@ func TestUpdateListHandler_Updates_The_List_And_Sends_The_ListCreatedOrUpdated_E
 	assert.Equal(t, "list1", res.Name.String())
 
 	mockedRepo.AssertExpectations(t)
+	mockedEventBus.AssertExpectations(t)
 }

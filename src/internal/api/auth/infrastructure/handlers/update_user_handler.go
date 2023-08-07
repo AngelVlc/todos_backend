@@ -7,12 +7,11 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/infrastructure"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
 func UpdateUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	userID := helpers.ParseInt32UrlVar(r, "id")
+	userID := h.ParseInt32UrlVar(r, "id")
 
 	input, _ := h.RequestInput.(*infrastructure.UpdateUserInput)
 

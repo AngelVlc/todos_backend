@@ -18,73 +18,60 @@ import (
 	"github.com/gorilla/mux"
 )
 
+func deleteRequest() *http.Request {
+	request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+	request = mux.SetURLVars(request, map[string]string{
+		"id": "11",
+	})
+	ctx := request.Context()
+	ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
+
+	return request.WithContext(ctx)
+}
+
 func TestDeletesListHandler_Returns_An_Error_If_The_Query_To_Find_The_Existing_List_Fails(t *testing.T) {
-	request := func() *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "11",
-		})
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
+	request := deleteRequest()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
-	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
+	result := DeleteListHandler(httptest.NewRecorder(), request, h)
 
 	results.CheckError(t, result, "some error")
 	mockedRepo.AssertExpectations(t)
 }
 
 func TestDeletesListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Delete_Fails(t *testing.T) {
-	request := func() *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "11",
-		})
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
+	request := deleteRequest()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	nvo, _ := domain.NewListNameValueObject("list1")
 	existingList := domain.ListEntity{ID: 11, Name: nvo}
-	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&existingList, nil).Once()
-	mockedRepo.On("DeleteList", request().Context(), existingList).Return(fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&existingList, nil).Once()
+	mockedRepo.On("DeleteList", request.Context(), existingList).Return(fmt.Errorf("some error")).Once()
 
-	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
+	result := DeleteListHandler(httptest.NewRecorder(), request, h)
 
 	results.CheckUnexpectedErrorResult(t, result, "Error deleting the user list")
 	mockedRepo.AssertExpectations(t)
 }
 
 func TestDeletesListHandler_Deletes_The_List(t *testing.T) {
-	request := func() *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "11",
-		})
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
+	request := deleteRequest()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	nvo, _ := domain.NewListNameValueObject("list1")
 	existingList := domain.ListEntity{ID: 11, Name: nvo}
-	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&existingList, nil).Once()
-	mockedRepo.On("DeleteList", request().Context(), existingList).Return(nil).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&existingList, nil).Once()
+	mockedRepo.On("DeleteList", request.Context(), existingList).Return(nil).Once()
 
-	result := DeleteListHandler(httptest.NewRecorder(), request(), h)
+	result := DeleteListHandler(httptest.NewRecorder(), request, h)
 
 	results.CheckOkResult(t, result, http.StatusNoContent)
 	mockedRepo.AssertExpectations(t)

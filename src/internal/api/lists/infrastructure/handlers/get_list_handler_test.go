@@ -20,47 +20,42 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func getRequest() *http.Request {
+	request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
+	request = mux.SetURLVars(request, map[string]string{
+		"id": "11",
+	})
+	ctx := request.Context()
+	ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
+
+	return request.WithContext(ctx)
+}
+
 func TestGetListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *testing.T) {
-	request := func() *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "11",
-		})
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
+	request := getRequest()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
-	result := GetListHandler(httptest.NewRecorder(), request(), h)
+	result := GetListHandler(httptest.NewRecorder(), request, h)
 
 	results.CheckError(t, result, "some error")
 	mockedRepo.AssertExpectations(t)
 }
 
 func TestGetListHandler_Returns_The_List(t *testing.T) {
-	request := func() *http.Request {
-		request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
-		request = mux.SetURLVars(request, map[string]string{
-			"id": "11",
-		})
-		ctx := request.Context()
-		ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
-		return request.WithContext(ctx)
-	}
+	request := getRequest()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	nvo, _ := domain.NewListNameValueObject("list1")
 	foundList := domain.ListEntity{ID: 11, Name: nvo, ItemsCount: 4}
-	mockedRepo.On("FindList", request().Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&foundList, nil).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&foundList, nil).Once()
 
-	result := GetListHandler(httptest.NewRecorder(), request(), h)
+	result := GetListHandler(httptest.NewRecorder(), request, h)
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
 	listRes, isOk := okRes.Content.(*domain.ListEntity)

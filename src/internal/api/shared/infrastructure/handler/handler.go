@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
 
 	authDomain "github.com/AngelVlc/todos_backend/src/internal/api/auth/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/auth/domain/passgen"
@@ -11,8 +12,10 @@ import (
 	sharedApp "github.com/AngelVlc/todos_backend/src/internal/api/shared/application"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
+	"github.com/gorilla/mux"
 	"github.com/honeybadger-io/honeybadger-go"
 	"gorm.io/gorm"
 )
@@ -112,4 +115,20 @@ func (h Handler) parseBody(r *http.Request, result interface{}) error {
 	}
 
 	return nil
+}
+
+func (h Handler) ParseInt32UrlVar(r *http.Request, varName string) int32 {
+	vars := mux.Vars(r)
+	value := vars[varName]
+	res, _ := strconv.ParseInt(value, 10, 32)
+
+	return int32(res)
+}
+
+func (h Handler) GetUserIDFromContext(r *http.Request) int32 {
+	userIDRaw := r.Context().Value(consts.ReqContextUserIDKey)
+
+	userID, _ := userIDRaw.(int32)
+
+	return userID
 }

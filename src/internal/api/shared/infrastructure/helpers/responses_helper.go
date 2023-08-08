@@ -5,11 +5,13 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 )
 
 // WriteOkResponse is used when and endpoind does not respond with an error
 func WriteOkResponse(r *http.Request, w http.ResponseWriter, statusCode int, content interface{}) {
-	log.Printf("[%v] %v %v", GetRequestIDFromContext(r), statusCode, time.Since(GetRequestStartTimeFromContext(r)))
+	log.Printf("[%v] %v %v", GetRequestIDFromContext(r), statusCode, time.Since(getRequestStartTimeFromContext(r)))
 
 	if content == nil {
 		w.WriteHeader(statusCode)
@@ -24,12 +26,21 @@ func WriteOkResponse(r *http.Request, w http.ResponseWriter, statusCode int, con
 // WriteErrorResponse is used when and endpoind responds with an error
 func WriteErrorResponse(r *http.Request, w http.ResponseWriter, statusCode int, msg string, internalError error) {
 	requestID := GetRequestIDFromContext(r)
+	timeSinceReqStart := time.Since(getRequestStartTimeFromContext(r))
 
 	if internalError != nil {
-		log.Printf("[%v] %v %v %v (%v)", requestID, statusCode, time.Since(GetRequestStartTimeFromContext(r)), msg, internalError)
+		log.Printf("[%v] %v %v %v (%v)", requestID, statusCode, timeSinceReqStart, msg, internalError)
 	} else {
-		log.Printf("[%v] %v %v %v", requestID, statusCode, time.Since(GetRequestStartTimeFromContext(r)), msg)
+		log.Printf("[%v] %v %v %v", requestID, statusCode, timeSinceReqStart, msg)
 	}
 
 	http.Error(w, msg, statusCode)
+}
+
+func getRequestStartTimeFromContext(r *http.Request) time.Time {
+	requestIDRaw := r.Context().Value(consts.ReqContextStartTime)
+
+	startTime, _ := requestIDRaw.(time.Time)
+
+	return startTime
 }

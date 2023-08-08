@@ -6,12 +6,11 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/application"
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
-	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 )
 
 func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
-	userID := helpers.GetUserIDFromContext(r)
+	userID := h.GetUserIDFromContext(r)
 	input, _ := h.RequestInput.(*infrastructure.ListInput)
 
 	listEntity := input.ToListEntity()

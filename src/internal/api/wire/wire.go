@@ -19,6 +19,7 @@ import (
 	logMdw "github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/middlewares/log"
 	reqadminmdw "github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/middlewares/reqadmin"
 	reqid "github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/middlewares/reqid"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/search"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 )
@@ -190,6 +191,24 @@ func initRealEventBus(subscribers map[string]events.DataChannelSlice) events.Eve
 	return nil
 }
 
+func InitSearchIndexClient(indexName string) search.SearchIndexClient {
+	if inTestingMode() {
+		return initMockedSearchIndexClient()
+	} else {
+		return initAlgoliaIndexClient(indexName)
+	}
+}
+
+func initMockedSearchIndexClient() search.SearchIndexClient {
+	wire.Build(MockedSearchIndexClientSet)
+	return nil
+}
+
+func initAlgoliaIndexClient(indexName string) search.SearchIndexClient {
+	wire.Build(AlgoliaIndexClientSet)
+	return nil
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -275,3 +294,14 @@ var RealEventBusSet = wire.NewSet(
 var MockedEventBusSet = wire.NewSet(
 	events.NewMockedEventBus,
 	wire.Bind(new(events.EventBus), new(*events.MockedEventBus)))
+
+var AlgoliaIndexClientSet = wire.NewSet(
+	RealConfigurationServiceSet,
+	search.NewAlgoliaIndexClient,
+	wire.Bind(new(search.SearchIndexClient), new(*search.AlgoliaIndexClient)),
+)
+
+var MockedSearchIndexClientSet = wire.NewSet(
+	search.NewMockedSearchIndexClient,
+	wire.Bind(new(search.SearchIndexClient), new(*search.MockedSearchIndexClient)),
+)

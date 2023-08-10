@@ -15,6 +15,7 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/helpers"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/search"
 	"github.com/gorilla/mux"
 	"github.com/honeybadger-io/honeybadger-go"
 	"gorm.io/gorm"
@@ -31,6 +32,7 @@ type Handler struct {
 	PassGen         passgen.PasswordGenerator
 	EventBus        events.EventBus
 	RequestInput    interface{}
+	SearchClient    search.SearchIndexClient
 }
 
 type HandlerResult interface {

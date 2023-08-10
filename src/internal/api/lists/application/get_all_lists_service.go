@@ -16,7 +16,7 @@ func NewGetAllListsService(repo domain.ListsRepository) *GetAllListsService {
 }
 
 func (s *GetAllListsService) GetAllLists(ctx context.Context, userID int32) ([]*domain.ListEntity, error) {
-	foundLists, err := s.repo.GetAllLists(ctx, userID)
+	foundLists, err := s.repo.GetAllListsForUser(ctx, userID)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting all user lists", InternalError: err}
 	}

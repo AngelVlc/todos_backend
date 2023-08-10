@@ -1,7 +1,7 @@
 //go:build !e2e
 // +build !e2e
 
-package infrastructure
+package subscribers
 
 import (
 	"context"
@@ -12,18 +12,18 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
-func TestListCreatedOrUpdatedEventSubscriber(t *testing.T) {
+func TestListItemsCountProcessor(t *testing.T) {
 	ch := make(chan events.DataEvent)
 	mockedRepo := listsRepository.MockedListsRepository{}
 	ctx := newrelic.NewContext(context.Background(), nil)
-	mockedRepo.On("UpdateListItemsCounter", ctx, int32(11)).Return(nil).Once()
+	mockedRepo.On("UpdateListItemsCount", ctx, int32(11)).Return(nil).Once()
 
 	doneChan := make(chan bool)
-	f := func(listID int32) {
+	f := func(listID int32, err error) {
 		doneChan <- true
 	}
 
-	subscriber := &ListCreatedOrUpdatedEventSubscriber{
+	subscriber := &ListItemsCountProcessor{
 		channel:   ch,
 		listsRepo: &mockedRepo,
 		doneFunc:  f,

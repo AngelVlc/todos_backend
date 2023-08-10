@@ -39,3 +39,6 @@ variable "mysql_port" {
   default = "3306"
 }
 variable "mysql_database" {}
+
+variable "algolia_app_id" {}
+variable "algolia_api_key" {}

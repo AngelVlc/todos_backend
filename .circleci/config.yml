@@ -7,9 +7,11 @@ workflows:
         - test:
             context:
               - GCLOUD_TODOS
+              - ALGOLIA
         - deploy:
             context:
               - GCLOUD_TODOS
+              - ALGOLIA
             requires:
               - test
             filters:
@@ -45,7 +47,22 @@ commands:
         description: the terraform command to execute
         type: string
     steps:
-    - run: cd terraformGc && terraform <<parameters.command>> -var jwt_secret=$JWT_SECRET -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS -var new_relic_license_key=$NEW_RELIC_LICENSE_KEY -var honeybadger_api_key=$HONEYBADGER_API_KEY -var app_name=$APP_NAME -var gc_project_id=$GCLOUD_PROJECT_ID -var mysql_tls=$MYSQL_TLS -var mysql_host=$MYSQL_HOST -var mysql_database=$MYSQL_DATABASE -var mysql_user=$MYSQL_USER -var mysql_password=$MYSQL_PASSWORD -var delete_expired_refresh_token_interval=$DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL
+    - run: >
+        cd terraformGc && terraform <<parameters.command>>
+        -var jwt_secret=$JWT_SECRET
+        -var cors_allowed_origins=$CORS_ALLOWED_ORIGINS
+        -var new_relic_license_key=$NEW_RELIC_LICENSE_KEY
+        -var honeybadger_api_key=$HONEYBADGER_API_KEY
+        -var app_name=$APP_NAME
+        -var gc_project_id=$GCLOUD_PROJECT_ID
+        -var mysql_tls=$MYSQL_TLS
+        -var mysql_host=$MYSQL_HOST
+        -var mysql_database=$MYSQL_DATABASE
+        -var mysql_user=$MYSQL_USER
+        -var mysql_password=$MYSQL_PASSWORD
+        -var delete_expired_refresh_token_interval=$DELETE_EXPIRED_REFRESH_TOKEN_INTERVA
+        -var algolia_app_id=$ALGOLIA_APP_ID
+        -var algolia_api_key=$ALGOLIA_API_KEY
   push_image_to_gcr:
     steps:
       - run: docker build --target release -t eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest -f src/Dockerfile src/

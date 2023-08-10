@@ -123,6 +123,58 @@ func TestMySqlListsRepository_ExistsList_WhenItDoesNotFail(t *testing.T) {
 
 func TestMySqlListsRepository_GetAllLists_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
+
+	repo := NewMySqlListsRepository(db)
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists`")).
+		WillReturnError(fmt.Errorf("some error"))
+
+	res, err := repo.GetAllLists(context.Background())
+
+	assert.Nil(t, res)
+	assert.EqualError(t, err, "some error")
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlListsRepository_GetAllLists_When_It_Does_Not_Fail_Including_Items(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+
+	repo := NewMySqlListsRepository(db)
+
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists`")).
+		WillReturnRows(sqlmock.NewRows(listColumns).
+			AddRow(11, "list1", 1, 3).
+			AddRow(12, "list2", 2, 4))
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`listId` IN (?,?) ORDER BY position ASC")).
+		WithArgs(11, 12).
+		WillReturnRows(sqlmock.NewRows(listItemsColumns).
+			AddRow(21, 11, 1, "list1_item1_title", "list1_item1_desc", 0).
+			AddRow(31, 11, 1, "list1_item2_title", "list1_item2_desc", 1).
+			AddRow(41, 12, 2, "list2_item1_title", "list2_item1_desc", 0).
+			AddRow(51, 12, 2, "list2_item2_title", "list2_item2_desc", 1))
+
+	res, err := repo.GetAllLists(context.Background())
+
+	assert.Nil(t, err)
+	require.NotNil(t, res)
+	require.Equal(t, 2, len(res))
+	assert.Equal(t, int32(11), res[0].ID)
+	assert.Equal(t, "list1", res[0].Name.String())
+	assert.Equal(t, int32(1), res[0].UserID)
+	assert.Equal(t, int32(3), res[0].ItemsCount)
+	assert.Equal(t, int32(12), res[1].ID)
+	assert.Equal(t, "list1_item1_title", res[0].Items[0].Title.String())
+	assert.Equal(t, "list1_item1_desc", res[0].Items[0].Description.String())
+	assert.Equal(t, "list2", res[1].Name.String())
+	assert.Equal(t, int32(2), res[1].UserID)
+	assert.Equal(t, int32(4), res[1].ItemsCount)
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlListsRepository_GetAllListsForUser_WhenItFails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
 	userID := int32(1)
 
 	repo := NewMySqlListsRepository(db)
@@ -131,7 +183,7 @@ func TestMySqlListsRepository_GetAllLists_WhenItFails(t *testing.T) {
 		WithArgs(userID).
 		WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.GetAllLists(context.Background(), userID)
+	res, err := repo.GetAllListsForUser(context.Background(), userID)
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -139,7 +191,7 @@ func TestMySqlListsRepository_GetAllLists_WhenItFails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlListsRepository_GetAllLists_WhenItDoesNotFail(t *testing.T) {
+func TestMySqlListsRepository_GetAllListsForUser_When_It_Does_Not_Fail_Without_Including_Items(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	userID := int32(1)
 
@@ -151,7 +203,7 @@ func TestMySqlListsRepository_GetAllLists_WhenItDoesNotFail(t *testing.T) {
 			AddRow(11, "list1", userID, 3).
 			AddRow(12, "list2", userID, 4))
 
-	res, err := repo.GetAllLists(context.Background(), userID)
+	res, err := repo.GetAllListsForUser(context.Background(), userID)
 
 	assert.Nil(t, err)
 	require.NotNil(t, res)
@@ -338,7 +390,7 @@ func TestMySqlListsRepository_IncrementListCounter_When_It_Fails(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.UpdateListItemsCounter(context.Background(), 11)
+	err := repo.UpdateListItemsCount(context.Background(), 11)
 
 	assert.EqualError(t, err, "some error")
 
@@ -355,7 +407,7 @@ func TestMySqlListsRepository_UpdateListItemsCounter_When_The_Update_Does_Not_Fa
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
-	err := repo.UpdateListItemsCounter(context.Background(), 11)
+	err := repo.UpdateListItemsCount(context.Background(), 11)
 
 	assert.Nil(t, err)
 

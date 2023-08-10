@@ -160,8 +160,8 @@ func TestMoveListItemHandler_Updates_The_Lists_An_And_Sends_Two_ListCreatedOrUpd
 	mockedRepo.On("UpdateList", request.Context(), originList).Return(originList, nil).Once()
 	mockedRepo.On("UpdateList", request.Context(), destinationList).Return(destinationList, nil).Once()
 
-	mockedEventBus.On("Publish", "listCreatedOrUpdated", int32(11))
-	mockedEventBus.On("Publish", "listCreatedOrUpdated", int32(20))
+	mockedEventBus.On("Publish", events.ListUpdated, int32(11))
+	mockedEventBus.On("Publish", events.ListUpdated, int32(20))
 
 	mockedEventBus.Wg.Add(2)
 	result := MoveListItemHandler(httptest.NewRecorder(), request, h)

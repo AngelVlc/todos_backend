@@ -56,8 +56,8 @@ func (s *MoveListItemService) MoveListItem(ctx context.Context, originListID int
 		return &appErrors.UnexpectedError{Msg: "Error updating the destination list", InternalError: err}
 	}
 
-	go s.eventBus.Publish("listCreatedOrUpdated", foundOriginList.ID)
-	go s.eventBus.Publish("listCreatedOrUpdated", foundDestinationList.ID)
+	go s.eventBus.Publish(events.ListUpdated, foundOriginList.ID)
+	go s.eventBus.Publish(events.ListUpdated, foundDestinationList.ID)
 
 	return nil
 }

@@ -73,6 +73,14 @@ func (c *RealConfigurationService) InProduction() bool {
 	return c.GetEnvironment() == "production"
 }
 
+func (c *RealConfigurationService) GetAlgoliaAppId() string {
+	return c.getEnvOrFallback("ALGOLIA_APP_ID", "algolia-app-id")
+}
+
+func (c *RealConfigurationService) GetAlgoliaApiKey() string {
+	return c.getEnvOrFallback("ALGOLIA_API_KEY", "algolia-api-key")
+}
+
 func (c *RealConfigurationService) getDurationEnvVar(key string, fallback string) time.Duration {
 	d, _ := time.ParseDuration(c.getEnvOrFallback(key, fallback))
 

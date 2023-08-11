@@ -118,7 +118,7 @@ func TestUpdateListHandler_Updates_The_List_And_Sends_The_ListCreatedOrUpdated_E
 	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&listToUpdate, nil).Once()
 	mockedRepo.On("UpdateList", request.Context(), &listToUpdate).Return(&listToUpdate, nil).Once()
 
-	mockedEventBus.On("Publish", "listCreatedOrUpdated", int32(11))
+	mockedEventBus.On("Publish", events.ListUpdated, int32(11))
 
 	mockedEventBus.Wg.Add(1)
 	result := UpdateListHandler(httptest.NewRecorder(), request, h)

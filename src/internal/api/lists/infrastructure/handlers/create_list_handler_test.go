@@ -115,7 +115,7 @@ func TestCreateListHandler_Creates_A_New_List_And_Sends_The_ListCreatedOrUpdated
 	}
 	mockedRepo.On("CreateList", request.Context(), &listToCreate).Return(&createdList, nil).Once()
 
-	mockedEventBus.On("Publish", "listCreatedOrUpdated", int32(1))
+	mockedEventBus.On("Publish", events.ListCreated, int32(1))
 
 	mockedEventBus.Wg.Add(1)
 	result := CreateListHandler(httptest.NewRecorder(), request, h)

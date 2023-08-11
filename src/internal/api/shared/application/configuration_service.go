@@ -16,4 +16,6 @@ type ConfigurationService interface {
 	GetDomain() string
 	GetBucketName() string
 	InProduction() bool
+	GetAlgoliaAppId() string
+	GetAlgoliaApiKey() string
 }

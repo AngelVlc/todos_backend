@@ -29,7 +29,7 @@ func (s *CreateListService) CreateList(ctx context.Context, listToCreate *domain
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user list", InternalError: err}
 	}
 
-	go s.eventBus.Publish("listCreatedOrUpdated", createdList.ID)
+	go s.eventBus.Publish(events.ListCreated, createdList.ID)
 
 	return createdList, nil
 }

@@ -24,8 +24,13 @@ func TestMain(m *testing.M) {
 
 func initServer(t *testing.T) *server {
 	mockedEventBus := events.MockedEventBus{}
-	mockedEventBus.On("Subscribe", "listCreatedOrUpdated", mock.AnythingOfType("events.DataChannel")).Once()
-	mockedEventBus.Wg.Add(1)
+	mockedEventBus.On("Subscribe", events.ListCreated, mock.AnythingOfType("events.DataChannel")).Once()
+	mockedEventBus.On("Subscribe", events.ListUpdated, mock.AnythingOfType("events.DataChannel")).Once()
+	mockedEventBus.On("Subscribe", events.ListCreated, mock.AnythingOfType("events.DataChannel")).Once()
+	mockedEventBus.On("Subscribe", events.ListUpdated, mock.AnythingOfType("events.DataChannel")).Once()
+	mockedEventBus.On("Subscribe", events.ListDeleted, mock.AnythingOfType("events.DataChannel")).Once()
+	mockedEventBus.On("Subscribe", events.IndexAllListsRequested, mock.AnythingOfType("events.DataChannel")).Once()
+	mockedEventBus.Wg.Add(6)
 	s := NewServer(nil, &mockedEventBus, nil)
 	mockedEventBus.Wg.Wait()
 	mockedEventBus.AssertExpectations(t)
@@ -43,7 +48,7 @@ func TestServerPublicRoutes(t *testing.T) {
 	}{
 		{"/auth/login", http.MethodPost, http.StatusBadRequest},
 		{"/auth/refreshtoken", http.MethodPost, http.StatusBadRequest},
-		{"/auth/createadmin", http.MethodPost, http.StatusBadRequest},
+		{"/auth/create_admin", http.MethodPost, http.StatusBadRequest},
 	}
 
 	for _, r := range publicRoutes {
@@ -72,6 +77,7 @@ func TestServerAdminRoutes(t *testing.T) {
 		{"/users/12", http.MethodGet},
 		{"/refreshtokens", http.MethodGet},
 		{"/refreshtokens", http.MethodDelete},
+		{"/tools/index-lists", http.MethodPost},
 	}
 
 	for _, r := range adminRoutes {
@@ -112,7 +118,7 @@ func TestServerPrivateRoutes(t *testing.T) {
 		{"/lists/12", http.MethodPatch},
 		{"/lists/12", http.MethodGet},
 		{"/lists/12", http.MethodDelete},
-		{"/lists/12/move-item", http.MethodPost},
+		{"/lists/12/move_item", http.MethodPost},
 	}
 
 	for _, r := range privateRoutes {

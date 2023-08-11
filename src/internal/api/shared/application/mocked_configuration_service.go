@@ -90,3 +90,15 @@ func (m *MockedConfigurationService) InProduction() bool {
 
 	return args.Bool(0)
 }
+
+func (m *MockedConfigurationService) GetAlgoliaAppId() string {
+	args := m.Called()
+
+	return args.String(0)
+}
+
+func (m *MockedConfigurationService) GetAlgoliaApiKey() string {
+	args := m.Called()
+
+	return args.String(0)
+}

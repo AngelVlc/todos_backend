@@ -21,7 +21,8 @@ require (
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/davecgh/go-spew v1.1.0 // indirect
+	github.com/algolia/algoliasearch-client-go/v3 v3.30.1 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect
 	github.com/golang/protobuf v1.3.3 // indirect

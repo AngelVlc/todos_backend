@@ -12,6 +12,7 @@ import (
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
@@ -64,15 +65,24 @@ func TestDeletesListHandler_Deletes_The_List(t *testing.T) {
 	request := deleteRequest()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
-	h := handler.Handler{ListsRepository: &mockedRepo}
+	mockedEventBus := events.MockedEventBus{}
+	h := handler.Handler{
+		ListsRepository: &mockedRepo,
+		EventBus:        &mockedEventBus,
+	}
 
 	nvo, _ := domain.NewListNameValueObject("list1")
 	existingList := domain.ListEntity{ID: 11, Name: nvo}
 	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&existingList, nil).Once()
 	mockedRepo.On("DeleteList", request.Context(), existingList).Return(nil).Once()
 
+	mockedEventBus.On("Publish", events.ListDeleted, int32(11))
+
+	mockedEventBus.Wg.Add(1)
 	result := DeleteListHandler(httptest.NewRecorder(), request, h)
+	mockedEventBus.Wg.Wait()
 
 	results.CheckOkResult(t, result, http.StatusNoContent)
 	mockedRepo.AssertExpectations(t)
+	mockedEventBus.AssertExpectations(t)
 }

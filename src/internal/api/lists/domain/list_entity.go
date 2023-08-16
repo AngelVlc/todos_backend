@@ -36,6 +36,7 @@ func (e *ListEntity) ToListRecord() *ListRecord {
 func (e *ListEntity) ToListSearchDocument() ListSearchDocument {
 	d := ListSearchDocument{
 		ObjectID:          fmt.Sprint(e.ID),
+		UserID:            e.UserID,
 		Name:              e.Name,
 		ItemsTitles:       make([]string, len(e.Items)),
 		ItemsDescriptions: make([]string, len(e.Items)),

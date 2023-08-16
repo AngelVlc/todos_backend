@@ -47,7 +47,8 @@ func NewHandler(f HandlerFunc,
 	tokenSrv authDomain.TokenService,
 	passGen passgen.PasswordGenerator,
 	eventBus events.EventBus,
-	requestInput interface{}) Handler {
+	requestInput interface{},
+	searchClient search.SearchIndexClient) Handler {
 
 	return Handler{
 		HandlerFunc:     f,
@@ -59,6 +60,7 @@ func NewHandler(f HandlerFunc,
 		TokenSrv:        tokenSrv,
 		EventBus:        eventBus,
 		RequestInput:    requestInput,
+		SearchClient:    searchClient,
 	}
 }
 

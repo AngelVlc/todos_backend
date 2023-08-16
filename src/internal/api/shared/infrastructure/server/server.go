@@ -18,6 +18,8 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/middlewares/recover"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/search"
 	"github.com/AngelVlc/todos_backend/src/internal/api/wire"
+	algoliaOpt "github.com/algolia/algoliasearch-client-go/v3/algolia/opt"
+	algoliaSearch "github.com/algolia/algoliasearch-client-go/v3/algolia/search"
 	"github.com/gorilla/mux"
 	"github.com/newrelic/go-agent/v3/integrations/nrgorilla"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -39,6 +41,9 @@ type server struct {
 }
 
 func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Application) *server {
+	listSearchSettings := algoliaSearch.Settings{
+		AttributesForFaceting: algoliaOpt.AttributesForFaceting("filterOnly(userID)"),
+	}
 
 	s := server{
 		authRepo:          wire.InitAuthRepository(db),
@@ -50,7 +55,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 		eventBus:          eb,
 		subscribers:       []events.Subscriber{},
 		newRelicApp:       newRelicApp,
-		listsSearchClient: wire.InitSearchIndexClient("lists"),
+		listsSearchClient: wire.InitSearchIndexClient("lists", listSearchSettings),
 	}
 
 	router := mux.NewRouter()
@@ -71,6 +76,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
 	listsSubRouter.Handle("", s.getHandler(listsHandlers.GetAllListsHandler, nil)).Methods(http.MethodGet)
 	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler, &listsInfra.ListInput{})).Methods(http.MethodPost)
+	listsSubRouter.Handle("/search-key", s.getHandler((listsHandlers.GetSearchSecureKeyHandler), nil)).Methods(http.MethodGet)
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetListHandler, nil)).Methods(http.MethodGet)
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteListHandler, nil)).Methods(http.MethodDelete)
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler, &listsInfra.ListInput{})).Methods(http.MethodPatch)
@@ -123,7 +129,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc, requestInput interface{}) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.authRepo, s.usersRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus, requestInput)
+	return handler.NewHandler(handlerFunc, s.authRepo, s.usersRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus, requestInput, s.listsSearchClient)
 }
 
 func (s *server) addSubscriber(subscriber events.Subscriber) {

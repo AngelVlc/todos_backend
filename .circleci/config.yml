@@ -63,6 +63,7 @@ commands:
         -var delete_expired_refresh_token_interval=$DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL
         -var algolia_app_id=$ALGOLIA_APP_ID
         -var algolia_api_key=$ALGOLIA_API_KEY
+        -var algolia_sarch_only_key=$ALGOLIA_SEARCH_ONLY_KEY
   push_image_to_gcr:
     steps:
       - run: docker build --target release -t eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest -f src/Dockerfile src/

@@ -42,3 +42,4 @@ variable "mysql_database" {}
 
 variable "algolia_app_id" {}
 variable "algolia_api_key" {}
+variable "algolia_search_only_key" {}

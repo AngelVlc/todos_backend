@@ -62,6 +62,10 @@ resource "google_cloud_run_service" "run_service" {
           name  = "ALGOLIA_API_KEY"
           value = var.algolia_api_key
         }
+        env {
+          name  = "ALGOLIA_SEARCH_ONLY_KEY"
+          value = var.algolia_search_only_key
+        }
       }
       service_account_name = "todos-service-account"
     }

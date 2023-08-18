@@ -102,3 +102,9 @@ func (m *MockedConfigurationService) GetAlgoliaApiKey() string {
 
 	return args.String(0)
 }
+
+func (m *MockedConfigurationService) GetAlgoliaSearchOnlyKey() string {
+	args := m.Called()
+
+	return args.String(0)
+}

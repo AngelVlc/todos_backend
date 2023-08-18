@@ -81,6 +81,10 @@ func (c *RealConfigurationService) GetAlgoliaApiKey() string {
 	return c.getEnvOrFallback("ALGOLIA_API_KEY", "algolia-api-key")
 }
 
+func (c *RealConfigurationService) GetAlgoliaSearchOnlyKey() string {
+	return c.getEnvOrFallback("ALGOLIA_SEARCH_ONLY_KEY", "algolia-search-only-key")
+}
+
 func (c *RealConfigurationService) getDurationEnvVar(key string, fallback string) time.Duration {
 	d, _ := time.ParseDuration(c.getEnvOrFallback(key, fallback))
 

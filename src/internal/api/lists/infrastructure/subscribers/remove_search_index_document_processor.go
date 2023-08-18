@@ -23,8 +23,6 @@ func NewRemoveSearchIndexDocumentProcessor(eventName string, eventBus events.Eve
 	doneFunc := func(listID int32, err error) {
 		if err != nil {
 			log.Printf("Removing search index document for list with ID %v\n failed with error %v", listID, err)
-		} else {
-			log.Printf("Removed search index document for list with ID %v\n", listID)
 		}
 	}
 

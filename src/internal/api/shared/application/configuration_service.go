@@ -18,4 +18,5 @@ type ConfigurationService interface {
 	InProduction() bool
 	GetAlgoliaAppId() string
 	GetAlgoliaApiKey() string
+	GetAlgoliaSearchOnlyKey() string
 }

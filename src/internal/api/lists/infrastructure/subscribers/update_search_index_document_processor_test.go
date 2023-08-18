@@ -19,13 +19,15 @@ func TestUpdateSearchIndexDocumentProcessor(t *testing.T) {
 	l1vo, _ := domain.NewListNameValueObject("list1")
 
 	foundList := domain.ListEntity{
-		ID:   12,
-		Name: l1vo,
+		ID:     12,
+		UserID: 2,
+		Name:   l1vo,
 	}
 	mockedRepo.On("FindList", ctx, domain.ListEntity{ID: 12}).Return(&foundList, nil).Once()
 
 	listDocument := domain.ListSearchDocument{
 		ObjectID:          "12",
+		UserID:            2,
 		Name:              l1vo,
 		ItemsTitles:       []string{},
 		ItemsDescriptions: []string{},

@@ -20,6 +20,7 @@ import (
 	reqadminmdw "github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/middlewares/reqadmin"
 	reqid "github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/middlewares/reqid"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/search"
+	algoliaSearch "github.com/algolia/algoliasearch-client-go/v3/algolia/search"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 )
@@ -191,11 +192,11 @@ func initRealEventBus(subscribers map[string]events.DataChannelSlice) events.Eve
 	return nil
 }
 
-func InitSearchIndexClient(indexName string) search.SearchIndexClient {
+func InitSearchIndexClient(indexName string, settings algoliaSearch.Settings) search.SearchIndexClient {
 	if inTestingMode() {
 		return initMockedSearchIndexClient()
 	} else {
-		return initAlgoliaIndexClient(indexName)
+		return initAlgoliaIndexClient(indexName, settings)
 	}
 }
 
@@ -204,7 +205,7 @@ func initMockedSearchIndexClient() search.SearchIndexClient {
 	return nil
 }
 
-func initAlgoliaIndexClient(indexName string) search.SearchIndexClient {
+func initAlgoliaIndexClient(indexName string, settings algoliaSearch.Settings) search.SearchIndexClient {
 	wire.Build(AlgoliaIndexClientSet)
 	return nil
 }

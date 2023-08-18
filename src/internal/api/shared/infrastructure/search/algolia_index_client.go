@@ -5,6 +5,7 @@ import (
 	"log"
 
 	sharedApp "github.com/AngelVlc/todos_backend/src/internal/api/shared/application"
+	"github.com/algolia/algoliasearch-client-go/v3/algolia/opt"
 	"github.com/algolia/algoliasearch-client-go/v3/algolia/search"
 )
 
@@ -15,10 +16,13 @@ type AlgoliaIndexClient struct {
 	cfgSvr    sharedApp.ConfigurationService
 }
 
-func NewAlgoliaIndexClient(cfgSvr sharedApp.ConfigurationService, objectName string) *AlgoliaIndexClient {
+func NewAlgoliaIndexClient(cfgSvr sharedApp.ConfigurationService, objectName string, settings search.Settings) *AlgoliaIndexClient {
 	client := search.NewClient(cfgSvr.GetAlgoliaAppId(), cfgSvr.GetAlgoliaApiKey())
 	indexName := fmt.Sprintf("%v-%v", cfgSvr.GetEnvironment(), objectName)
 	index := client.InitIndex(indexName)
+	if _, err := index.SetSettings(settings); err != nil {
+		log.Printf("Error setting algolia index settings: %v", err)
+	}
 
 	return &AlgoliaIndexClient{
 		client:    client,
@@ -44,4 +48,10 @@ func (c *AlgoliaIndexClient) DeleteObject(objectID string) error {
 	log.Printf("Deleted indexed document in %v with ID %v in task %v", c.indexName, objectID, res.TaskID)
 
 	return err
+}
+
+func (c *AlgoliaIndexClient) GenerateSecuredApiKey(filter string) (string, error) {
+	apiKey := c.cfgSvr.GetAlgoliaSearchOnlyKey()
+
+	return search.GenerateSecuredAPIKey(apiKey, opt.Filters(filter))
 }

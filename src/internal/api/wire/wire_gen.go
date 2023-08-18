@@ -21,6 +21,7 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/middlewares/reqadmin"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/middlewares/reqid"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/search"
+	search2 "github.com/algolia/algoliasearch-client-go/v3/algolia/search"
 	"github.com/google/wire"
 	"gorm.io/gorm"
 	"os"
@@ -131,9 +132,9 @@ func initMockedSearchIndexClient() search.SearchIndexClient {
 	return mockedSearchIndexClient
 }
 
-func initAlgoliaIndexClient(indexName string) search.SearchIndexClient {
+func initAlgoliaIndexClient(indexName string, settings search2.Settings) search.SearchIndexClient {
 	realConfigurationService := application.NewRealConfigurationService()
-	algoliaIndexClient := search.NewAlgoliaIndexClient(realConfigurationService, indexName)
+	algoliaIndexClient := search.NewAlgoliaIndexClient(realConfigurationService, indexName, settings)
 	return algoliaIndexClient
 }
 
@@ -211,11 +212,11 @@ func InitEventBus(subscribers map[string]events.DataChannelSlice) events.EventBu
 	}
 }
 
-func InitSearchIndexClient(indexName string) search.SearchIndexClient {
+func InitSearchIndexClient(indexName string, settings search2.Settings) search.SearchIndexClient {
 	if inTestingMode() {
 		return initMockedSearchIndexClient()
 	} else {
-		return initAlgoliaIndexClient(indexName)
+		return initAlgoliaIndexClient(indexName, settings)
 	}
 }
 

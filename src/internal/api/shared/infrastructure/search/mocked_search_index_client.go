@@ -21,3 +21,9 @@ func (m *MockedSearchIndexClient) DeleteObject(objectID string) error {
 
 	return args.Error(0)
 }
+
+func (m *MockedSearchIndexClient) GenerateSecuredApiKey(filter string) (string, error) {
+	args := m.Called(filter)
+
+	return args.String(0), args.Error(1)
+}

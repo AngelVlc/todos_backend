@@ -25,8 +25,6 @@ func NewUpdateSearchIndexDocumentProcessor(eventName string, eventBus events.Eve
 	doneFunc := func(listID int32, err error) {
 		if err != nil {
 			log.Printf("Creting or updating search index document for list with ID %v\n failed with error %v", listID, err)
-		} else {
-			log.Printf("Created or updated search index document for list with ID %v\n", listID)
 		}
 	}
 

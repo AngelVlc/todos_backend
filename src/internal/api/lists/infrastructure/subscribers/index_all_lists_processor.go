@@ -8,6 +8,7 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/search"
+	"github.com/honeybadger-io/honeybadger-go"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
@@ -25,6 +26,7 @@ func NewIndexAllListsProcessor(eventName string, eventBus events.EventBus, lists
 	doneFunc := func(err error) {
 		if err != nil {
 			log.Printf("Index all lists failed with error %v", err)
+			honeybadger.Notify(err)
 		}
 	}
 
@@ -44,18 +46,15 @@ func (s *IndexAllListsProcessor) Subscribe() {
 }
 
 func (s *IndexAllListsProcessor) Start() {
-	for {
-		select {
-		case <-s.channel:
-			txn := s.newRelicApp.StartTransaction(s.eventName)
-			ctx := newrelic.NewContext(context.Background(), txn)
+	for range s.channel {
+		txn := s.newRelicApp.StartTransaction(s.eventName)
+		ctx := newrelic.NewContext(context.Background(), txn)
 
-			srv := application.NewIndexAllListsService(s.listsRepo, s.listsSearchClient)
-			err := srv.IndexAllLists(ctx)
+		srv := application.NewIndexAllListsService(s.listsRepo, s.listsSearchClient)
+		err := srv.IndexAllLists(ctx)
 
-			s.doneFunc(err)
+		s.doneFunc(err)
 
-			txn.End()
-		}
+		txn.End()
 	}
 }

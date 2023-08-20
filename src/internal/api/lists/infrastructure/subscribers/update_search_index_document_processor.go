@@ -8,6 +8,7 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/search"
+	"github.com/honeybadger-io/honeybadger-go"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
@@ -25,6 +26,7 @@ func NewUpdateSearchIndexDocumentProcessor(eventName string, eventBus events.Eve
 	doneFunc := func(listID int32, err error) {
 		if err != nil {
 			log.Printf("Creting or updating search index document for list with ID %v\n failed with error %v", listID, err)
+			honeybadger.Notify(err)
 		}
 	}
 
@@ -44,19 +46,16 @@ func (s *UpdateSearchIndexDocumentProcessor) Subscribe() {
 }
 
 func (s *UpdateSearchIndexDocumentProcessor) Start() {
-	for {
-		select {
-		case d := <-s.channel:
-			listID, _ := d.Data.(int32)
-			txn := s.newRelicApp.StartTransaction(s.eventName)
-			ctx := newrelic.NewContext(context.Background(), txn)
+	for d := range s.channel {
+		listID, _ := d.Data.(int32)
+		txn := s.newRelicApp.StartTransaction(s.eventName)
+		ctx := newrelic.NewContext(context.Background(), txn)
 
-			srv := application.NewAddListToSearchIndexService(s.listsRepo, s.listsSearchClient)
-			err := srv.AddListToSearchIndexService(ctx, listID)
+		srv := application.NewAddListToSearchIndexService(s.listsRepo, s.listsSearchClient)
+		err := srv.AddListToSearchIndexService(ctx, listID)
 
-			s.doneFunc(listID, err)
+		s.doneFunc(listID, err)
 
-			txn.End()
-		}
+		txn.End()
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/application"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/events"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/search"
+	"github.com/honeybadger-io/honeybadger-go"
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
@@ -23,6 +24,7 @@ func NewRemoveSearchIndexDocumentProcessor(eventName string, eventBus events.Eve
 	doneFunc := func(listID int32, err error) {
 		if err != nil {
 			log.Printf("Removing search index document for list with ID %v\n failed with error %v", listID, err)
+			honeybadger.Notify(err)
 		}
 	}
 
@@ -41,19 +43,17 @@ func (s *RemoveSearchIndexDocumentProcessor) Subscribe() {
 }
 
 func (s *RemoveSearchIndexDocumentProcessor) Start() {
-	for {
-		select {
-		case d := <-s.channel:
-			listID, _ := d.Data.(int32)
-			txn := s.newRelicApp.StartTransaction(s.eventName)
-			ctx := newrelic.NewContext(context.Background(), txn)
+	for d := range s.channel {
+		listID, _ := d.Data.(int32)
+		txn := s.newRelicApp.StartTransaction(s.eventName)
+		ctx := newrelic.NewContext(context.Background(), txn)
 
-			srv := application.NewRemoveListFromSearchIndexService(s.listsSearchClient)
-			err := srv.RemoveListFromSearchIndexService(ctx, listID)
+		srv := application.NewRemoveListFromSearchIndexService(s.listsSearchClient)
+		err := srv.RemoveListFromSearchIndexService(ctx, listID)
 
-			s.doneFunc(listID, err)
+		s.doneFunc(listID, err)
 
-			txn.End()
-		}
+		txn.End()
+
 	}
 }

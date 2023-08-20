@@ -78,7 +78,10 @@ func initDeleteExpiredTokensProcess(cfg sharedApp.ConfigurationService, authRepo
 			case t := <-ticker.C:
 				txn := newRelicApp.StartTransaction("deleteExpiredRefreshTokens")
 				ctx := newrelic.NewContext(context.Background(), txn)
-				authRepo.DeleteExpiredRefreshTokens(ctx, t)
+				if err := authRepo.DeleteExpiredRefreshTokens(ctx, t); err != nil {
+					log.Printf("Error deleting expired refresh tokens: %v", err)
+					honeybadger.Notify(err)
+				}
 				txn.End()
 			}
 		}

@@ -4,6 +4,7 @@ go 1.17
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.4.1
+	github.com/algolia/algoliasearch-client-go/v3 v3.30.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/google/wire v0.5.0
@@ -21,7 +22,6 @@ require (
 
 require (
 	github.com/StackExchange/wmi v1.2.1 // indirect
-	github.com/algolia/algoliasearch-client-go/v3 v3.30.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-ole/go-ole v1.2.5 // indirect
 	github.com/go-sql-driver/mysql v1.7.1 // indirect

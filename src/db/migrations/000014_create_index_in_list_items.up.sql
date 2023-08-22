@@ -1,0 +1,1 @@
+CREATE INDEX idx_listId ON listItems (listId);

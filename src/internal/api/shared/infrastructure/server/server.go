@@ -42,8 +42,9 @@ type server struct {
 
 func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Application) *server {
 	listSearchSettings := algoliaSearch.Settings{
-		AttributesForFaceting: algoliaOpt.AttributesForFaceting("filterOnly(userID)"),
-		SearchableAttributes:  algoliaOpt.SearchableAttributes("name", "itemsTitles", "itemsDescriptions"),
+		AttributesForFaceting:            algoliaOpt.AttributesForFaceting("filterOnly(userID)"),
+		SearchableAttributes:             algoliaOpt.SearchableAttributes("name", "itemsTitles", "itemsDescriptions"),
+		DisableTypoToleranceOnAttributes: algoliaOpt.DisableTypoToleranceOnAttributes("name", "itemsTitles", "itemsDescriptions"),
 	}
 
 	s := server{

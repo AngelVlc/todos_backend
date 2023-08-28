@@ -63,10 +63,6 @@ func main() {
 		log.Printf("Starting listener on port %v\n", httpServer.Addr)
 
 		err = httpServer.ListenAndServe()
-
-		if err != nil {
-			log.Fatalf("could not listen on port %v %v", httpServer.Addr, err)
-		}
 	}()
 
 	sigChan := make(chan os.Signal, 1)

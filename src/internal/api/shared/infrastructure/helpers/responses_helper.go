@@ -38,9 +38,9 @@ func WriteErrorResponse(r *http.Request, w http.ResponseWriter, statusCode int, 
 }
 
 func getRequestStartTimeFromContext(r *http.Request) time.Time {
-	requestIDRaw := r.Context().Value(consts.ReqContextStartTime)
+	reqStartTimeRaw := r.Context().Value(consts.ReqContextStartTime)
 
-	startTime, _ := requestIDRaw.(time.Time)
+	startTime, _ := reqStartTimeRaw.(time.Time)
 
 	return startTime
 }

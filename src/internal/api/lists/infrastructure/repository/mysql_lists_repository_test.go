@@ -273,7 +273,6 @@ func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 
 func TestMySqlListsRepository_DeleteList_When_Deleting_The_ListItems_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	userID := int32(1)
 	listID := int32(11)
 
 	repo := NewMySqlListsRepository(db)
@@ -284,7 +283,7 @@ func TestMySqlListsRepository_DeleteList_When_Deleting_The_ListItems_Fails(t *te
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID, UserID: userID})
+	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID})
 
 	assert.EqualError(t, err, "some error")
 
@@ -293,7 +292,6 @@ func TestMySqlListsRepository_DeleteList_When_Deleting_The_ListItems_Fails(t *te
 
 func TestMySqlListsRepository_DeleteList_When_Deleting_The_List_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	userID := int32(1)
 	listID := int32(11)
 
 	repo := NewMySqlListsRepository(db)
@@ -307,7 +305,7 @@ func TestMySqlListsRepository_DeleteList_When_Deleting_The_List_Fails(t *testing
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID, UserID: userID})
+	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID})
 
 	assert.EqualError(t, err, "some error")
 
@@ -316,7 +314,6 @@ func TestMySqlListsRepository_DeleteList_When_Deleting_The_List_Fails(t *testing
 
 func TestMySqlListsRepository_DeleteList_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	userID := int32(1)
 	listID := int32(11)
 
 	repo := NewMySqlListsRepository(db)
@@ -330,7 +327,7 @@ func TestMySqlListsRepository_DeleteList_When_It_Does_Not_Fail(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
-	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID, UserID: userID})
+	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID})
 
 	assert.Nil(t, err)
 

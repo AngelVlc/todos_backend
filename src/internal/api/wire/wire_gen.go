@@ -138,6 +138,16 @@ func initAlgoliaIndexClient(indexName string, settings search2.Settings) search.
 	return algoliaIndexClient
 }
 
+func initMockedCategoriesRepository() domain3.CategoriesRepository {
+	mockedCategoriesRepository := repository2.NewMockedCategoriesRepository()
+	return mockedCategoriesRepository
+}
+
+func initMySqlCategoriesRepository(db *gorm.DB) domain3.CategoriesRepository {
+	mySqlCategoriesRepository := repository2.NewMySqlCategoriesRepository(db)
+	return mySqlCategoriesRepository
+}
+
 // wire.go:
 
 func InitLogMiddleware() domain.Middleware {
@@ -220,6 +230,14 @@ func InitSearchIndexClient(indexName string, settings search2.Settings) search.S
 	}
 }
 
+func InitCategoriesRepository(db *gorm.DB) domain3.CategoriesRepository {
+	if inTestingMode() {
+		return initMockedCategoriesRepository()
+	} else {
+		return initMySqlCategoriesRepository(db)
+	}
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -271,3 +289,7 @@ var AlgoliaIndexClientSet = wire.NewSet(
 )
 
 var MockedSearchIndexClientSet = wire.NewSet(search.NewMockedSearchIndexClient, wire.Bind(new(search.SearchIndexClient), new(*search.MockedSearchIndexClient)))
+
+var MySqlCategoriesRepositorySet = wire.NewSet(repository2.NewMySqlCategoriesRepository, wire.Bind(new(domain3.CategoriesRepository), new(*repository2.MySqlCategoriesRepository)))
+
+var MockedCategoriesRepositorySet = wire.NewSet(repository2.NewMockedCategoriesRepository, wire.Bind(new(domain3.CategoriesRepository), new(*repository2.MockedCategoriesRepository)))

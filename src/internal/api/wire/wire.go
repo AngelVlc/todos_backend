@@ -210,6 +210,24 @@ func initAlgoliaIndexClient(indexName string, settings algoliaSearch.Settings) s
 	return nil
 }
 
+func InitCategoriesRepository(db *gorm.DB) listsDomain.CategoriesRepository {
+	if inTestingMode() {
+		return initMockedCategoriesRepository()
+	} else {
+		return initMySqlCategoriesRepository(db)
+	}
+}
+
+func initMockedCategoriesRepository() listsDomain.CategoriesRepository {
+	wire.Build(MockedCategoriesRepositorySet)
+	return nil
+}
+
+func initMySqlCategoriesRepository(db *gorm.DB) listsDomain.CategoriesRepository {
+	wire.Build(MySqlCategoriesRepositorySet)
+	return nil
+}
+
 func inTestingMode() bool {
 	return len(os.Getenv("TESTING")) > 0
 }
@@ -305,4 +323,14 @@ var AlgoliaIndexClientSet = wire.NewSet(
 var MockedSearchIndexClientSet = wire.NewSet(
 	search.NewMockedSearchIndexClient,
 	wire.Bind(new(search.SearchIndexClient), new(*search.MockedSearchIndexClient)),
+)
+
+var MySqlCategoriesRepositorySet = wire.NewSet(
+	listsRepository.NewMySqlCategoriesRepository,
+	wire.Bind(new(listsDomain.CategoriesRepository), new(*listsRepository.MySqlCategoriesRepository)),
+)
+
+var MockedCategoriesRepositorySet = wire.NewSet(
+	listsRepository.NewMockedCategoriesRepository,
+	wire.Bind(new(listsDomain.CategoriesRepository), new(*listsRepository.MockedCategoriesRepository)),
 )

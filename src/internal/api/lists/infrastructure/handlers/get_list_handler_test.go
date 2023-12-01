@@ -32,7 +32,7 @@ func getRequest() *http.Request {
 }
 
 func TestGetListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *testing.T) {
-	request := getCategoryRequest()
+	request := getRequest()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
@@ -46,7 +46,7 @@ func TestGetListHandler_Returns_An_Error_If_The_Query_To_Find_The_List_Fails(t *
 }
 
 func TestGetListHandler_Returns_The_List(t *testing.T) {
-	request := getCategoryRequest()
+	request := getRequest()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}

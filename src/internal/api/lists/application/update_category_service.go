@@ -15,7 +15,7 @@ func NewUpdateCategoryService(repo domain.CategoriesRepository) *UpdateCategoryS
 	return &UpdateCategoryService{repo}
 }
 
-func (s *UpdateCategoryService) UpdateList(ctx context.Context, categoryToUpdate *domain.CategoryEntity) (*domain.CategoryEntity, error) {
+func (s *UpdateCategoryService) UpdateCategory(ctx context.Context, categoryToUpdate *domain.CategoryEntity) (*domain.CategoryEntity, error) {
 	foundCategory, err := s.repo.FindCategory(ctx, domain.CategoryEntity{ID: categoryToUpdate.ID})
 	if err != nil {
 		return nil, err

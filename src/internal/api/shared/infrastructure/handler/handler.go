@@ -24,15 +24,16 @@ import (
 // Handler is the type used to handle the endpoints
 type Handler struct {
 	HandlerFunc
-	AuthRepository  authDomain.AuthRepository
-	UsersRepository authDomain.UsersRepository
-	ListsRepository listsDomain.ListsRepository
-	CfgSrv          sharedApp.ConfigurationService
-	TokenSrv        authDomain.TokenService
-	PassGen         passgen.PasswordGenerator
-	EventBus        events.EventBus
-	RequestInput    interface{}
-	SearchClient    search.SearchIndexClient
+	AuthRepository       authDomain.AuthRepository
+	UsersRepository      authDomain.UsersRepository
+	ListsRepository      listsDomain.ListsRepository
+	CategoriesRepository listsDomain.CategoriesRepository
+	CfgSrv               sharedApp.ConfigurationService
+	TokenSrv             authDomain.TokenService
+	PassGen              passgen.PasswordGenerator
+	EventBus             events.EventBus
+	RequestInput         interface{}
+	SearchClient         search.SearchIndexClient
 }
 
 type HandlerResult interface {
@@ -43,6 +44,7 @@ func NewHandler(f HandlerFunc,
 	authRepo authDomain.AuthRepository,
 	usersRepo authDomain.UsersRepository,
 	listsRepo listsDomain.ListsRepository,
+	categoriesRepo listsDomain.CategoriesRepository,
 	cfgSrv sharedApp.ConfigurationService,
 	tokenSrv authDomain.TokenService,
 	passGen passgen.PasswordGenerator,
@@ -51,16 +53,17 @@ func NewHandler(f HandlerFunc,
 	searchClient search.SearchIndexClient) Handler {
 
 	return Handler{
-		HandlerFunc:     f,
-		AuthRepository:  authRepo,
-		UsersRepository: usersRepo,
-		ListsRepository: listsRepo,
-		CfgSrv:          cfgSrv,
-		PassGen:         passGen,
-		TokenSrv:        tokenSrv,
-		EventBus:        eventBus,
-		RequestInput:    requestInput,
-		SearchClient:    searchClient,
+		HandlerFunc:          f,
+		AuthRepository:       authRepo,
+		UsersRepository:      usersRepo,
+		ListsRepository:      listsRepo,
+		CategoriesRepository: categoriesRepo,
+		CfgSrv:               cfgSrv,
+		PassGen:              passGen,
+		TokenSrv:             tokenSrv,
+		EventBus:             eventBus,
+		RequestInput:         requestInput,
+		SearchClient:         searchClient,
 	}
 }
 

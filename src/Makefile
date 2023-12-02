@@ -21,3 +21,6 @@ run:
 
 build:
 	go build ./...
+
+update-packages:
+	go get -u ./...

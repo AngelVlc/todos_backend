@@ -31,6 +31,7 @@ type server struct {
 	authRepo          authDomain.AuthRepository
 	usersRepo         authDomain.UsersRepository
 	listsRepo         listsDomain.ListsRepository
+	categoriesRepo    listsDomain.CategoriesRepository
 	cfgSrv            sharedApp.ConfigurationService
 	tokenSrv          authDomain.TokenService
 	passGen           passgen.PasswordGenerator
@@ -51,6 +52,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 		authRepo:          wire.InitAuthRepository(db),
 		usersRepo:         wire.InitUsersRepository(db),
 		listsRepo:         wire.InitListsRepository(db),
+		categoriesRepo:    wire.InitCategoriesRepository(db),
 		cfgSrv:            wire.InitConfigurationService(),
 		tokenSrv:          wire.InitTokenService(),
 		passGen:           wire.InitPasswordGenerator(),
@@ -84,6 +86,14 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateListHandler, &listsInfra.ListInput{})).Methods(http.MethodPatch)
 	listsSubRouter.Handle("/{id:[0-9]+}/move_item", s.getHandler(listsHandlers.MoveListItemHandler, &listsInfra.MoveListItemInput{})).Methods(http.MethodPost)
 	listsSubRouter.Use(authMdw.Middleware)
+
+	categoriesSubRouter := router.PathPrefix("/categories").Subrouter()
+	categoriesSubRouter.Handle("", s.getHandler(listsHandlers.GetAllCategoriesHandler, nil)).Methods(http.MethodGet)
+	categoriesSubRouter.Handle("", s.getHandler(listsHandlers.CreateCategoryHandler, &listsInfra.CategoryInput{})).Methods(http.MethodPost)
+	categoriesSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetCategoryHandler, nil)).Methods(http.MethodGet)
+	categoriesSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.DeleteCategoryHandler, nil)).Methods(http.MethodDelete)
+	categoriesSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.UpdateCategoryHandler, &listsInfra.CategoryInput{})).Methods(http.MethodPatch)
+	categoriesSubRouter.Use(authMdw.Middleware)
 
 	toolsSubRouter := router.PathPrefix("/tools").Subrouter()
 	toolsSubRouter.Handle("/index-lists", s.getHandler(listsHandlers.IndexAllListsHandler, nil)).Methods(http.MethodPost)
@@ -131,7 +141,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 }
 
 func (s *server) getHandler(handlerFunc handler.HandlerFunc, requestInput interface{}) handler.Handler {
-	return handler.NewHandler(handlerFunc, s.authRepo, s.usersRepo, s.listsRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus, requestInput, s.listsSearchClient)
+	return handler.NewHandler(handlerFunc, s.authRepo, s.usersRepo, s.listsRepo, s.categoriesRepo, s.cfgSrv, s.tokenSrv, s.passGen, s.eventBus, requestInput, s.listsSearchClient)
 }
 
 func (s *server) addSubscriber(subscriber events.Subscriber) {

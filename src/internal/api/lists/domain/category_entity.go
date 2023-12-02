@@ -1,9 +1,9 @@
 package domain
 
 type CategoryEntity struct {
-	ID          int32
-	Name        CategoryNameValueObject
-	Description CategoryDescriptionValueObject
+	ID          int32                          `json:"id"`
+	Name        CategoryNameValueObject        `json:"name"`
+	Description CategoryDescriptionValueObject `json:"description"`
 }
 
 func (e *CategoryEntity) ToCategoryRecord() *CategoryRecord {

@@ -6,6 +6,7 @@ type ListEntity struct {
 	ID         int32               `json:"id"`
 	Name       ListNameValueObject `json:"name"`
 	UserID     int32               `json:"-"`
+	CategoryID *int32              `json:"categoryId"`
 	ItemsCount int32               `json:"itemsCount"`
 	Items      []*ListItemEntity   `json:"items,omitempty"`
 }
@@ -14,6 +15,7 @@ func (e *ListEntity) ToListRecord() *ListRecord {
 	r := &ListRecord{
 		ID:         e.ID,
 		Name:       e.Name.String(),
+		CategoryID: e.CategoryID,
 		UserID:     e.UserID,
 		ItemsCount: e.ItemsCount,
 		Items:      make([]*ListItemRecord, len(e.Items)),

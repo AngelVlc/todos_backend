@@ -16,15 +16,15 @@ func NewCreateCategoryService(repo domain.CategoriesRepository) *CreateCategoryS
 }
 
 func (s *CreateCategoryService) CreateCategory(ctx context.Context, categoryToCreate *domain.CategoryEntity) (*domain.CategoryEntity, error) {
-	if existsList, err := s.repo.ExistsCategory(ctx, domain.CategoryEntity{Name: categoryToCreate.Name, Description: categoryToCreate.Description}); err != nil {
+	if existsCategory, err := s.repo.ExistsCategory(ctx, domain.CategoryEntity{Name: categoryToCreate.Name, UserID: categoryToCreate.UserID}); err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error checking if a category with the same name already exists", InternalError: err}
-	} else if existsList {
+	} else if existsCategory {
 		return nil, &appErrors.BadRequestError{Msg: "A category with the same name already exists", InternalError: nil}
 	}
 
 	createdList, err := s.repo.CreateCategory(ctx, categoryToCreate)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error creating the category", InternalError: err}
+		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user category", InternalError: err}
 	}
 
 	return createdList, nil

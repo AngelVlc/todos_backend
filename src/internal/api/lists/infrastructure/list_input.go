@@ -8,14 +8,16 @@ import (
 )
 
 type ListInput struct {
-	Name  domain.ListNameValueObject `json:"name"`
-	Items []ListItemInput            `json:"items"`
+	Name       domain.ListNameValueObject `json:"name"`
+	CategoryID *int32                     `json:"categoryId"`
+	Items      []ListItemInput            `json:"items"`
 }
 
 func (i *ListInput) UnmarshalJSON(data []byte) error {
 	var realInput struct {
-		Name  string `json:"name"`
-		Items []struct {
+		Name       string `json:"name"`
+		CategoryID *int32 `json:"categoryId"`
+		Items      []struct {
 			ID          int32  `json:"id"`
 			Title       string `json:"title"`
 			Description string `json:"description"`
@@ -33,8 +35,9 @@ func (i *ListInput) UnmarshalJSON(data []byte) error {
 	}
 
 	*i = ListInput{
-		Name:  nvo,
-		Items: make([]ListItemInput, len(realInput.Items)),
+		Name:       nvo,
+		CategoryID: realInput.CategoryID,
+		Items:      make([]ListItemInput, len(realInput.Items)),
 	}
 
 	for index, v := range realInput.Items {
@@ -61,8 +64,9 @@ func (i *ListInput) UnmarshalJSON(data []byte) error {
 
 func (i *ListInput) ToListEntity() *domain.ListEntity {
 	list := &domain.ListEntity{
-		Name:  i.Name,
-		Items: make([]*domain.ListItemEntity, len(i.Items)),
+		Name:       i.Name,
+		CategoryID: i.CategoryID,
+		Items:      make([]*domain.ListItemEntity, len(i.Items)),
 	}
 
 	for i, v := range i.Items {

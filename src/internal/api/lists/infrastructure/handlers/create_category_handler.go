@@ -10,9 +10,11 @@ import (
 )
 
 func CreateCategoryHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+	userID := h.GetUserIDFromContext(r)
 	input, _ := h.RequestInput.(*infrastructure.CategoryInput)
 
 	categoryEntity := input.ToCategoryEntity()
+	categoryEntity.UserID = userID
 
 	srv := application.NewCreateCategoryService(h.CategoriesRepository)
 	createdList, err := srv.CreateCategory(r.Context(), categoryEntity)

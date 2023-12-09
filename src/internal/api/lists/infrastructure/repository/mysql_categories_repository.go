@@ -33,16 +33,16 @@ func (r *MySqlCategoriesRepository) ExistsCategory(ctx context.Context, query do
 	return count > 0, nil
 }
 
-func (r *MySqlCategoriesRepository) GetAllCategories(ctx context.Context) ([]*domain.CategoryEntity, error) {
-	foundCategorys := []domain.CategoryRecord{}
+func (r *MySqlCategoriesRepository) GetAllCategoriesForUser(ctx context.Context, userID int32) ([]*domain.CategoryEntity, error) {
+	foundCategories := []domain.CategoryRecord{}
 
-	if err := r.db.WithContext(ctx).Find(&foundCategorys).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(domain.CategoryRecord{UserID: userID}).Find(&foundCategories).Error; err != nil {
 		return nil, err
 	}
 
-	res := make([]*domain.CategoryEntity, len(foundCategorys))
+	res := make([]*domain.CategoryEntity, len(foundCategories))
 
-	for i, l := range foundCategorys {
+	for i, l := range foundCategories {
 		res[i] = l.ToCategoryEntity()
 	}
 

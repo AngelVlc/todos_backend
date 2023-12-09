@@ -30,8 +30,8 @@ func (m *MockedCategoriesRepository) ExistsCategory(ctx context.Context, query d
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockedCategoriesRepository) GetAllCategories(ctx context.Context) ([]*domain.CategoryEntity, error) {
-	args := m.Called(ctx)
+func (m *MockedCategoriesRepository) GetAllCategoriesForUser(ctx context.Context, userID int32) ([]*domain.CategoryEntity, error) {
+	args := m.Called(ctx, userID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

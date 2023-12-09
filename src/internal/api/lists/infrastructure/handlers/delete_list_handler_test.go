@@ -72,7 +72,7 @@ func TestDeletesListHandler_Deletes_The_List(t *testing.T) {
 	}
 
 	nvo, _ := domain.NewListNameValueObject("list1")
-	existingList := domain.ListEntity{ID: 11, Name: nvo}
+	existingList := domain.ListEntity{ID: 11, Name: nvo, UserID: 1}
 	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(&existingList, nil).Once()
 	mockedRepo.On("DeleteList", request.Context(), existingList).Return(nil).Once()
 

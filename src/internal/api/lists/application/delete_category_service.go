@@ -15,14 +15,14 @@ func NewDeleteCategoryService(repo domain.CategoriesRepository) *DeleteCategoryS
 	return &DeleteCategoryService{repo}
 }
 
-func (s *DeleteCategoryService) DeleteCategory(ctx context.Context, categoryID int32) error {
-	foundList, err := s.repo.FindCategory(ctx, domain.CategoryEntity{ID: categoryID})
+func (s *DeleteCategoryService) DeleteCategory(ctx context.Context, categoryID int32, userID int32) error {
+	foundCategory, err := s.repo.FindCategory(ctx, domain.CategoryEntity{ID: categoryID, UserID: userID})
 	if err != nil {
 		return err
 	}
 
-	if err := s.repo.DeleteCategory(ctx, *foundList); err != nil {
-		return &appErrors.UnexpectedError{Msg: "Error deleting the category", InternalError: err}
+	if err := s.repo.DeleteCategory(ctx, *foundCategory); err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error deleting the user category", InternalError: err}
 	}
 
 	return nil

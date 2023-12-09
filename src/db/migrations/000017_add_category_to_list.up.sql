@@ -1,0 +1,1 @@
+ALTER TABLE `lists` ADD `categoryId` int(32) NULL;

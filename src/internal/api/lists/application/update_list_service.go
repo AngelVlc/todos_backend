@@ -13,8 +13,8 @@ type UpdateListService struct {
 	eventBus events.EventBus
 }
 
-func NewUpdateListService(repo domain.ListsRepository, eventBus events.EventBus) *UpdateListService {
-	return &UpdateListService{repo, eventBus}
+func NewUpdateListService(listRepo domain.ListsRepository, eventBus events.EventBus) *UpdateListService {
+	return &UpdateListService{listRepo, eventBus}
 }
 
 func (s *UpdateListService) UpdateList(ctx context.Context, listToUpdate *domain.ListEntity) (*domain.ListEntity, error) {

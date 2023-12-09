@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/gorilla/mux"
@@ -24,6 +26,7 @@ func getCategoryRequest() *http.Request {
 		"id": "11",
 	})
 	ctx := request.Context()
+	ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
 
 	return request.WithContext(ctx)
 }
@@ -34,7 +37,7 @@ func TestGetCategoryHandler_Returns_An_Error_If_The_Query_To_Find_The_Category_F
 	mockedRepo := listsRepository.MockedCategoriesRepository{}
 	h := handler.Handler{CategoriesRepository: &mockedRepo}
 
-	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetCategoryHandler(httptest.NewRecorder(), request, h)
 
@@ -50,7 +53,7 @@ func TestGetCategoryHandler_Returns_The_Category(t *testing.T) {
 
 	nvo, _ := domain.NewCategoryNameValueObject("category1")
 	foundCategory := domain.CategoryEntity{ID: 11, Name: nvo}
-	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11}).Return(&foundCategory, nil).Once()
+	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(&foundCategory, nil).Once()
 
 	result := GetCategoryHandler(httptest.NewRecorder(), request, h)
 

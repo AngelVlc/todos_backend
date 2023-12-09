@@ -11,10 +11,12 @@ import (
 
 func UpdateCategoryHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	categoryID := h.ParseInt32UrlVar(r, "id")
+	userID := h.GetUserIDFromContext(r)
 	input, _ := h.RequestInput.(*infrastructure.CategoryInput)
 
 	categoryEntity := input.ToCategoryEntity()
 	categoryEntity.ID = categoryID
+	categoryEntity.UserID = userID
 
 	srv := application.NewUpdateCategoryService(h.CategoriesRepository)
 	updatedCategory, err := srv.UpdateCategory(r.Context(), categoryEntity)

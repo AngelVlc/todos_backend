@@ -98,15 +98,17 @@ func TestMySqlCategoriesRepository_ExistsCategory_WhenItDoesNotFail(t *testing.T
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlCategoriesRepository_GetAllCategories_WhenItFails(t *testing.T) {
+func TestMySqlCategoriesRepository_GetAllCategoriesForUser_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
+	userID := int32(1)
 
 	repo := NewMySqlCategoriesRepository(db)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories`")).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`userId` = ?")).
+		WithArgs(userID).
 		WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.GetAllCategories(context.Background())
+	res, err := repo.GetAllCategoriesForUser(context.Background(), userID)
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -114,17 +116,19 @@ func TestMySqlCategoriesRepository_GetAllCategories_WhenItFails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlCategoriesRepository_GetAllCategories_When_It_Does_Not_Fail_Including_Items(t *testing.T) {
+func TestMySqlCategoriesRepository_GetAllCategoriesForUser_When_It_Does_Not_Fail_Including_Items(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
+	userID := int32(1)
 
 	repo := NewMySqlCategoriesRepository(db)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories`")).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`userId` = ?")).
+		WithArgs(userID).
 		WillReturnRows(sqlmock.NewRows(categoryColumns).
 			AddRow(11, "category1", "desc 1").
 			AddRow(12, "category2", "desc 2"))
 
-	res, err := repo.GetAllCategories(context.Background())
+	res, err := repo.GetAllCategoriesForUser(context.Background(), userID)
 
 	assert.Nil(t, err)
 	require.NotNil(t, res)
@@ -142,14 +146,14 @@ func TestMySqlCategoriesRepository_GetAllCategories_When_It_Does_Not_Fail_Includ
 func TestMySqlCategoriesRepository_CreateCategory_When_The_Create_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `categories` (`name`,`description`) VALUES (?,?)")).
-		WithArgs("name", "category description").
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `categories` (`name`,`description`,`userId`) VALUES (?,?,?)")).
+		WithArgs("name", "category description", 2).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
 	nvo, _ := domain.NewCategoryNameValueObject("name")
 	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{Name: nvo, Description: dvo}
+	category := domain.CategoryEntity{Name: nvo, Description: dvo, UserID: 2}
 
 	repo := NewMySqlCategoriesRepository(db)
 
@@ -163,14 +167,14 @@ func TestMySqlCategoriesRepository_CreateCategory_When_The_Create_Fails(t *testi
 func TestMySqlCategoriesRepository_CreateCategory_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `categories` (`name`,`description`) VALUES (?,?)")).
-		WithArgs("name", "category description").
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `categories` (`name`,`description`,`userId`) VALUES (?,?,?)")).
+		WithArgs("name", "category description", 2).
 		WillReturnResult(sqlmock.NewResult(12, 0))
 	mock.ExpectCommit()
 
 	nvo, _ := domain.NewCategoryNameValueObject("name")
 	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{Name: nvo, Description: dvo}
+	category := domain.CategoryEntity{Name: nvo, Description: dvo, UserID: 2}
 
 	repo := NewMySqlCategoriesRepository(db)
 

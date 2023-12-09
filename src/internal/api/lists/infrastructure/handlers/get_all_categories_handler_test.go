@@ -4,6 +4,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	listsRepository "github.com/AngelVlc/todos_backend/src/internal/api/lists/infrastructure/repository"
+	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/consts"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
@@ -20,6 +22,7 @@ import (
 func getAllCategoriesRequest() *http.Request {
 	request, _ := http.NewRequest(http.MethodGet, "/wadus", nil)
 	ctx := request.Context()
+	ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
 
 	return request.WithContext(ctx)
 }
@@ -30,11 +33,11 @@ func TestGetAllCategoriesHandler_Returns_An_ErrorResult_With_An_UnexpectedError_
 	mockedRepo := listsRepository.MockedCategoriesRepository{}
 	h := handler.Handler{CategoriesRepository: &mockedRepo}
 
-	mockedRepo.On("GetAllCategories", request.Context()).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("GetAllCategoriesForUser", request.Context(), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetAllCategoriesHandler(httptest.NewRecorder(), request, h)
 
-	results.CheckUnexpectedErrorResult(t, result, "Error getting all categories")
+	results.CheckUnexpectedErrorResult(t, result, "Error getting all user categories")
 	mockedRepo.AssertExpectations(t)
 }
 
@@ -51,7 +54,7 @@ func TestGetAllCategoriesHandler_Returns_The_Categories(t *testing.T) {
 		{ID: 12, Name: c2vo},
 	}
 
-	mockedRepo.On("GetAllCategories", request.Context()).Return(found, nil)
+	mockedRepo.On("GetAllCategoriesForUser", request.Context(), int32(1)).Return(found, nil)
 
 	result := GetAllCategoriesHandler(httptest.NewRecorder(), request, h)
 

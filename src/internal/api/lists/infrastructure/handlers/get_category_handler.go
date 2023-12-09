@@ -10,9 +10,10 @@ import (
 
 func GetCategoryHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
 	categoryID := h.ParseInt32UrlVar(r, "id")
+	userID := h.GetUserIDFromContext(r)
 
 	srv := application.NewGetCategoryService(h.CategoriesRepository)
-	foundCategory, err := srv.GetCategory(r.Context(), categoryID)
+	foundCategory, err := srv.GetCategory(r.Context(), categoryID, userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

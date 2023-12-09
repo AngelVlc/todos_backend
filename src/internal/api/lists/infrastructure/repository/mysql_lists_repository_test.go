@@ -223,13 +223,14 @@ func TestMySqlListsRepository_GetAllListsForUser_When_It_Does_Not_Fail_Without_I
 func TestMySqlListsRepository_CreateList_When_The_Create_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`itemsCount`) VALUES (?,?,?)")).
-		WithArgs("list1", 1, 0).
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`categoryId`,`itemsCount`) VALUES (?,?,?,?)")).
+		WithArgs("list1", 1, 2, 0).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
 	nvo, _ := domain.NewListNameValueObject("list1")
-	list := domain.ListEntity{UserID: 1, Name: nvo}
+	categoryId := int32(2)
+	list := domain.ListEntity{UserID: 1, Name: nvo, CategoryID: &categoryId}
 	repo := NewMySqlListsRepository(db)
 
 	_, err := repo.CreateList(context.Background(), &list)
@@ -242,8 +243,8 @@ func TestMySqlListsRepository_CreateList_When_The_Create_Fails(t *testing.T) {
 func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`itemsCount`) VALUES (?,?,?)")).
-		WithArgs("list1", 1, 0).
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `lists` (`name`,`userId`,`categoryId`,`itemsCount`) VALUES (?,?,?,?)")).
+		WithArgs("list1", 1, 2, 0).
 		WillReturnResult(sqlmock.NewResult(12, 0))
 	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `listItems` (`listId`,`userId`,`title`,`description`,`position`) VALUES (?,?,?,?,?) ON DUPLICATE KEY UPDATE `listId`=VALUES(`listId`)")).
 		WithArgs(0, 1, "item1 title", "item1 desc", 0).
@@ -253,9 +254,11 @@ func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 	nvo, _ := domain.NewListNameValueObject("list1")
 	tvo, _ := domain.NewItemTitleValueObject("item1 title")
 	dvo, _ := domain.NewItemDescriptionValueObject("item1 desc")
+	categoryId := int32(2)
 	list := domain.ListEntity{
-		UserID: 1,
-		Name:   nvo,
+		UserID:     1,
+		Name:       nvo,
+		CategoryID: &categoryId,
 		Items: []*domain.ListItemEntity{
 			{UserID: 1, Title: tvo, Description: dvo, Position: 0},
 		},
@@ -356,8 +359,8 @@ func TestMySqlListsRepository_UpdateList_When_The_Update_Fails(t *testing.T) {
 func TestMySqlListsRepository_UpdateList_When_The_Update_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=?,`userId`=? WHERE `id` = ?")).
-		WithArgs("list1", 1, 11).
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=?,`userId`=?,`categoryId`=? WHERE `id` = ?")).
+		WithArgs("list1", 1, 2, 11).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE listId = ?")).
 		WithArgs(11).
@@ -366,7 +369,8 @@ func TestMySqlListsRepository_UpdateList_When_The_Update_Does_Not_Fail(t *testin
 
 	repo := NewMySqlListsRepository(db)
 	nvo, _ := domain.NewListNameValueObject("list1")
-	list := domain.ListEntity{ID: 11, UserID: 1, Name: nvo}
+	categoryID := int32(2)
+	list := domain.ListEntity{ID: 11, UserID: 1, Name: nvo, CategoryID: &categoryID}
 
 	updatedList, err := repo.UpdateList(context.Background(), &list)
 

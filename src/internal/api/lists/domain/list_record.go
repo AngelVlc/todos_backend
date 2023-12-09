@@ -4,6 +4,7 @@ type ListRecord struct {
 	ID         int32             `gorm:"type:int(32);primary_key"`
 	Name       string            `gorm:"type:varchar(50)"`
 	UserID     int32             `gorm:"column:userId;type:int(32)"`
+	CategoryID *int32            `gorm:"column:categoryId;type:int(32)"`
 	ItemsCount int32             `gorm:"column:itemsCount;type:int(32)"`
 	Items      []*ListItemRecord `gorm:"foreignKey:ListID"`
 }
@@ -34,6 +35,7 @@ func (r *ListRecord) ToListEntity() *ListEntity {
 	return &ListEntity{
 		ID:         r.ID,
 		Name:       nvo,
+		CategoryID: r.CategoryID,
 		UserID:     r.UserID,
 		ItemsCount: r.ItemsCount,
 		Items:      items,

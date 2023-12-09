@@ -9,8 +9,10 @@ import (
 )
 
 func GetAllCategoriesHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) handler.HandlerResult {
+	userID := h.GetUserIDFromContext(r)
+
 	srv := application.NewGetAllCategoriesService(h.CategoriesRepository)
-	foundCategories, err := srv.GetAllCategories(r.Context())
+	foundCategories, err := srv.GetAllCategories(r.Context(), userID)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}

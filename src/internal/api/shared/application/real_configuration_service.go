@@ -2,6 +2,7 @@ package application
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"time"
@@ -19,8 +20,9 @@ func (c *RealConfigurationService) GetDatasource() string {
 	user := c.getEnvOrFallback("MYSQL_USER", "root")
 	pass := c.getEnvOrFallback("MYSQL_PASSWORD", "pass")
 	dbname := c.getEnvOrFallback("MYSQL_DATABASE", "todos")
-	tls := c.getEnvOrFallback("MYSQL_TLS", "false")
-	options := fmt.Sprintf("charset=utf8&parseTime=True&loc=Local&tls=%v", tls)
+	options := fmt.Sprintf("allowFallbackToPlaintext=true&charset=utf8&parseTime=True&loc=Local")
+
+	log.Println(fmt.Sprintf("%v:%v@%v:%v/%v?%v", user, pass, host, port, dbname, options))
 
 	return fmt.Sprintf("%v:%v@(%v:%v)/%v?%v", user, pass, host, port, dbname, options)
 }

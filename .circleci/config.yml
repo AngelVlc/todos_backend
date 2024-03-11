@@ -55,8 +55,8 @@ commands:
         -var honeybadger_api_key=$HONEYBADGER_API_KEY
         -var app_name=$APP_NAME
         -var gc_project_id=$GCLOUD_PROJECT_ID
-        -var mysql_tls=$MYSQL_TLS
         -var mysql_host=$MYSQL_HOST
+        -var mysql_port=$MYSQL_PORT
         -var mysql_database=$MYSQL_DATABASE
         -var mysql_user=$MYSQL_USER
         -var mysql_password=$MYSQL_PASSWORD

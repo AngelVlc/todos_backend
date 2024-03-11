@@ -31,7 +31,6 @@ variable "delete_expired_refresh_token_interval" {
   description = "Interval for the delete expired tokens process. Valid time units are s, m or h"
 }
 
-variable "mysql_tls" {}
 variable "mysql_host" {}
 variable "mysql_user" {}
 variable "mysql_password" {}

@@ -11,10 +11,6 @@ resource "google_cloud_run_service" "run_service" {
           value = "production"
         }
         env {
-          name  = "MYSQL_TLS"
-          value = var.mysql_tls
-        }
-        env {
           name  = "MYSQL_HOST"
           value = var.mysql_host
         }

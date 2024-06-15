@@ -356,6 +356,29 @@ func TestMySqlListsRepository_UpdateList_When_The_Update_Fails(t *testing.T) {
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
+func TestMySqlListsRepository_UpdateList_To_Remove_The_Category(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=?,`userId`=?,`categoryId`=? WHERE `id` = ?")).
+		WithArgs("list1", 1, nil, 11).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE listId = ?")).
+		WithArgs(11).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectCommit()
+
+	repo := NewMySqlListsRepository(db)
+	nvo, _ := domain.NewListNameValueObject("list1")
+	list := domain.ListEntity{ID: 11, UserID: 1, Name: nvo}
+
+	updatedList, err := repo.UpdateList(context.Background(), &list)
+
+	assert.Nil(t, err)
+	assert.IsType(t, &domain.ListEntity{}, updatedList)
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
 func TestMySqlListsRepository_UpdateList_When_The_Update_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
@@ -376,7 +399,6 @@ func TestMySqlListsRepository_UpdateList_When_The_Update_Does_Not_Fail(t *testin
 
 	assert.Nil(t, err)
 	assert.IsType(t, &domain.ListEntity{}, updatedList)
-	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)
 }

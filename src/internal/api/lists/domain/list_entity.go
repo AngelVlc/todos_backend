@@ -65,14 +65,3 @@ func (e *ListEntity) ToListSearchDocument() ListSearchDocument {
 
 	return d
 }
-
-func (e *ListEntity) GetMaxItemPosition() int32 {
-	var max int32 = 0
-	for _, v := range e.Items {
-		if v.Position > max {
-			max = v.Position
-		}
-	}
-
-	return max
-}

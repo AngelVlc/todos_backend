@@ -20,10 +20,10 @@ func CreateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewCreateListService(h.ListsRepository, h.EventBus)
-	createdList, err := srv.CreateList(r.Context(), listEntity)
+	err := srv.CreateList(r.Context(), listEntity)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{Content: createdList, StatusCode: http.StatusCreated}
+	return results.OkResult{Content: listEntity, StatusCode: http.StatusCreated}
 }

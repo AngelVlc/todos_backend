@@ -18,10 +18,12 @@ func NewAddListToSearchIndexService(repo domain.ListsRepository, searchClient se
 }
 
 func (s *AddListToSearchIndexService) AddListToSearchIndexService(ctx context.Context, listID int32) error {
-	foundList, err := s.repo.FindList(ctx, domain.ListEntity{ID: listID})
+	foundList, err := s.repo.FindList(ctx, domain.ListRecord{ID: listID})
 	if err != nil {
 		return &errors.UnexpectedError{Msg: "Error getting the list", InternalError: err}
 	}
 
-	return s.searchClient.SaveObjects(foundList.ToListSearchDocument())
+	listEntity := foundList.ToListEntity()
+
+	return s.searchClient.SaveObjects(listEntity.ToListSearchDocument())
 }

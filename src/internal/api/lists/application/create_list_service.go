@@ -17,19 +17,23 @@ func NewCreateListService(repo domain.ListsRepository, eventBus events.EventBus)
 	return &CreateListService{repo, eventBus}
 }
 
-func (s *CreateListService) CreateList(ctx context.Context, listToCreate *domain.ListEntity) (*domain.ListEntity, error) {
-	if existsList, err := s.repo.ExistsList(ctx, domain.ListEntity{Name: listToCreate.Name, UserID: listToCreate.UserID}); err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error checking if a list with the same name already exists", InternalError: err}
+func (s *CreateListService) CreateList(ctx context.Context, listToCreate *domain.ListEntity) error {
+	if existsList, err := s.repo.ExistsList(ctx, domain.ListRecord{Name: listToCreate.Name.String(), UserID: listToCreate.UserID}); err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error checking if a list with the same name already exists", InternalError: err}
 	} else if existsList {
-		return nil, &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
+		return &appErrors.BadRequestError{Msg: "A list with the same name already exists", InternalError: nil}
 	}
 
-	createdList, err := s.repo.CreateList(ctx, listToCreate)
+	record := listToCreate.ToListRecord()
+
+	err := s.repo.CreateList(ctx, record)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user list", InternalError: err}
+		return &appErrors.UnexpectedError{Msg: "Error creating the user list", InternalError: err}
 	}
 
-	go s.eventBus.Publish(events.ListCreated, createdList.ID)
+	listToCreate.ID = record.ID
 
-	return createdList, nil
+	go s.eventBus.Publish(events.ListCreated, record.ID)
+
+	return nil
 }

@@ -40,7 +40,7 @@ func TestMoveListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_Origin_Li
 
 	request := moveRequest()
 
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := MoveListItemHandler(httptest.NewRecorder(), request, h)
 
@@ -57,10 +57,9 @@ func TestMoveListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_Destinati
 
 	request := moveRequest()
 
-	originListName, _ := domain.NewListNameValueObject("origin list")
-	originList := &domain.ListEntity{ID: 11, UserID: 1, Name: originListName}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(originList, nil).Once()
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 20, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
+	originList := domain.ListRecord{ID: 11, UserID: 1, Name: "origin list"}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(originList, nil).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 20, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := MoveListItemHandler(httptest.NewRecorder(), request, h)
 
@@ -68,7 +67,7 @@ func TestMoveListItemHandler_Returns_An_Error_If_The_Query_To_Find_The_Destinati
 	mockedRepo.AssertExpectations(t)
 }
 
-func TestMoveListItemHandler_Returns_An_Error_If_The_ListItem_Does_Not_Exist_In_The_OriginalList(t *testing.T) {
+func TestMoveListItemHandler_Returns_An_Error_If_The_ListItem_Does_Not_Exist_In_The_Origin_List(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{
 		ListsRepository: &mockedRepo,
@@ -77,12 +76,10 @@ func TestMoveListItemHandler_Returns_An_Error_If_The_ListItem_Does_Not_Exist_In_
 
 	request := moveRequest()
 
-	originListName, _ := domain.NewListNameValueObject("origin list")
-	originList := &domain.ListEntity{ID: 11, UserID: 1, Name: originListName}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(originList, nil).Once()
-	destinationListName, _ := domain.NewListNameValueObject("destination list")
-	destinationList := &domain.ListEntity{ID: 20, UserID: 1, Name: destinationListName}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 20, UserID: 1}).Return(destinationList, nil).Once()
+	originList := domain.ListRecord{ID: 11, UserID: 1, Name: "origin list"}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(originList, nil).Once()
+	destinationList := domain.ListRecord{ID: 20, UserID: 1, Name: "destination list"}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 20, UserID: 1}).Return(destinationList, nil).Once()
 
 	result := MoveListItemHandler(httptest.NewRecorder(), request, h)
 
@@ -90,7 +87,7 @@ func TestMoveListItemHandler_Returns_An_Error_If_The_ListItem_Does_Not_Exist_In_
 	mockedRepo.AssertExpectations(t)
 }
 
-func TestMoveListItemHandler_Returns_An_Error_If_The_Update_Of_The_OriginList_Fails(t *testing.T) {
+func TestMoveListItemHandler_Returns_An_Error_If_Updating_The_Origin_List_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{
 		ListsRepository: &mockedRepo,
@@ -99,14 +96,13 @@ func TestMoveListItemHandler_Returns_An_Error_If_The_Update_Of_The_OriginList_Fa
 
 	request := moveRequest()
 
-	originListName, _ := domain.NewListNameValueObject("origin list")
-	originListItem := &domain.ListItemEntity{ID: 5}
-	originList := &domain.ListEntity{ID: 11, UserID: 1, Name: originListName, Items: []*domain.ListItemEntity{originListItem}}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(originList, nil).Once()
-	destinationListName, _ := domain.NewListNameValueObject("destination list")
-	destinationList := &domain.ListEntity{ID: 20, UserID: 1, Name: destinationListName}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 20, UserID: 1}).Return(destinationList, nil).Once()
-	mockedRepo.On("UpdateList", request.Context(), originList).Return(nil, fmt.Errorf("some error")).Once()
+	originListItem := &domain.ListItemRecord{ID: 5}
+	originList := domain.ListRecord{ID: 11, UserID: 1, Name: "origin list", Items: []*domain.ListItemRecord{originListItem}}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(originList, nil).Once()
+	destinationList := domain.ListRecord{ID: 20, UserID: 1, Name: "destination list"}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 20, UserID: 1}).Return(destinationList, nil).Once()
+	originList.Items = []*domain.ListItemRecord{}
+	mockedRepo.On("UpdateList", request.Context(), &originList).Return(fmt.Errorf("some error")).Once()
 
 	result := MoveListItemHandler(httptest.NewRecorder(), request, h)
 
@@ -114,7 +110,7 @@ func TestMoveListItemHandler_Returns_An_Error_If_The_Update_Of_The_OriginList_Fa
 	mockedRepo.AssertExpectations(t)
 }
 
-func TestMoveListItemHandler_Returns_An_Error_If_The_Update_Of_The_DestinationList_Fails(t *testing.T) {
+func TestMoveListItemHandler_Returns_An_Error_If_The_Update_Of_The_Destination_List_Fails(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{
 		ListsRepository: &mockedRepo,
@@ -123,15 +119,15 @@ func TestMoveListItemHandler_Returns_An_Error_If_The_Update_Of_The_DestinationLi
 
 	request := moveRequest()
 
-	originListName, _ := domain.NewListNameValueObject("origin list")
-	originListItem := &domain.ListItemEntity{ID: 5}
-	originList := &domain.ListEntity{ID: 11, UserID: 1, Name: originListName, Items: []*domain.ListItemEntity{originListItem}}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(originList, nil).Once()
-	destinationListName, _ := domain.NewListNameValueObject("destination list")
-	destinationList := &domain.ListEntity{ID: 20, UserID: 1, Name: destinationListName}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 20, UserID: 1}).Return(destinationList, nil).Once()
-	mockedRepo.On("UpdateList", request.Context(), originList).Return(originList, nil).Once()
-	mockedRepo.On("UpdateList", request.Context(), destinationList).Return(nil, fmt.Errorf("some error")).Once()
+	originListItem := &domain.ListItemRecord{ID: 5}
+	originList := domain.ListRecord{ID: 11, UserID: 1, Name: "origin list", Items: []*domain.ListItemRecord{originListItem}}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(originList, nil).Once()
+	destinationList := domain.ListRecord{ID: 20, UserID: 1, Name: "destination list"}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 20, UserID: 1}).Return(destinationList, nil).Once()
+	originList.Items = []*domain.ListItemRecord{}
+	mockedRepo.On("UpdateList", request.Context(), &originList).Return(nil).Once()
+	destinationList.Items = []*domain.ListItemRecord{originListItem}
+	mockedRepo.On("UpdateList", request.Context(), &destinationList).Return(fmt.Errorf("some error")).Once()
 
 	result := MoveListItemHandler(httptest.NewRecorder(), request, h)
 
@@ -150,15 +146,15 @@ func TestMoveListItemHandler_Updates_The_Lists_An_And_Sends_Two_ListCreatedOrUpd
 
 	request := moveRequest()
 
-	originListName, _ := domain.NewListNameValueObject("origin list")
-	originListItem := &domain.ListItemEntity{ID: 5}
-	originList := &domain.ListEntity{ID: 11, UserID: 1, Name: originListName, Items: []*domain.ListItemEntity{originListItem}}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 11, UserID: 1}).Return(originList, nil).Once()
-	destinationListName, _ := domain.NewListNameValueObject("destination list")
-	destinationList := &domain.ListEntity{ID: 20, UserID: 1, Name: destinationListName}
-	mockedRepo.On("FindList", request.Context(), domain.ListEntity{ID: 20, UserID: 1}).Return(destinationList, nil).Once()
-	mockedRepo.On("UpdateList", request.Context(), originList).Return(originList, nil).Once()
-	mockedRepo.On("UpdateList", request.Context(), destinationList).Return(destinationList, nil).Once()
+	originListItem := &domain.ListItemRecord{ID: 5}
+	originList := domain.ListRecord{ID: 11, UserID: 1, Name: "origin list", Items: []*domain.ListItemRecord{originListItem}}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(originList, nil).Once()
+	destinationList := domain.ListRecord{ID: 20, UserID: 1, Name: "destination list"}
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 20, UserID: 1}).Return(destinationList, nil).Once()
+	originList.Items = []*domain.ListItemRecord{}
+	mockedRepo.On("UpdateList", request.Context(), &originList).Return(nil).Once()
+	destinationList.Items = []*domain.ListItemRecord{originListItem}
+	mockedRepo.On("UpdateList", request.Context(), &destinationList).Return(nil).Once()
 
 	mockedEventBus.On("Publish", events.ListUpdated, int32(11))
 	mockedEventBus.On("Publish", events.ListUpdated, int32(20))

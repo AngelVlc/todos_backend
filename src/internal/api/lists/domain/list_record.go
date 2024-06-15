@@ -1,6 +1,8 @@
 package domain
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 type ListRecord struct {
 	ID         int32             `gorm:"type:int(32);primary_key"`
@@ -34,18 +36,39 @@ func (r *ListRecord) ToListEntity() *ListEntity {
 		}
 	}
 
-	var categoryID int32
+	var categoryID *int32
 
 	if r.CategoryID != nil && r.CategoryID.Valid {
-		categoryID = r.CategoryID.Int32
+		categoryID = &r.CategoryID.Int32
 	}
 
 	return &ListEntity{
 		ID:         r.ID,
 		Name:       nvo,
-		CategoryID: &categoryID,
+		CategoryID: categoryID,
 		UserID:     r.UserID,
 		ItemsCount: r.ItemsCount,
 		Items:      items,
 	}
+}
+
+func (r *ListRecord) GetMaxItemPosition() int32 {
+	var max int32 = 0
+	for _, v := range r.Items {
+		if v.Position > max {
+			max = v.Position
+		}
+	}
+
+	return max
+}
+
+func ToListEntities(records []ListRecord) []*ListEntity {
+	res := make([]*ListEntity, len(records))
+
+	for i, v := range records {
+		res[i] = v.ToListEntity()
+	}
+
+	return res
 }

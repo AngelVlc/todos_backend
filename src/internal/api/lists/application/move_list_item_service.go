@@ -19,12 +19,12 @@ func NewMoveListItemService(repo domain.ListsRepository, eventBus events.EventBu
 }
 
 func (s *MoveListItemService) MoveListItem(ctx context.Context, originListID int32, originListItemID int32, destinationListID int32, userID int32) error {
-	foundOriginList, err := s.repo.FindList(ctx, domain.ListEntity{ID: originListID, UserID: userID})
+	foundOriginList, err := s.repo.FindList(ctx, domain.ListRecord{ID: originListID, UserID: userID})
 	if err != nil {
 		return err
 	}
 
-	foundDestinationList, err := s.repo.FindList(ctx, domain.ListEntity{ID: destinationListID, UserID: userID})
+	foundDestinationList, err := s.repo.FindList(ctx, domain.ListRecord{ID: destinationListID, UserID: userID})
 	if err != nil {
 		return &appErrors.BadRequestError{Msg: "The destination list does not exist"}
 	}
@@ -48,11 +48,11 @@ func (s *MoveListItemService) MoveListItem(ctx context.Context, originListID int
 
 	foundOriginList.Items = append(foundOriginList.Items[:indexToRemove], foundOriginList.Items[indexToRemove+1:]...)
 
-	if _, err = s.repo.UpdateList(ctx, foundOriginList); err != nil {
+	if err = s.repo.UpdateList(ctx, &foundOriginList); err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error updating the original list", InternalError: err}
 	}
 
-	if _, err = s.repo.UpdateList(ctx, foundDestinationList); err != nil {
+	if err = s.repo.UpdateList(ctx, &foundDestinationList); err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error updating the destination list", InternalError: err}
 	}
 

@@ -19,73 +19,57 @@ func orderItems(db *gorm.DB) *gorm.DB {
 	return db.Order("position ASC")
 }
 
-func (r *MySqlListsRepository) FindList(ctx context.Context, query domain.ListEntity) (*domain.ListEntity, error) {
+func (r *MySqlListsRepository) FindList(ctx context.Context, query domain.ListRecord) (domain.ListRecord, error) {
 	foundList := domain.ListRecord{}
-	if err := r.db.WithContext(ctx).Where(query.ToListRecord()).Preload("Items", orderItems).Take(&foundList).Error; err != nil {
-		return nil, err
+	if err := r.db.WithContext(ctx).Where(query).Preload("Items", orderItems).Take(&foundList).Error; err != nil {
+		return domain.ListRecord{}, err
 	}
 
-	return foundList.ToListEntity(), nil
+	return foundList, nil
 }
 
-func (r *MySqlListsRepository) ExistsList(ctx context.Context, query domain.ListEntity) (bool, error) {
+func (r *MySqlListsRepository) ExistsList(ctx context.Context, query domain.ListRecord) (bool, error) {
 	count := int64(0)
-	if err := r.db.WithContext(ctx).Model(&domain.ListRecord{}).Where(query.ToListRecord()).Count(&count).Error; err != nil {
+	if err := r.db.WithContext(ctx).Model(&domain.ListRecord{}).Where(query).Count(&count).Error; err != nil {
 		return false, err
 	}
 
 	return count > 0, nil
 }
 
-func (r *MySqlListsRepository) GetAllLists(ctx context.Context) ([]*domain.ListEntity, error) {
+func (r *MySqlListsRepository) GetAllLists(ctx context.Context) ([]domain.ListRecord, error) {
 	foundLists := []domain.ListRecord{}
 
 	if err := r.db.WithContext(ctx).Preload("Items", orderItems).Find(&foundLists).Error; err != nil {
 		return nil, err
 	}
 
-	res := make([]*domain.ListEntity, len(foundLists))
-
-	for i, l := range foundLists {
-		res[i] = l.ToListEntity()
-	}
-
-	return res, nil
+	return foundLists, nil
 }
 
-func (r *MySqlListsRepository) GetAllListsForUser(ctx context.Context, userID int32) ([]*domain.ListEntity, error) {
+func (r *MySqlListsRepository) GetAllListsForUser(ctx context.Context, userID int32) ([]domain.ListRecord, error) {
 	foundLists := []domain.ListRecord{}
 
 	if err := r.db.WithContext(ctx).Where(domain.ListRecord{UserID: userID}).Find(&foundLists).Error; err != nil {
 		return nil, err
 	}
 
-	res := make([]*domain.ListEntity, len(foundLists))
-
-	for i, l := range foundLists {
-		res[i] = l.ToListEntity()
-	}
-
-	return res, nil
+	return foundLists, nil
 }
 
-func (r *MySqlListsRepository) CreateList(ctx context.Context, list *domain.ListEntity) (*domain.ListEntity, error) {
-	record := list.ToListRecord()
-
+func (r *MySqlListsRepository) CreateList(ctx context.Context, record *domain.ListRecord) error {
 	if err := r.db.WithContext(ctx).Create(record).Error; err != nil {
-		return nil, err
+		return err
 	}
 
-	return record.ToListEntity(), nil
+	return nil
 }
 
-func (r *MySqlListsRepository) DeleteList(ctx context.Context, query domain.ListEntity) error {
-	return r.db.WithContext(ctx).Select("Items").Delete(query.ToListRecord()).Error
+func (r *MySqlListsRepository) DeleteList(ctx context.Context, query domain.ListRecord) error {
+	return r.db.WithContext(ctx).Select("Items").Delete(query).Error
 }
 
-func (r *MySqlListsRepository) UpdateList(ctx context.Context, list *domain.ListEntity) (*domain.ListEntity, error) {
-	record := list.ToListRecord()
-
+func (r *MySqlListsRepository) UpdateList(ctx context.Context, record *domain.ListRecord) error {
 	error := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(record).Error; err != nil {
 			return err
@@ -99,10 +83,11 @@ func (r *MySqlListsRepository) UpdateList(ctx context.Context, list *domain.List
 		if err := tx.WithContext(ctx).Not(currentItems).Delete(&domain.ListItemRecord{}, "listId = ?", record.ID).Error; err != nil {
 			return err
 		}
+
 		return nil
 	})
 
-	return record.ToListEntity(), error
+	return error
 }
 
 func (r *MySqlListsRepository) UpdateListItemsCount(ctx context.Context, listID int32) error {

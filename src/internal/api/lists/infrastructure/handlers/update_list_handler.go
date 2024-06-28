@@ -23,10 +23,10 @@ func UpdateListHandler(w http.ResponseWriter, r *http.Request, h handler.Handler
 	}
 
 	srv := application.NewUpdateListService(h.ListsRepository, h.EventBus)
-	updatedList, err := srv.UpdateList(r.Context(), listEntity)
+	err := srv.UpdateList(r.Context(), listEntity)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{Content: updatedList, StatusCode: http.StatusOK}
+	return results.OkResult{Content: listEntity, StatusCode: http.StatusOK}
 }

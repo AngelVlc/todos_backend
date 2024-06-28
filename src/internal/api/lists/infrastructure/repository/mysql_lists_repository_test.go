@@ -5,6 +5,7 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"regexp"
 	"testing"
@@ -32,9 +33,8 @@ func TestMySqlListsRepository_FindList_WhenTheQueryFails(t *testing.T) {
 		WithArgs(listID, userID).
 		WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.FindList(context.Background(), domain.ListEntity{ID: listID, UserID: userID})
+	_, err := repo.FindList(context.Background(), domain.ListRecord{ID: listID, UserID: userID})
 
-	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
 
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -57,26 +57,26 @@ func TestMySqlListsRepository_FindList_WhenTheQueryDoesNotFail(t *testing.T) {
 			AddRow(21, listID, userID, "item1_title", "item1_desc", 0).
 			AddRow(31, listID, userID, "item2_title", "item2_desc", 1))
 
-	res, err := repo.FindList(context.Background(), domain.ListEntity{ID: listID, UserID: userID})
+	res, err := repo.FindList(context.Background(), domain.ListRecord{ID: listID, UserID: userID})
 
 	require.NotNil(t, res)
-	require.IsType(t, &domain.ListEntity{}, res)
+	require.IsType(t, domain.ListRecord{}, res)
 	assert.Equal(t, listID, res.ID)
-	assert.Equal(t, "list1", res.Name.String())
+	assert.Equal(t, "list1", res.Name)
 	assert.Equal(t, userID, res.UserID)
 	assert.Equal(t, int32(3), res.ItemsCount)
 	assert.Equal(t, 2, len(res.Items))
 	assert.Equal(t, int32(21), res.Items[0].ID)
 	assert.Equal(t, listID, res.Items[0].ListID)
 	assert.Equal(t, userID, res.Items[0].UserID)
-	assert.Equal(t, "item1_title", res.Items[0].Title.String())
-	assert.Equal(t, "item1_desc", res.Items[0].Description.String())
+	assert.Equal(t, "item1_title", res.Items[0].Title)
+	assert.Equal(t, "item1_desc", res.Items[0].Description)
 	assert.Equal(t, int32(0), res.Items[0].Position)
 	assert.Equal(t, int32(31), res.Items[1].ID)
 	assert.Equal(t, listID, res.Items[1].ListID)
 	assert.Equal(t, userID, res.Items[1].UserID)
-	assert.Equal(t, "item2_title", res.Items[1].Title.String())
-	assert.Equal(t, "item2_desc", res.Items[1].Description.String())
+	assert.Equal(t, "item2_title", res.Items[1].Title)
+	assert.Equal(t, "item2_desc", res.Items[1].Description)
 	assert.Equal(t, int32(1), res.Items[1].Position)
 	assert.Nil(t, err)
 
@@ -91,8 +91,7 @@ func TestMySqlListsRepository_ExistsList_WhenTheQueryFails(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 
 	repo := NewMySqlListsRepository(db)
-	nvo, _ := domain.NewListNameValueObject("list name")
-	list := domain.ListEntity{Name: nvo, UserID: userID}
+	list := domain.ListRecord{Name: "list name", UserID: userID}
 
 	res, err := repo.ExistsList(context.Background(), list)
 
@@ -110,8 +109,7 @@ func TestMySqlListsRepository_ExistsList_WhenItDoesNotFail(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	repo := NewMySqlListsRepository(db)
-	nvo, _ := domain.NewListNameValueObject("list name")
-	list := domain.ListEntity{Name: nvo, UserID: userID}
+	list := domain.ListRecord{Name: "list name", UserID: userID}
 
 	res, err := repo.ExistsList(context.Background(), list)
 
@@ -160,13 +158,13 @@ func TestMySqlListsRepository_GetAllLists_When_It_Does_Not_Fail_Including_Items(
 	require.NotNil(t, res)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
-	assert.Equal(t, "list1", res[0].Name.String())
+	assert.Equal(t, "list1", res[0].Name)
 	assert.Equal(t, int32(1), res[0].UserID)
 	assert.Equal(t, int32(3), res[0].ItemsCount)
 	assert.Equal(t, int32(12), res[1].ID)
-	assert.Equal(t, "list1_item1_title", res[0].Items[0].Title.String())
-	assert.Equal(t, "list1_item1_desc", res[0].Items[0].Description.String())
-	assert.Equal(t, "list2", res[1].Name.String())
+	assert.Equal(t, "list1_item1_title", res[0].Items[0].Title)
+	assert.Equal(t, "list1_item1_desc", res[0].Items[0].Description)
+	assert.Equal(t, "list2", res[1].Name)
 	assert.Equal(t, int32(2), res[1].UserID)
 	assert.Equal(t, int32(4), res[1].ItemsCount)
 
@@ -209,11 +207,11 @@ func TestMySqlListsRepository_GetAllListsForUser_When_It_Does_Not_Fail_Without_I
 	require.NotNil(t, res)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
-	assert.Equal(t, "list1", res[0].Name.String())
+	assert.Equal(t, "list1", res[0].Name)
 	assert.Equal(t, userID, res[0].UserID)
 	assert.Equal(t, int32(3), res[0].ItemsCount)
 	assert.Equal(t, int32(12), res[1].ID)
-	assert.Equal(t, "list2", res[1].Name.String())
+	assert.Equal(t, "list2", res[1].Name)
 	assert.Equal(t, userID, res[1].UserID)
 	assert.Equal(t, int32(4), res[1].ItemsCount)
 
@@ -228,12 +226,10 @@ func TestMySqlListsRepository_CreateList_When_The_Create_Fails(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	nvo, _ := domain.NewListNameValueObject("list1")
-	categoryId := int32(2)
-	list := domain.ListEntity{UserID: 1, Name: nvo, CategoryID: &categoryId}
+	list := domain.ListRecord{UserID: 1, Name: "list1", CategoryID: &sql.NullInt32{Int32: 2, Valid: true}}
 	repo := NewMySqlListsRepository(db)
 
-	_, err := repo.CreateList(context.Background(), &list)
+	err := repo.CreateList(context.Background(), &list)
 
 	assert.EqualError(t, err, "some error")
 
@@ -251,24 +247,18 @@ func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(12, 0))
 	mock.ExpectCommit()
 
-	nvo, _ := domain.NewListNameValueObject("list1")
-	tvo, _ := domain.NewItemTitleValueObject("item1 title")
-	dvo, _ := domain.NewItemDescriptionValueObject("item1 desc")
-	categoryId := int32(2)
-	list := domain.ListEntity{
+	list := domain.ListRecord{
 		UserID:     1,
-		Name:       nvo,
-		CategoryID: &categoryId,
-		Items: []*domain.ListItemEntity{
-			{UserID: 1, Title: tvo, Description: dvo, Position: 0},
+		Name:       "list1",
+		CategoryID: &sql.NullInt32{Int32: 2, Valid: true},
+		Items: []*domain.ListItemRecord{
+			{UserID: 1, Title: "item1 title", Description: "item1 desc", Position: 0},
 		},
 	}
 	repo := NewMySqlListsRepository(db)
 
-	res, err := repo.CreateList(context.Background(), &list)
+	err := repo.CreateList(context.Background(), &list)
 
-	require.NotNil(t, res)
-	assert.IsType(t, &domain.ListEntity{}, res)
 	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -286,7 +276,7 @@ func TestMySqlListsRepository_DeleteList_When_Deleting_The_ListItems_Fails(t *te
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID})
+	err := repo.DeleteList(context.Background(), domain.ListRecord{ID: listID})
 
 	assert.EqualError(t, err, "some error")
 
@@ -308,7 +298,7 @@ func TestMySqlListsRepository_DeleteList_When_Deleting_The_List_Fails(t *testing
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID})
+	err := repo.DeleteList(context.Background(), domain.ListRecord{ID: listID})
 
 	assert.EqualError(t, err, "some error")
 
@@ -330,7 +320,7 @@ func TestMySqlListsRepository_DeleteList_When_It_Does_Not_Fail(t *testing.T) {
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
-	err := repo.DeleteList(context.Background(), domain.ListEntity{ID: listID})
+	err := repo.DeleteList(context.Background(), domain.ListRecord{ID: listID})
 
 	assert.Nil(t, err)
 
@@ -346,12 +336,32 @@ func TestMySqlListsRepository_UpdateList_When_The_Update_Fails(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	nvo, _ := domain.NewListNameValueObject("list1")
-	list := domain.ListEntity{ID: 11, UserID: 1, Name: nvo}
+	list := domain.ListRecord{ID: 11, UserID: 1, Name: "list1"}
 
-	_, err := repo.UpdateList(context.Background(), &list)
+	err := repo.UpdateList(context.Background(), &list)
 
 	assert.EqualError(t, err, "some error")
+
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlListsRepository_UpdateList_To_Remove_The_Category(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `lists` SET `name`=?,`userId`=?,`categoryId`=? WHERE `id` = ?")).
+		WithArgs("list1", 1, nil, 11).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `listItems` WHERE listId = ?")).
+		WithArgs(11).
+		WillReturnResult(sqlmock.NewResult(0, 0))
+	mock.ExpectCommit()
+
+	repo := NewMySqlListsRepository(db)
+	list := domain.ListRecord{ID: 11, UserID: 1, Name: "list1", CategoryID: &sql.NullInt32{Valid: false}}
+
+	err := repo.UpdateList(context.Background(), &list)
+
+	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)
 }
@@ -368,14 +378,11 @@ func TestMySqlListsRepository_UpdateList_When_The_Update_Does_Not_Fail(t *testin
 	mock.ExpectCommit()
 
 	repo := NewMySqlListsRepository(db)
-	nvo, _ := domain.NewListNameValueObject("list1")
-	categoryID := int32(2)
-	list := domain.ListEntity{ID: 11, UserID: 1, Name: nvo, CategoryID: &categoryID}
 
-	updatedList, err := repo.UpdateList(context.Background(), &list)
+	list := domain.ListRecord{ID: 11, UserID: 1, Name: "list1", CategoryID: &sql.NullInt32{Int32: 2, Valid: true}}
 
-	assert.Nil(t, err)
-	assert.IsType(t, &domain.ListEntity{}, updatedList)
+	err := repo.UpdateList(context.Background(), &list)
+
 	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)

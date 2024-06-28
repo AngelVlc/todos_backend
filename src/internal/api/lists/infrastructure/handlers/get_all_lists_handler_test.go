@@ -47,11 +47,9 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	l1vo, _ := domain.NewListNameValueObject("list1")
-	l2vo, _ := domain.NewListNameValueObject("list2")
-	found := []*domain.ListEntity{
-		{ID: 11, Name: l1vo, ItemsCount: 4},
-		{ID: 12, Name: l2vo, ItemsCount: 8},
+	found := []domain.ListRecord{
+		{ID: 11, Name: "list1", ItemsCount: 4},
+		{ID: 12, Name: "list2", ItemsCount: 8},
 	}
 
 	mockedRepo.On("GetAllListsForUser", request.Context(), int32(1)).Return(found, nil)

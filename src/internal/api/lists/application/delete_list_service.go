@@ -18,12 +18,12 @@ func NewDeleteListService(repo domain.ListsRepository, eventBus events.EventBus)
 }
 
 func (s *DeleteListService) DeleteList(ctx context.Context, listID int32, userID int32) error {
-	foundList, err := s.repo.FindList(ctx, domain.ListEntity{ID: listID, UserID: userID})
+	foundList, err := s.repo.FindList(ctx, domain.ListRecord{ID: listID, UserID: userID})
 	if err != nil {
 		return err
 	}
 
-	if err := s.repo.DeleteList(ctx, *foundList); err != nil {
+	if err := s.repo.DeleteList(ctx, foundList); err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting the user list", InternalError: err}
 	}
 

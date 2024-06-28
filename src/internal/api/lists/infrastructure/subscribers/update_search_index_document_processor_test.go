@@ -16,14 +16,15 @@ func TestUpdateSearchIndexDocumentProcessor(t *testing.T) {
 	mockedSearchClient := search.MockedSearchIndexClient{}
 
 	ctx := newrelic.NewContext(context.Background(), nil)
-	l1vo, _ := domain.NewListNameValueObject("list1")
 
-	foundList := domain.ListEntity{
+	foundList := domain.ListRecord{
 		ID:     12,
 		UserID: 2,
-		Name:   l1vo,
+		Name:   "list1",
 	}
-	mockedRepo.On("FindList", ctx, domain.ListEntity{ID: 12}).Return(&foundList, nil).Once()
+	mockedRepo.On("FindList", ctx, domain.ListRecord{ID: 12}).Return(foundList, nil).Once()
+
+	l1vo, _ := domain.NewListNameValueObject("list1")
 
 	listDocument := domain.ListSearchDocument{
 		ObjectID:          "12",

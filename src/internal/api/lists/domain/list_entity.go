@@ -1,6 +1,9 @@
 package domain
 
-import "fmt"
+import (
+	"database/sql"
+	"fmt"
+)
 
 type ListEntity struct {
 	ID         int32               `json:"id"`
@@ -12,10 +15,21 @@ type ListEntity struct {
 }
 
 func (e *ListEntity) ToListRecord() *ListRecord {
+	var categoryID sql.NullInt32
+
+	if e.CategoryID != nil {
+		categoryID = sql.NullInt32{
+			Int32: *e.CategoryID,
+			Valid: true,
+		}
+	} else {
+		categoryID = sql.NullInt32{}
+	}
+
 	r := &ListRecord{
 		ID:         e.ID,
 		Name:       e.Name.String(),
-		CategoryID: e.CategoryID,
+		CategoryID: &categoryID,
 		UserID:     e.UserID,
 		ItemsCount: e.ItemsCount,
 		Items:      make([]*ListItemRecord, len(e.Items)),
@@ -50,15 +64,4 @@ func (e *ListEntity) ToListSearchDocument() ListSearchDocument {
 	}
 
 	return d
-}
-
-func (e *ListEntity) GetMaxItemPosition() int32 {
-	var max int32 = 0
-	for _, v := range e.Items {
-		if v.Position > max {
-			max = v.Position
-		}
-	}
-
-	return max
 }

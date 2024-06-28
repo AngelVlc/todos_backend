@@ -16,18 +16,15 @@ func TestIndexAllListsProcessor(t *testing.T) {
 	mockedSearchClient := search.MockedSearchIndexClient{}
 
 	ctx := newrelic.NewContext(context.Background(), nil)
-	l1vo, _ := domain.NewListNameValueObject("list1")
-	l2vo, _ := domain.NewListNameValueObject("list2")
-	t1vo, _ := domain.NewItemTitleValueObject("title1")
-	d1vo, _ := domain.NewItemDescriptionValueObject("desc1")
-	t2vo, _ := domain.NewItemTitleValueObject("title2")
-	d2vo, _ := domain.NewItemDescriptionValueObject("desc2")
 
-	foundLists := []*domain.ListEntity{
-		{ID: 11, UserID: 2, Name: l1vo, Items: []*domain.ListItemEntity{{ID: 21, Title: t1vo, Description: d1vo}, {ID: 22, Title: t2vo, Description: d2vo}}},
-		{ID: 12, UserID: 2, Name: l2vo},
+	foundLists := []domain.ListRecord{
+		{ID: 11, UserID: 2, Name: "list1", Items: []*domain.ListItemRecord{{ID: 21, Title: "title1", Description: "desc1"}, {ID: 22, Title: "title2", Description: "desc2"}}},
+		{ID: 12, UserID: 2, Name: "list2"},
 	}
 	mockedRepo.On("GetAllLists", ctx).Return(foundLists, nil).Once()
+
+	l1vo, _ := domain.NewListNameValueObject("list1")
+	l2vo, _ := domain.NewListNameValueObject("list2")
 
 	listDocuments := []domain.ListSearchDocument{
 		{ObjectID: "11", UserID: 2, Name: l1vo, ItemsTitles: []string{"title1", "title2"}, ItemsDescriptions: []string{"desc1", "desc2"}},

@@ -21,7 +21,7 @@ func TestIndexAllListsProcessor(t *testing.T) {
 		{ID: 11, UserID: 2, Name: "list1", Items: []*domain.ListItemRecord{{ID: 21, Title: "title1", Description: "desc1"}, {ID: 22, Title: "title2", Description: "desc2"}}},
 		{ID: 12, UserID: 2, Name: "list2"},
 	}
-	mockedRepo.On("GetAllLists", ctx).Return(foundLists, nil).Once()
+	mockedRepo.On("GetLists", ctx, domain.ListRecord{}).Return(foundLists, nil).Once()
 
 	l1vo, _ := domain.NewListNameValueObject("list1")
 	l2vo, _ := domain.NewListNameValueObject("list2")

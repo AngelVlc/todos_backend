@@ -37,20 +37,10 @@ func (r *MySqlListsRepository) ExistsList(ctx context.Context, query domain.List
 	return count > 0, nil
 }
 
-func (r *MySqlListsRepository) GetAllLists(ctx context.Context) ([]domain.ListRecord, error) {
+func (r *MySqlListsRepository) GetLists(ctx context.Context, query domain.ListRecord) ([]domain.ListRecord, error) {
 	foundLists := []domain.ListRecord{}
 
-	if err := r.db.WithContext(ctx).Preload("Items", orderItems).Find(&foundLists).Error; err != nil {
-		return nil, err
-	}
-
-	return foundLists, nil
-}
-
-func (r *MySqlListsRepository) GetAllListsForUser(ctx context.Context, userID int32) ([]domain.ListRecord, error) {
-	foundLists := []domain.ListRecord{}
-
-	if err := r.db.WithContext(ctx).Where(domain.ListRecord{UserID: userID}).Find(&foundLists).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(query).Find(&foundLists).Error; err != nil {
 		return nil, err
 	}
 

@@ -18,7 +18,7 @@ func NewIndexAllListsService(repo domain.ListsRepository, searchClient search.Se
 }
 
 func (s *IndexAllListsService) IndexAllLists(ctx context.Context) error {
-	foundLists, err := s.repo.GetAllLists(ctx)
+	foundLists, err := s.repo.GetLists(ctx, domain.ListRecord{})
 	if err != nil {
 		return &errors.UnexpectedError{Msg: "Error getting the lists", InternalError: err}
 	}

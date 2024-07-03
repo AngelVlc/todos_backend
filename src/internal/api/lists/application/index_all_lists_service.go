@@ -26,8 +26,7 @@ func (s *IndexAllListsService) IndexAllLists(ctx context.Context) error {
 	documents := make([]domain.ListSearchDocument, len(foundLists))
 
 	for i, l := range foundLists {
-		listEntity := l.ToListEntity()
-		documents[i] = listEntity.ToListSearchDocument()
+		documents[i] = l.ToListSearchDocument()
 	}
 
 	return s.searchClient.SaveObjects(documents)

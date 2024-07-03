@@ -2,7 +2,6 @@ package domain
 
 import (
 	"database/sql"
-	"fmt"
 )
 
 type ListEntity struct {
@@ -47,21 +46,4 @@ func (e *ListEntity) ToListRecord() *ListRecord {
 	}
 
 	return r
-}
-
-func (e *ListEntity) ToListSearchDocument() ListSearchDocument {
-	d := ListSearchDocument{
-		ObjectID:          fmt.Sprint(e.ID),
-		UserID:            e.UserID,
-		Name:              e.Name,
-		ItemsTitles:       make([]string, len(e.Items)),
-		ItemsDescriptions: make([]string, len(e.Items)),
-	}
-
-	for i, v := range e.Items {
-		d.ItemsTitles[i] = v.Title.String()
-		d.ItemsDescriptions[i] = v.Description.String()
-	}
-
-	return d
 }

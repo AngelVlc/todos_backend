@@ -23,12 +23,9 @@ func TestIndexAllListsProcessor(t *testing.T) {
 	}
 	mockedRepo.On("GetLists", ctx, domain.ListRecord{}).Return(foundLists, nil).Once()
 
-	l1vo, _ := domain.NewListNameValueObject("list1")
-	l2vo, _ := domain.NewListNameValueObject("list2")
-
 	listDocuments := []domain.ListSearchDocument{
-		{ObjectID: "11", UserID: 2, Name: l1vo, ItemsTitles: []string{"title1", "title2"}, ItemsDescriptions: []string{"desc1", "desc2"}},
-		{ObjectID: "12", UserID: 2, Name: l2vo, ItemsTitles: []string{}, ItemsDescriptions: []string{}},
+		{ObjectID: "11", UserID: 2, Name: "list1", ItemsTitles: []string{"title1", "title2"}, ItemsDescriptions: []string{"desc1", "desc2"}},
+		{ObjectID: "12", UserID: 2, Name: "list2", ItemsTitles: []string{}, ItemsDescriptions: []string{}},
 	}
 	mockedSearchClient.On("SaveObjects", listDocuments).Once().Return(nil)
 

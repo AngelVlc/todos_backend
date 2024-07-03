@@ -4,7 +4,7 @@ import "context"
 
 type UsersRepository interface {
 	FindUser(ctx context.Context, query UserEntity) (*UserEntity, error)
-	ExistsUser(ctx context.Context, query UserEntity) (bool, error)
+	ExistsUser(ctx context.Context, query UserRecord) (bool, error)
 	GetAll(ctx context.Context) ([]*UserEntity, error)
 	Create(ctx context.Context, user *UserEntity) (*UserEntity, error)
 	Delete(ctx context.Context, query UserEntity) error

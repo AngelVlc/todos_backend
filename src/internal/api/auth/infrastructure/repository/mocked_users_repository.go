@@ -23,7 +23,7 @@ func (m *MockedUsersRepository) FindUser(ctx context.Context, query domain.UserE
 	return args.Get(0).(*domain.UserEntity), args.Error(1)
 }
 
-func (m *MockedUsersRepository) ExistsUser(ctx context.Context, query domain.UserEntity) (bool, error) {
+func (m *MockedUsersRepository) ExistsUser(ctx context.Context, query domain.UserRecord) (bool, error) {
 	args := m.Called(ctx, query)
 
 	return args.Bool(0), args.Error(1)

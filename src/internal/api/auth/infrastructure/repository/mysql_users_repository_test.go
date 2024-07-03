@@ -65,8 +65,7 @@ func TestMySqlAuthRepository_ExistsUser_WhenItFails(t *testing.T) {
 		WillReturnError(fmt.Errorf("some error"))
 
 	repo := NewMySqlUsersRepository(db)
-	nvo, _ := domain.NewUserNameValueObject("userName")
-	user := domain.UserEntity{Name: nvo}
+	user := domain.UserRecord{Name: "userName"}
 
 	res, err := repo.ExistsUser(context.Background(), user)
 
@@ -83,8 +82,7 @@ func TestMySqlAuthRepository_ExistsUser_WhenItDoesNotFail(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	repo := NewMySqlUsersRepository(db)
-	nvo, _ := domain.NewUserNameValueObject("userName")
-	user := domain.UserEntity{Name: nvo}
+	user := domain.UserRecord{Name: "userName"}
 
 	res, err := repo.ExistsUser(context.Background(), user)
 

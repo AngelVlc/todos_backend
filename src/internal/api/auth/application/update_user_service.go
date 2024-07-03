@@ -34,7 +34,7 @@ func (s *UpdateUserService) UpdateUser(ctx context.Context, userID int32, userNa
 	}
 
 	if foundUser.Name.String() != userName.String() {
-		if existsUser, err := s.usersRepo.ExistsUser(ctx, domain.UserEntity{Name: userName}); err != nil {
+		if existsUser, err := s.usersRepo.ExistsUser(ctx, domain.UserRecord{Name: userName.String()}); err != nil {
 			return nil, &appErrors.UnexpectedError{Msg: "Error checking if a user with the same name already exists", InternalError: err}
 		} else if existsUser {
 			return nil, &appErrors.BadRequestError{Msg: "A user with the same user name already exists", InternalError: nil}

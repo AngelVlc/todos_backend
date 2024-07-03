@@ -140,7 +140,7 @@ func TestUpdateUserHandler_Returns_An_Error_If_The_Query_To_Check_If_A_User_With
 	foundUserName, _ := domain.NewUserNameValueObject("wadus")
 	foundUser := domain.UserEntity{Name: foundUserName}
 	mockedUsersRepo.On("FindUser", req.Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
-	mockedUsersRepo.On("ExistsUser", req.Context(), domain.UserEntity{Name: userName}).Return(false, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("ExistsUser", req.Context(), domain.UserRecord{Name: "wadusR"}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
@@ -171,7 +171,7 @@ func TestUpdateUserHandler_Returns_An_ErrorResult_With_A_BadRequestError_If_The_
 	foundUserName, _ := domain.NewUserNameValueObject("wadus")
 	foundUser := domain.UserEntity{Name: foundUserName}
 	mockedUsersRepo.On("FindUser", req.Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
-	mockedUsersRepo.On("ExistsUser", req.Context(), domain.UserEntity{Name: userName}).Return(true, nil).Once()
+	mockedUsersRepo.On("ExistsUser", req.Context(), domain.UserRecord{Name: "wadusR"}).Return(true, nil).Once()
 
 	result := UpdateUserHandler(httptest.NewRecorder(), req, h)
 
@@ -265,7 +265,7 @@ func TestUpdateUserHandler_Updates_The_UserName(t *testing.T) {
 	foundUserName, _ := domain.NewUserNameValueObject("wadus")
 	foundUser := domain.UserEntity{ID: 1, Name: foundUserName, IsAdmin: false}
 	mockedUsersRepo.On("FindUser", req.Context(), domain.UserEntity{ID: 1}).Return(&foundUser, nil).Once()
-	mockedUsersRepo.On("ExistsUser", req.Context(), domain.UserEntity{Name: updatedUserName}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", req.Context(), domain.UserRecord{Name: "updated"}).Return(false, nil).Once()
 	foundUser2 := domain.UserEntity{ID: 1, Name: foundUserName, IsAdmin: false}
 	foundUser2.Name = updatedUserName
 	mockedUsersRepo.On("Update", req.Context(), &foundUser2).Return(&foundUser2, nil).Once()

@@ -24,9 +24,9 @@ func (r *MySqlUsersRepository) FindUser(ctx context.Context, query domain.UserEn
 	return foundUser.ToUserEntity(), nil
 }
 
-func (r *MySqlUsersRepository) ExistsUser(ctx context.Context, query domain.UserEntity) (bool, error) {
+func (r *MySqlUsersRepository) ExistsUser(ctx context.Context, query domain.UserRecord) (bool, error) {
 	count := int64(0)
-	if err := r.db.WithContext(ctx).Model(&domain.UserRecord{}).Where(query.ToUserRecord()).Count(&count).Error; err != nil {
+	if err := r.db.WithContext(ctx).Model(&domain.UserRecord{}).Where(query).Count(&count).Error; err != nil {
 		return false, err
 	}
 

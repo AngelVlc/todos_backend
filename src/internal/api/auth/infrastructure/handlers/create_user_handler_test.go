@@ -45,7 +45,7 @@ func TestCreateUserHandler_Returns_An_Error_If_The_Query_To_Check_If_The_User_Ex
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(false, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -65,7 +65,7 @@ func TestCreateUserHandler_Returns_A_BadRequest_Error_If_A_User_With_The_Same_Na
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(true, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(true, nil).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -85,7 +85,7 @@ func TestCreateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(false, nil).Once()
 	mockedPassGen.On("GenerateFromPassword", "pass").Return("", fmt.Errorf("some error")).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
@@ -107,7 +107,7 @@ func TestCreateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(false, nil).Once()
 	hassedPass := "hassed"
 	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 	user := domain.UserEntity{Name: userName, PasswordHash: hassedPass, IsAdmin: true}
@@ -132,7 +132,7 @@ func TestCreateUserHandler_Creates_The_User(t *testing.T) {
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(false, nil).Once()
 	hassedPass := "hassed"
 	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
 	user := domain.UserEntity{Name: userName, PasswordHash: hassedPass, IsAdmin: true}

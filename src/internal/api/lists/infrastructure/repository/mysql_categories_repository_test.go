@@ -28,7 +28,7 @@ func TestMySqlCategoriesRepository_FindCategory_WhenTheQueryFails(t *testing.T) 
 		WithArgs(categoryID).
 		WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.FindCategory(context.Background(), domain.CategoryEntity{ID: categoryID})
+	res, err := repo.FindCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -47,13 +47,13 @@ func TestMySqlCategoriesRepository_FindCategory_WhenTheQueryDoesNotFail(t *testi
 		WillReturnRows(sqlmock.NewRows(categoryColumns).
 			AddRow(categoryID, "name", "description"))
 
-	res, err := repo.FindCategory(context.Background(), domain.CategoryEntity{ID: categoryID})
+	res, err := repo.FindCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
 
 	require.NotNil(t, res)
-	require.IsType(t, &domain.CategoryEntity{}, res)
+	require.IsType(t, &domain.CategoryRecord{}, res)
 	assert.Equal(t, categoryID, res.ID)
-	assert.Equal(t, "name", res.Name.String())
-	assert.Equal(t, "description", res.Description.String())
+	assert.Equal(t, "name", res.Name)
+	assert.Equal(t, "description", res.Description)
 
 	assert.Nil(t, err)
 
@@ -193,7 +193,7 @@ func TestMySqlCategoriesRepository_DeleteCategory_When_Deleting_Fails(t *testing
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.DeleteCategory(context.Background(), domain.CategoryEntity{ID: categoryID})
+	err := repo.DeleteCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
 
 	assert.EqualError(t, err, "some error")
 
@@ -212,7 +212,7 @@ func TestMySqlCategoriesRepository_DeleteCategory_When_It_Does_Not_Fail(t *testi
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
-	err := repo.DeleteCategory(context.Background(), domain.CategoryEntity{ID: categoryID})
+	err := repo.DeleteCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
 
 	assert.Nil(t, err)
 

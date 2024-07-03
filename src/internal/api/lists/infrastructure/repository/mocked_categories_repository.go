@@ -15,13 +15,13 @@ func NewMockedCategoriesRepository() *MockedCategoriesRepository {
 	return &MockedCategoriesRepository{}
 }
 
-func (m *MockedCategoriesRepository) FindCategory(ctx context.Context, query domain.CategoryEntity) (*domain.CategoryEntity, error) {
+func (m *MockedCategoriesRepository) FindCategory(ctx context.Context, query domain.CategoryRecord) (*domain.CategoryRecord, error) {
 	args := m.Called(ctx, query)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 
-	return args.Get(0).(*domain.CategoryEntity), args.Error(1)
+	return args.Get(0).(*domain.CategoryRecord), args.Error(1)
 }
 
 func (m *MockedCategoriesRepository) ExistsCategory(ctx context.Context, query domain.CategoryRecord) (bool, error) {
@@ -48,7 +48,7 @@ func (m *MockedCategoriesRepository) CreateCategory(ctx context.Context, list *d
 	return args.Get(0).(*domain.CategoryEntity), args.Error(1)
 }
 
-func (m *MockedCategoriesRepository) DeleteCategory(ctx context.Context, query domain.CategoryEntity) error {
+func (m *MockedCategoriesRepository) DeleteCategory(ctx context.Context, query domain.CategoryRecord) error {
 	args := m.Called(ctx, query)
 
 	return args.Error(0)

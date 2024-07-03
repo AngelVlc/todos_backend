@@ -15,13 +15,13 @@ func NewMySqlCategoriesRepository(db *gorm.DB) *MySqlCategoriesRepository {
 	return &MySqlCategoriesRepository{db}
 }
 
-func (r *MySqlCategoriesRepository) FindCategory(ctx context.Context, query domain.CategoryEntity) (*domain.CategoryEntity, error) {
+func (r *MySqlCategoriesRepository) FindCategory(ctx context.Context, query domain.CategoryRecord) (*domain.CategoryRecord, error) {
 	foundCategory := domain.CategoryRecord{}
-	if err := r.db.WithContext(ctx).Where(query.ToCategoryRecord()).Take(&foundCategory).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(query).Take(&foundCategory).Error; err != nil {
 		return nil, err
 	}
 
-	return foundCategory.ToCategoryEntity(), nil
+	return &foundCategory, nil
 }
 
 func (r *MySqlCategoriesRepository) ExistsCategory(ctx context.Context, query domain.CategoryRecord) (bool, error) {
@@ -53,8 +53,8 @@ func (r *MySqlCategoriesRepository) CreateCategory(ctx context.Context, list *do
 	return record.ToCategoryEntity(), nil
 }
 
-func (r *MySqlCategoriesRepository) DeleteCategory(ctx context.Context, query domain.CategoryEntity) error {
-	return r.db.WithContext(ctx).Delete(query.ToCategoryRecord()).Error
+func (r *MySqlCategoriesRepository) DeleteCategory(ctx context.Context, query domain.CategoryRecord) error {
+	return r.db.WithContext(ctx).Delete(query).Error
 }
 
 func (r *MySqlCategoriesRepository) UpdateCategory(ctx context.Context, list *domain.CategoryEntity) (*domain.CategoryEntity, error) {

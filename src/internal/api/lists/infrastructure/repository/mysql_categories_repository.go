@@ -43,14 +43,8 @@ func (r *MySqlCategoriesRepository) GetCategories(ctx context.Context, query dom
 	return foundCategories, nil
 }
 
-func (r *MySqlCategoriesRepository) CreateCategory(ctx context.Context, list *domain.CategoryEntity) (*domain.CategoryEntity, error) {
-	record := list.ToCategoryRecord()
-
-	if err := r.db.WithContext(ctx).Create(record).Error; err != nil {
-		return nil, err
-	}
-
-	return record.ToCategoryEntity(), nil
+func (r *MySqlCategoriesRepository) CreateCategory(ctx context.Context, record *domain.CategoryRecord) error {
+	return r.db.WithContext(ctx).Create(record).Error
 }
 
 func (r *MySqlCategoriesRepository) DeleteCategory(ctx context.Context, query domain.CategoryRecord) error {

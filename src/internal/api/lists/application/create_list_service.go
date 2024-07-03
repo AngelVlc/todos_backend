@@ -2,6 +2,7 @@ package application
 
 import (
 	"context"
+	"log"
 
 	"github.com/AngelVlc/todos_backend/src/internal/api/lists/domain"
 	appErrors "github.com/AngelVlc/todos_backend/src/internal/api/shared/domain/errors"
@@ -31,7 +32,13 @@ func (s *CreateListService) CreateList(ctx context.Context, listToCreate *domain
 		return &appErrors.UnexpectedError{Msg: "Error creating the user list", InternalError: err}
 	}
 
+	log.Println(record)
+
 	listToCreate.ID = record.ID
+
+	for i, v := range listToCreate.Items {
+		v.ID = record.Items[i].ID
+	}
 
 	go s.eventBus.Publish(events.ListCreated, record.ID)
 

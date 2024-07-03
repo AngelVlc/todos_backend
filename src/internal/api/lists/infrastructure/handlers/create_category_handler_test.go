@@ -17,6 +17,7 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -79,7 +80,7 @@ func TestCreateCategoryHandler_Returns_An_Error_Result_With_An_UnexpectedError_I
 		Name:   nvo,
 		UserID: 1,
 	}
-	mockedRepo.On("CreateCategory", request.Context(), &newCategory).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("CreateCategory", request.Context(), newCategory.ToCategoryRecord()).Return(fmt.Errorf("some error")).Once()
 
 	result := CreateCategoryHandler(httptest.NewRecorder(), request, h)
 
@@ -102,12 +103,11 @@ func TestCreateCategoryHandler_Creates_A_New_Category(t *testing.T) {
 		Name:   nvo,
 		UserID: 1,
 	}
-	existingCategory := domain.CategoryEntity{
-		ID:     1,
-		Name:   nvo,
-		UserID: 1,
-	}
-	mockedRepo.On("CreateCategory", request.Context(), &newCategory).Return(&existingCategory, nil).Once()
+
+	mockedRepo.On("CreateCategory", request.Context(), newCategory.ToCategoryRecord()).Run(func(args mock.Arguments) {
+		param := args.Get(1).(*domain.CategoryRecord)
+		param.ID = 1
+	}).Return(nil).Once()
 
 	result := CreateCategoryHandler(httptest.NewRecorder(), request, h)
 

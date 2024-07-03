@@ -48,11 +48,7 @@ func (r *MySqlListsRepository) GetLists(ctx context.Context, query domain.ListRe
 }
 
 func (r *MySqlListsRepository) CreateList(ctx context.Context, record *domain.ListRecord) error {
-	if err := r.db.WithContext(ctx).Create(record).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return r.db.WithContext(ctx).Create(record).Error
 }
 
 func (r *MySqlListsRepository) DeleteList(ctx context.Context, query domain.ListRecord) error {

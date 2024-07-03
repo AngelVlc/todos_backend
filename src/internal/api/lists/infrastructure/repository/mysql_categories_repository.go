@@ -51,12 +51,6 @@ func (r *MySqlCategoriesRepository) DeleteCategory(ctx context.Context, query do
 	return r.db.WithContext(ctx).Delete(query).Error
 }
 
-func (r *MySqlCategoriesRepository) UpdateCategory(ctx context.Context, list *domain.CategoryEntity) (*domain.CategoryEntity, error) {
-	record := list.ToCategoryRecord()
-
-	if err := r.db.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(record).Error; err != nil {
-		return nil, err
-	}
-
-	return record.ToCategoryEntity(), nil
+func (r *MySqlCategoriesRepository) UpdateCategory(ctx context.Context, record *domain.CategoryRecord) error {
+	return r.db.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(record).Error
 }

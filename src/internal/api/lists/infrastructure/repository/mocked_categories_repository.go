@@ -51,11 +51,8 @@ func (m *MockedCategoriesRepository) DeleteCategory(ctx context.Context, query d
 	return args.Error(0)
 }
 
-func (m *MockedCategoriesRepository) UpdateCategory(ctx context.Context, category *domain.CategoryEntity) (*domain.CategoryEntity, error) {
-	args := m.Called(ctx, category)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
+func (m *MockedCategoriesRepository) UpdateCategory(ctx context.Context, record *domain.CategoryRecord) error {
+	args := m.Called(ctx, record)
 
-	return args.Get(0).(*domain.CategoryEntity), args.Error(1)
+	return args.Error(0)
 }

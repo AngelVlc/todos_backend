@@ -8,5 +8,5 @@ type CategoriesRepository interface {
 	GetCategories(ctx context.Context, query CategoryRecord) (CategoryRecords, error)
 	CreateCategory(ctx context.Context, record *CategoryRecord) error
 	DeleteCategory(ctx context.Context, query CategoryRecord) error
-	UpdateCategory(ctx context.Context, category *CategoryEntity) (*CategoryEntity, error)
+	UpdateCategory(ctx context.Context, record *CategoryRecord) error
 }

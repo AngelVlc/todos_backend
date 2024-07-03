@@ -15,24 +15,26 @@ func NewUpdateCategoryService(repo domain.CategoriesRepository) *UpdateCategoryS
 	return &UpdateCategoryService{repo}
 }
 
-func (s *UpdateCategoryService) UpdateCategory(ctx context.Context, categoryToUpdate *domain.CategoryEntity) (*domain.CategoryEntity, error) {
+func (s *UpdateCategoryService) UpdateCategory(ctx context.Context, categoryToUpdate *domain.CategoryEntity) error {
 	foundCategory, err := s.repo.FindCategory(ctx, domain.CategoryRecord{ID: categoryToUpdate.ID, UserID: categoryToUpdate.UserID})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if foundCategory.Name != categoryToUpdate.Name.String() {
 		if existsCategory, err := s.repo.ExistsCategory(ctx, domain.CategoryRecord{Name: categoryToUpdate.Name.String(), UserID: categoryToUpdate.UserID}); err != nil {
-			return nil, &appErrors.UnexpectedError{Msg: "Error checking if a category with the same name already exists", InternalError: err}
+			return &appErrors.UnexpectedError{Msg: "Error checking if a category with the same name already exists", InternalError: err}
 		} else if existsCategory {
-			return nil, &appErrors.BadRequestError{Msg: "A category with the same name already exists", InternalError: nil}
+			return &appErrors.BadRequestError{Msg: "A category with the same name already exists", InternalError: nil}
 		}
 	}
 
-	updatedCategory, err := s.repo.UpdateCategory(ctx, categoryToUpdate)
+	record := categoryToUpdate.ToCategoryRecord()
+
+	err = s.repo.UpdateCategory(ctx, record)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error updating the user category", InternalError: err}
+		return &appErrors.UnexpectedError{Msg: "Error updating the user category", InternalError: err}
 	}
 
-	return updatedCategory, nil
+	return nil
 }

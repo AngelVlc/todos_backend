@@ -38,9 +38,7 @@ func (s *UpdateListService) UpdateList(ctx context.Context, listToUpdate *domain
 		return &appErrors.UnexpectedError{Msg: "Error updating the user list", InternalError: err}
 	}
 
-	listToUpdate = record.ToListEntity()
-
-	go s.eventBus.Publish(events.ListUpdated, listToUpdate.ID)
+	go s.eventBus.Publish(events.ListUpdated, record.ID)
 
 	return nil
 }

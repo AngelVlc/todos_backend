@@ -19,10 +19,10 @@ func UpdateCategoryHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 	categoryEntity.UserID = userID
 
 	srv := application.NewUpdateCategoryService(h.CategoriesRepository)
-	updatedCategory, err := srv.UpdateCategory(r.Context(), categoryEntity)
+	err := srv.UpdateCategory(r.Context(), categoryEntity)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{Content: updatedCategory, StatusCode: http.StatusOK}
+	return results.OkResult{Content: categoryEntity, StatusCode: http.StatusOK}
 }

@@ -222,11 +222,9 @@ func TestMySqlCategoriesRepository_UpdateCategory_When_The_Update_Fails(t *testi
 	mock.ExpectRollback()
 
 	repo := NewMySqlCategoriesRepository(db)
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{ID: 11, Name: nvo, Description: dvo}
+	category := domain.CategoryRecord{ID: 11, Name: "name", Description: "category description"}
 
-	_, err := repo.UpdateCategory(context.Background(), &category)
+	err := repo.UpdateCategory(context.Background(), &category)
 
 	assert.EqualError(t, err, "some error")
 
@@ -242,14 +240,10 @@ func TestMySqlCategoriesRepository_UpdateCategory_When_The_Update_Does_Not_Fail(
 	mock.ExpectCommit()
 
 	repo := NewMySqlCategoriesRepository(db)
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{ID: 11, Name: nvo, Description: dvo}
+	category := domain.CategoryRecord{ID: 11, Name: "name", Description: "category description"}
 
-	updatedCategory, err := repo.UpdateCategory(context.Background(), &category)
+	err := repo.UpdateCategory(context.Background(), &category)
 
-	assert.Nil(t, err)
-	assert.IsType(t, &domain.CategoryEntity{}, updatedCategory)
 	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)

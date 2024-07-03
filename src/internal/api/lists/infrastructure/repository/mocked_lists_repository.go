@@ -15,13 +15,13 @@ func NewMockedListsRepository() *MockedListsRepository {
 	return &MockedListsRepository{}
 }
 
-func (m *MockedListsRepository) FindList(ctx context.Context, query domain.ListRecord) (domain.ListRecord, error) {
+func (m *MockedListsRepository) FindList(ctx context.Context, query domain.ListRecord) (*domain.ListRecord, error) {
 	args := m.Called(ctx, query)
 	if args.Get(0) == nil {
-		return domain.ListRecord{}, args.Error(1)
+		return nil, args.Error(1)
 	}
 
-	return args.Get(0).(domain.ListRecord), args.Error(1)
+	return args.Get(0).(*domain.ListRecord), args.Error(1)
 }
 
 func (m *MockedListsRepository) ExistsList(ctx context.Context, query domain.ListRecord) (bool, error) {

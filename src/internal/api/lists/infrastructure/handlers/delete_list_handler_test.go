@@ -51,7 +51,7 @@ func TestDeletesListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Th
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
 	existingList := domain.ListRecord{ID: 11, Name: "list1"}
-	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(existingList, nil).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(&existingList, nil).Once()
 	mockedRepo.On("DeleteList", request.Context(), existingList).Return(fmt.Errorf("some error")).Once()
 
 	result := DeleteListHandler(httptest.NewRecorder(), request, h)
@@ -71,7 +71,7 @@ func TestDeletesListHandler_Deletes_The_List(t *testing.T) {
 	}
 
 	existingList := domain.ListRecord{ID: 11, Name: "list1", UserID: 1}
-	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(existingList, nil).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(&existingList, nil).Once()
 	mockedRepo.On("DeleteList", request.Context(), existingList).Return(nil).Once()
 
 	mockedEventBus.On("Publish", events.ListDeleted, int32(11))

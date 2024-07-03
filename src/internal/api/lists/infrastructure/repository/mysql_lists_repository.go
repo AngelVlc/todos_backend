@@ -19,13 +19,13 @@ func orderItems(db *gorm.DB) *gorm.DB {
 	return db.Order("position ASC")
 }
 
-func (r *MySqlListsRepository) FindList(ctx context.Context, query domain.ListRecord) (domain.ListRecord, error) {
+func (r *MySqlListsRepository) FindList(ctx context.Context, query domain.ListRecord) (*domain.ListRecord, error) {
 	foundList := domain.ListRecord{}
 	if err := r.db.WithContext(ctx).Where(query).Preload("Items", orderItems).Take(&foundList).Error; err != nil {
-		return domain.ListRecord{}, err
+		return nil, err
 	}
 
-	return foundList, nil
+	return &foundList, nil
 }
 
 func (r *MySqlListsRepository) ExistsList(ctx context.Context, query domain.ListRecord) (bool, error) {

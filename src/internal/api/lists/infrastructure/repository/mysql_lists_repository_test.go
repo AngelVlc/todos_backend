@@ -60,7 +60,7 @@ func TestMySqlListsRepository_FindList_WhenTheQueryDoesNotFail(t *testing.T) {
 	res, err := repo.FindList(context.Background(), domain.ListRecord{ID: listID, UserID: userID})
 
 	require.NotNil(t, res)
-	require.IsType(t, domain.ListRecord{}, res)
+	require.IsType(t, &domain.ListRecord{}, res)
 	assert.Equal(t, listID, res.ID)
 	assert.Equal(t, "list1", res.Name)
 	assert.Equal(t, userID, res.UserID)
@@ -199,7 +199,7 @@ func TestMySqlListsRepository_CreateList_When_It_Does_Not_Fail(t *testing.T) {
 		UserID:     1,
 		Name:       "list1",
 		CategoryID: &sql.NullInt32{Int32: 2, Valid: true},
-		Items: []*domain.ListItemRecord{
+		Items: []domain.ListItemRecord{
 			{UserID: 1, Title: "item1 title", Description: "item1 desc", Position: 0},
 		},
 	}

@@ -63,7 +63,7 @@ func TestUpdateListHandler_Returns_An_Error_Result_With_An_UnexpectedError_If_Is
 	request := updateRequest()
 
 	foundList := domain.ListRecord{ID: 11, Name: "oldName", UserID: 11}
-	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(foundList, nil).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(&foundList, nil).Once()
 	mockedRepo.On("ExistsList", request.Context(), domain.ListRecord{Name: "list1", UserID: 1}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := UpdateListHandler(httptest.NewRecorder(), request, h)
@@ -86,10 +86,10 @@ func TestUpdateListHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Upd
 		ID:         int32(11),
 		Name:       "list1",
 		UserID:     1,
-		Items:      []*domain.ListItemRecord{},
+		Items:      []domain.ListItemRecord{},
 		CategoryID: &sql.NullInt32{Valid: false},
 	}
-	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(foundList, nil).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(&foundList, nil).Once()
 	mockedRepo.On("UpdateList", request.Context(), &foundList).Return(fmt.Errorf("some error")).Once()
 
 	result := UpdateListHandler(httptest.NewRecorder(), request, h)
@@ -115,10 +115,10 @@ func TestUpdateListHandler_Updates_The_List_Name_And_Sends_The_ListCreatedOrUpda
 		ID:         int32(11),
 		Name:       "list new name",
 		UserID:     1,
-		Items:      []*domain.ListItemRecord{},
+		Items:      []domain.ListItemRecord{},
 		CategoryID: &sql.NullInt32{Int32: 5, Valid: true},
 	}
-	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(domain.ListRecord{Name: "list1"}, nil).Once()
+	mockedRepo.On("FindList", request.Context(), domain.ListRecord{ID: 11, UserID: 1}).Return(&domain.ListRecord{Name: "list1"}, nil).Once()
 	mockedRepo.On("ExistsList", request.Context(), domain.ListRecord{Name: "list new name", UserID: 1}).Return(false, nil).Once()
 	mockedRepo.On("UpdateList", request.Context(), &recordToUpdate).Return(nil).Once()
 

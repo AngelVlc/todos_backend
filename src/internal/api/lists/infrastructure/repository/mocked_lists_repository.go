@@ -30,13 +30,13 @@ func (m *MockedListsRepository) ExistsList(ctx context.Context, query domain.Lis
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockedListsRepository) GetLists(ctx context.Context, query domain.ListRecord) ([]domain.ListRecord, error) {
+func (m *MockedListsRepository) GetLists(ctx context.Context, query domain.ListRecord) (domain.ListRecords, error) {
 	args := m.Called(ctx, query)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 
-	return args.Get(0).([]domain.ListRecord), args.Error(1)
+	return args.Get(0).(domain.ListRecords), args.Error(1)
 }
 
 func (m *MockedListsRepository) CreateList(ctx context.Context, record *domain.ListRecord) error {

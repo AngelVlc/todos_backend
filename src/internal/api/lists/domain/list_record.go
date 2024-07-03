@@ -14,6 +14,8 @@ type ListRecord struct {
 	Items      []*ListItemRecord `gorm:"foreignKey:ListID"`
 }
 
+type ListRecords []ListRecord
+
 func (ListRecord) TableName() string {
 	return "lists"
 }
@@ -64,10 +66,10 @@ func (r *ListRecord) GetMaxItemPosition() int32 {
 	return max
 }
 
-func ToListEntities(records []ListRecord) []*ListEntity {
-	res := make([]*ListEntity, len(records))
+func (a ListRecords) ToListEntities() []*ListEntity {
+	res := make([]*ListEntity, len(a))
 
-	for i, v := range records {
+	for i, v := range a {
 		res[i] = v.ToListEntity()
 	}
 

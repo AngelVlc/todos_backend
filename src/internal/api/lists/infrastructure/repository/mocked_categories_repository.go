@@ -24,19 +24,19 @@ func (m *MockedCategoriesRepository) FindCategory(ctx context.Context, query dom
 	return args.Get(0).(*domain.CategoryEntity), args.Error(1)
 }
 
-func (m *MockedCategoriesRepository) ExistsCategory(ctx context.Context, query domain.CategoryEntity) (bool, error) {
+func (m *MockedCategoriesRepository) ExistsCategory(ctx context.Context, query domain.CategoryRecord) (bool, error) {
 	args := m.Called(ctx, query)
 
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockedCategoriesRepository) GetAllCategoriesForUser(ctx context.Context, userID int32) ([]*domain.CategoryEntity, error) {
-	args := m.Called(ctx, userID)
+func (m *MockedCategoriesRepository) GetCategories(ctx context.Context, query domain.CategoryRecord) (domain.CategoryRecords, error) {
+	args := m.Called(ctx, query)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 
-	return args.Get(0).([]*domain.CategoryEntity), args.Error(1)
+	return args.Get(0).(domain.CategoryRecords), args.Error(1)
 }
 
 func (m *MockedCategoriesRepository) CreateCategory(ctx context.Context, list *domain.CategoryEntity) (*domain.CategoryEntity, error) {

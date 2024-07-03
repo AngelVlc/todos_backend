@@ -38,7 +38,7 @@ func TestCreateCategoryHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If
 		RequestInput:         &infrastructure.CategoryInput{Name: nvo},
 	}
 
-	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryEntity{Name: nvo, UserID: 1}).Return(false, fmt.Errorf("some error")).Once()
+	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryRecord{Name: "category1", UserID: 1}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := CreateCategoryHandler(httptest.NewRecorder(), request, h)
 
@@ -56,7 +56,7 @@ func TestCreateCategoryHandler_Returns_An_Error_Result_With_A_BadRequestError_If
 		RequestInput:         &infrastructure.CategoryInput{Name: nvo},
 	}
 
-	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryEntity{Name: nvo, UserID: 1}).Return(true, nil).Once()
+	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryRecord{Name: "category1", UserID: 1}).Return(true, nil).Once()
 
 	result := CreateCategoryHandler(httptest.NewRecorder(), request, h)
 
@@ -74,7 +74,7 @@ func TestCreateCategoryHandler_Returns_An_Error_Result_With_An_UnexpectedError_I
 		RequestInput:         &infrastructure.CategoryInput{Name: nvo},
 	}
 
-	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryEntity{Name: nvo, UserID: 1}).Return(false, nil).Once()
+	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryRecord{Name: "category1", UserID: 1}).Return(false, nil).Once()
 	newCategory := domain.CategoryEntity{
 		Name:   nvo,
 		UserID: 1,
@@ -97,7 +97,7 @@ func TestCreateCategoryHandler_Creates_A_New_Category(t *testing.T) {
 		RequestInput:         &infrastructure.CategoryInput{Name: nvo},
 	}
 
-	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryEntity{Name: nvo, UserID: 1}).Return(false, nil).Once()
+	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryRecord{Name: "category1", UserID: 1}).Return(false, nil).Once()
 	newCategory := domain.CategoryEntity{
 		Name:   nvo,
 		UserID: 1,

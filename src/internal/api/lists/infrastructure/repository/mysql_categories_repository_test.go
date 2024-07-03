@@ -67,9 +67,7 @@ func TestMySqlCategoriesRepository_ExistsCategory_WhenTheQueryFails(t *testing.T
 		WillReturnError(fmt.Errorf("some error"))
 
 	repo := NewMySqlCategoriesRepository(db)
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{Name: nvo, Description: dvo}
+	category := domain.CategoryRecord{Name: "name", Description: "category description"}
 
 	res, err := repo.ExistsCategory(context.Background(), category)
 
@@ -86,9 +84,7 @@ func TestMySqlCategoriesRepository_ExistsCategory_WhenItDoesNotFail(t *testing.T
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	repo := NewMySqlCategoriesRepository(db)
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{Name: nvo, Description: dvo}
+	category := domain.CategoryRecord{Name: "name", Description: "category description"}
 
 	res, err := repo.ExistsCategory(context.Background(), category)
 
@@ -98,17 +94,16 @@ func TestMySqlCategoriesRepository_ExistsCategory_WhenItDoesNotFail(t *testing.T
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlCategoriesRepository_GetAllCategoriesForUser_WhenItFails(t *testing.T) {
+func TestMySqlCategoriesRepository_GetCategories_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	userID := int32(1)
 
 	repo := NewMySqlCategoriesRepository(db)
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`userId` = ?")).
-		WithArgs(userID).
+		WithArgs(1).
 		WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.GetAllCategoriesForUser(context.Background(), userID)
+	res, err := repo.GetCategories(context.Background(), domain.CategoryRecord{UserID: 1})
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -116,29 +111,28 @@ func TestMySqlCategoriesRepository_GetAllCategoriesForUser_WhenItFails(t *testin
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlCategoriesRepository_GetAllCategoriesForUser_When_It_Does_Not_Fail_Including_Items(t *testing.T) {
+func TestMySqlCategoriesRepository_GetCategories_When_It_Does_Not_Fail_Including_Items(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	userID := int32(1)
 
 	repo := NewMySqlCategoriesRepository(db)
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`userId` = ?")).
-		WithArgs(userID).
+		WithArgs(1).
 		WillReturnRows(sqlmock.NewRows(categoryColumns).
 			AddRow(11, "category1", "desc 1").
 			AddRow(12, "category2", "desc 2"))
 
-	res, err := repo.GetAllCategoriesForUser(context.Background(), userID)
+	res, err := repo.GetCategories(context.Background(), domain.CategoryRecord{UserID: 1})
 
 	assert.Nil(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
-	assert.Equal(t, "category1", res[0].Name.String())
-	assert.Equal(t, "desc 1", res[0].Description.String())
+	assert.Equal(t, "category1", res[0].Name)
+	assert.Equal(t, "desc 1", res[0].Description)
 	assert.Equal(t, int32(12), res[1].ID)
-	assert.Equal(t, "category2", res[1].Name.String())
-	assert.Equal(t, "desc 2", res[1].Description.String())
+	assert.Equal(t, "category2", res[1].Name)
+	assert.Equal(t, "desc 2", res[1].Description)
 
 	helpers.CheckSqlMockExpectations(mock, t)
 }

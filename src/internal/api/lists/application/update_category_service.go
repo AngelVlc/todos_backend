@@ -22,7 +22,7 @@ func (s *UpdateCategoryService) UpdateCategory(ctx context.Context, categoryToUp
 	}
 
 	if foundCategory.Name != categoryToUpdate.Name {
-		if existsCategory, err := s.repo.ExistsCategory(ctx, domain.CategoryEntity{Name: categoryToUpdate.Name, UserID: categoryToUpdate.UserID}); err != nil {
+		if existsCategory, err := s.repo.ExistsCategory(ctx, domain.CategoryRecord{Name: categoryToUpdate.Name.String(), UserID: categoryToUpdate.UserID}); err != nil {
 			return nil, &appErrors.UnexpectedError{Msg: "Error checking if a category with the same name already exists", InternalError: err}
 		} else if existsCategory {
 			return nil, &appErrors.BadRequestError{Msg: "A category with the same name already exists", InternalError: nil}

@@ -7,6 +7,8 @@ type CategoryRecord struct {
 	UserID      int32  `gorm:"column:userId;type:int(32)"`
 }
 
+type CategoryRecords []CategoryRecord
+
 func (CategoryRecord) TableName() string {
 	return "categories"
 }
@@ -21,4 +23,14 @@ func (r *CategoryRecord) ToCategoryEntity() *CategoryEntity {
 		Description: dvo,
 		UserID:      r.UserID,
 	}
+}
+
+func (a CategoryRecords) ToCategoriesEntities() []*CategoryEntity {
+	res := make([]*CategoryEntity, len(a))
+
+	for i, v := range a {
+		res[i] = v.ToCategoryEntity()
+	}
+
+	return res
 }

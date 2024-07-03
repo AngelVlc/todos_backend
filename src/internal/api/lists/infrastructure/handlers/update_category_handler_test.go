@@ -63,7 +63,7 @@ func TestUpdateCategoryHandler_Returns_An_Error_Result_With_An_UnexpectedError_I
 	oldCategoryName, _ := domain.NewCategoryNameValueObject("oldName")
 	list := domain.CategoryEntity{ID: 11, Name: oldCategoryName}
 	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryEntity{Name: nvo, UserID: 1}).Return(false, fmt.Errorf("some error")).Once()
+	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryRecord{Name: "category1", UserID: 1}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := UpdateCategoryHandler(httptest.NewRecorder(), request, h)
 

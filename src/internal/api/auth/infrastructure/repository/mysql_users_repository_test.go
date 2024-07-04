@@ -29,7 +29,7 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryFails(t *testing.T) {
 
 	repo := NewMySqlUsersRepository(db)
 
-	res, err := repo.FindUser(context.Background(), domain.UserEntity{ID: userID})
+	res, err := repo.FindUser(context.Background(), domain.UserRecord{ID: userID})
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -45,12 +45,11 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows(userColumns).AddRow(1, "userName", "hash", true))
 
 	repo := NewMySqlUsersRepository(db)
-	nvo, _ := domain.NewUserNameValueObject("userName")
 
-	res, err := repo.FindUser(context.Background(), domain.UserEntity{Name: nvo})
+	res, err := repo.FindUser(context.Background(), domain.UserRecord{Name: "userName"})
 
 	require.NotNil(t, res)
-	assert.Equal(t, "userName", res.Name.String())
+	assert.Equal(t, "userName", res.Name)
 	assert.True(t, res.IsAdmin)
 	assert.Equal(t, int32(1), res.ID)
 	assert.Nil(t, err)
@@ -135,8 +134,7 @@ func TestMySqlUsersRepository_GetAll_WhenTheQueryDoesNotFail(t *testing.T) {
 }
 
 func TestMySqlUsersRepository_Create_WhenItFails(t *testing.T) {
-	nvo, _ := domain.NewUserNameValueObject("userName")
-	user := domain.UserEntity{Name: nvo, PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserRecord{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
@@ -146,7 +144,7 @@ func TestMySqlUsersRepository_Create_WhenItFails(t *testing.T) {
 
 	repo := NewMySqlUsersRepository(db)
 
-	_, err := repo.Create(context.Background(), &user)
+	err := repo.Create(context.Background(), &user)
 
 	assert.EqualError(t, err, "some error")
 
@@ -154,8 +152,7 @@ func TestMySqlUsersRepository_Create_WhenItFails(t *testing.T) {
 }
 
 func TestMySqlUsersRepository_Create_WhenItDoesNotFail(t *testing.T) {
-	nvo, _ := domain.NewUserNameValueObject("userName")
-	user := domain.UserEntity{Name: nvo, PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserRecord{Name: "userName", PasswordHash: "hash", IsAdmin: false}
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
 	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `users` (`name`,`passwordHash`,`isAdmin`) VALUES (?,?,?)")).
@@ -165,10 +162,8 @@ func TestMySqlUsersRepository_Create_WhenItDoesNotFail(t *testing.T) {
 
 	repo := NewMySqlUsersRepository(db)
 
-	res, err := repo.Create(context.Background(), &user)
+	err := repo.Create(context.Background(), &user)
 
-	require.NotNil(t, res)
-	assert.IsType(t, &domain.UserEntity{}, res)
 	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -185,7 +180,7 @@ func TestMySqlUsersRepository_Delete_WhenItFails(t *testing.T) {
 	repo := NewMySqlUsersRepository(db)
 	userID := int32(1)
 
-	err := repo.Delete(context.Background(), domain.UserEntity{ID: userID})
+	err := repo.Delete(context.Background(), domain.UserRecord{ID: userID})
 
 	assert.EqualError(t, err, "some error")
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -202,7 +197,7 @@ func TestMySqlUsersRepository_Delete_WhenItDoesNotFail(t *testing.T) {
 	repo := NewMySqlUsersRepository(db)
 	userID := int32(1)
 
-	err := repo.Delete(context.Background(), domain.UserEntity{ID: userID})
+	err := repo.Delete(context.Background(), domain.UserRecord{ID: userID})
 
 	assert.Nil(t, err)
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -217,10 +212,9 @@ func TestMySqlUsersRepository_Update_WhenItFails(t *testing.T) {
 	mock.ExpectRollback()
 
 	repo := NewMySqlUsersRepository(db)
-	nvo, _ := domain.NewUserNameValueObject("userName")
-	user := domain.UserEntity{ID: 11, Name: nvo, PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserRecord{ID: 11, Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
-	_, err := repo.Update(context.Background(), &user)
+	err := repo.Update(context.Background(), &user)
 
 	assert.EqualError(t, err, "some error")
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -240,13 +234,10 @@ func TestMySqlUsersRepository_Update_WhenItDoesNotFail(t *testing.T) {
 	mock.ExpectCommit()
 
 	repo := NewMySqlUsersRepository(db)
-	nvo, _ := domain.NewUserNameValueObject("userName")
-	user := domain.UserEntity{ID: 11, Name: nvo, PasswordHash: "hash", IsAdmin: false}
+	user := domain.UserRecord{ID: 11, Name: "userName", PasswordHash: "hash", IsAdmin: false}
 
-	res, err := repo.Update(context.Background(), &user)
+	err := repo.Update(context.Background(), &user)
 
-	require.NotNil(t, res)
-	assert.IsType(t, &domain.UserEntity{}, res)
 	assert.Nil(t, err)
 	helpers.CheckSqlMockExpectations(mock, t)
 }

@@ -20,7 +20,7 @@ func GetUserHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) h
 
 	res := infrastructure.UserResponse{
 		ID:      user.ID,
-		Name:    string(user.Name.String()),
+		Name:    string(user.Name),
 		IsAdmin: user.IsAdmin,
 	}
 

@@ -29,16 +29,16 @@ func (s *CreateUserService) CreateUser(ctx context.Context, userName domain.User
 		return nil, &appErrors.UnexpectedError{Msg: "Error encrypting password", InternalError: err}
 	}
 
-	user := &domain.UserEntity{
-		Name:         userName,
+	user := &domain.UserRecord{
+		Name:         userName.String(),
 		PasswordHash: hasshedPass,
 		IsAdmin:      isAdmin,
 	}
 
-	r, err := s.usersRepo.Create(ctx, user)
+	err = s.usersRepo.Create(ctx, user)
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user", InternalError: err}
 	}
 
-	return r, nil
+	return user.ToUserEntity(), nil
 }

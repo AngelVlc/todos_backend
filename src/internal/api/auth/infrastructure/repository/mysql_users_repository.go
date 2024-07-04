@@ -15,13 +15,13 @@ func NewMySqlUsersRepository(db *gorm.DB) *MySqlUsersRepository {
 	return &MySqlUsersRepository{db}
 }
 
-func (r *MySqlUsersRepository) FindUser(ctx context.Context, query domain.UserEntity) (*domain.UserEntity, error) {
+func (r *MySqlUsersRepository) FindUser(ctx context.Context, query domain.UserRecord) (*domain.UserRecord, error) {
 	foundUser := domain.UserRecord{}
-	if err := r.db.WithContext(ctx).Where(query.ToUserRecord()).Take(&foundUser).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(query).Take(&foundUser).Error; err != nil {
 		return nil, err
 	}
 
-	return foundUser.ToUserEntity(), nil
+	return &foundUser, nil
 }
 
 func (r *MySqlUsersRepository) ExistsUser(ctx context.Context, query domain.UserRecord) (bool, error) {
@@ -48,26 +48,14 @@ func (r *MySqlUsersRepository) GetAll(ctx context.Context) ([]*domain.UserEntity
 	return res, nil
 }
 
-func (r *MySqlUsersRepository) Create(ctx context.Context, user *domain.UserEntity) (*domain.UserEntity, error) {
-	record := user.ToUserRecord()
-
-	if err := r.db.WithContext(ctx).Create(record).Error; err != nil {
-		return nil, err
-	}
-
-	return record.ToUserEntity(), nil
+func (r *MySqlUsersRepository) Create(ctx context.Context, record *domain.UserRecord) error {
+	return r.db.WithContext(ctx).Create(record).Error
 }
 
-func (r *MySqlUsersRepository) Delete(ctx context.Context, query domain.UserEntity) error {
-	return r.db.WithContext(ctx).Delete(query.ToUserRecord()).Error
+func (r *MySqlUsersRepository) Delete(ctx context.Context, query domain.UserRecord) error {
+	return r.db.WithContext(ctx).Delete(query).Error
 }
 
-func (r *MySqlUsersRepository) Update(ctx context.Context, user *domain.UserEntity) (*domain.UserEntity, error) {
-	record := user.ToUserRecord()
-
-	if err := r.db.WithContext(ctx).Save(user.ToUserRecord()).Error; err != nil {
-		return nil, err
-	}
-
-	return record.ToUserEntity(), nil
+func (r *MySqlUsersRepository) Update(ctx context.Context, record *domain.UserRecord) error {
+	return r.db.WithContext(ctx).Save(record).Error
 }

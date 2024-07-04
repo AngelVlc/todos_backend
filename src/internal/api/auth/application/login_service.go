@@ -22,24 +22,26 @@ func NewLoginService(authRepo domain.AuthRepository, usersRepo domain.UsersRepos
 }
 
 func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueObject, password domain.UserPasswordValueObject) (string, string, *domain.UserEntity, error) {
-	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserEntity{Name: userName})
+	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserRecord{Name: userName.String()})
 	if err != nil {
 		return "", "", nil, err
 	}
 
-	err = foundUser.HasPassword(password.String())
+	entity := foundUser.ToUserEntity()
+
+	err = entity.HasPassword(password.String())
 	if err != nil {
 		return "", "", nil, &appErrors.BadRequestError{Msg: "Invalid password", InternalError: err}
 	}
 
-	token, err := s.tokenSrv.GenerateToken(foundUser)
+	token, err := s.tokenSrv.GenerateToken(entity)
 	if err != nil {
 		return "", "", nil, &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
 	refreshTokenExpDate := s.cfgSvr.GetRefreshTokenExpirationTime()
 
-	refreshToken, err := s.tokenSrv.GenerateRefreshToken(foundUser, refreshTokenExpDate)
+	refreshToken, err := s.tokenSrv.GenerateRefreshToken(entity, refreshTokenExpDate)
 	if err != nil {
 		return "", "", nil, &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
 	}
@@ -55,5 +57,5 @@ func (s *LoginService) Login(ctx context.Context, userName domain.UserNameValueO
 		}
 	}(txn.NewGoroutine())
 
-	return token, refreshToken, foundUser, nil
+	return token, refreshToken, entity, nil
 }

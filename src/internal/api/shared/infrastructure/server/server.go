@@ -66,7 +66,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 
 	router.Use(nrgorilla.Middleware(newRelicApp))
 
-	countersMdw := wire.InitRequestIdMiddleware(db)
+	countersMdw := wire.InitRequestIdMiddleware()
 	router.Use(countersMdw.Middleware)
 
 	recoverMdw := recover.NewRecoverMiddleware()

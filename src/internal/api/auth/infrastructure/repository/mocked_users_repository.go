@@ -15,12 +15,12 @@ func NewMockedUsersRepository() *MockedUsersRepository {
 	return &MockedUsersRepository{}
 }
 
-func (m *MockedUsersRepository) FindUser(ctx context.Context, query domain.UserEntity) (*domain.UserEntity, error) {
+func (m *MockedUsersRepository) FindUser(ctx context.Context, query domain.UserRecord) (*domain.UserRecord, error) {
 	args := m.Called(ctx, query)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*domain.UserEntity), args.Error(1)
+	return args.Get(0).(*domain.UserRecord), args.Error(1)
 }
 
 func (m *MockedUsersRepository) ExistsUser(ctx context.Context, query domain.UserRecord) (bool, error) {
@@ -38,26 +38,20 @@ func (m *MockedUsersRepository) GetAll(ctx context.Context) ([]*domain.UserEntit
 	return args.Get(0).([]*domain.UserEntity), args.Error(1)
 }
 
-func (m *MockedUsersRepository) Create(ctx context.Context, user *domain.UserEntity) (*domain.UserEntity, error) {
-	args := m.Called(ctx, user)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
+func (m *MockedUsersRepository) Create(ctx context.Context, record *domain.UserRecord) error {
+	args := m.Called(ctx, record)
 
-	return args.Get(0).(*domain.UserEntity), args.Error(1)
+	return args.Error(0)
 }
 
-func (m *MockedUsersRepository) Delete(ctx context.Context, query domain.UserEntity) error {
+func (m *MockedUsersRepository) Delete(ctx context.Context, query domain.UserRecord) error {
 	args := m.Called(ctx, query)
 
 	return args.Error(0)
 }
 
-func (m *MockedUsersRepository) Update(ctx context.Context, user *domain.UserEntity) (*domain.UserEntity, error) {
-	args := m.Called(ctx, user)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
+func (m *MockedUsersRepository) Update(ctx context.Context, record *domain.UserRecord) error {
+	args := m.Called(ctx, record)
 
-	return args.Get(0).(*domain.UserEntity), args.Error(1)
+	return args.Error(0)
 }

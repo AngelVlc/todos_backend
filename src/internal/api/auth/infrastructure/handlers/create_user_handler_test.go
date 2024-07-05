@@ -16,6 +16,7 @@ import (
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/handler"
 	"github.com/AngelVlc/todos_backend/src/internal/api/shared/infrastructure/results"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -45,7 +46,7 @@ func TestCreateUserHandler_Returns_An_Error_If_The_Query_To_Check_If_The_User_Ex
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(false, fmt.Errorf("some error")).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -65,7 +66,7 @@ func TestCreateUserHandler_Returns_A_BadRequest_Error_If_A_User_With_The_Same_Na
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(true, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(true, nil).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -85,7 +86,7 @@ func TestCreateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(false, nil).Once()
 	mockedPassGen.On("GenerateFromPassword", "pass").Return("", fmt.Errorf("some error")).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
@@ -107,11 +108,11 @@ func TestCreateUserHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(false, nil).Once()
 	hassedPass := "hassed"
 	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
-	user := domain.UserEntity{Name: userName, PasswordHash: hassedPass, IsAdmin: true}
-	mockedUsersRepo.On("Create", request.Context(), &user).Return(nil, fmt.Errorf("some error")).Once()
+	user := domain.UserRecord{Name: "wadus", PasswordHash: hassedPass, IsAdmin: true}
+	mockedUsersRepo.On("Create", request.Context(), &user).Return(fmt.Errorf("some error")).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 
@@ -132,12 +133,14 @@ func TestCreateUserHandler_Creates_The_User(t *testing.T) {
 	}
 
 	request, _ := http.NewRequest(http.MethodPost, "/", nil)
-	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserEntity{Name: userName}).Return(false, nil).Once()
+	mockedUsersRepo.On("ExistsUser", request.Context(), domain.UserRecord{Name: "wadus"}).Return(false, nil).Once()
 	hassedPass := "hassed"
 	mockedPassGen.On("GenerateFromPassword", "pass").Return(hassedPass, nil).Once()
-	user := domain.UserEntity{Name: userName, PasswordHash: hassedPass, IsAdmin: true}
-	createdUser := domain.UserEntity{ID: 1, Name: userName, PasswordHash: hassedPass, IsAdmin: true}
-	mockedUsersRepo.On("Create", request.Context(), &user).Return(&createdUser, nil).Once()
+	user := domain.UserRecord{Name: "wadus", PasswordHash: hassedPass, IsAdmin: true}
+	mockedUsersRepo.On("Create", request.Context(), &user).Run(func(args mock.Arguments) {
+		param := args.Get(1).(*domain.UserRecord)
+		param.ID = 1
+	}).Return(nil).Return(nil).Once()
 
 	result := CreateUserHandler(httptest.NewRecorder(), request, h)
 

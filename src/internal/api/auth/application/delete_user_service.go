@@ -17,16 +17,16 @@ func NewDeleteUserService(usersRepo domain.UsersRepository) *DeleteUserService {
 }
 
 func (s *DeleteUserService) DeleteUser(ctx context.Context, userID int32) error {
-	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserEntity{ID: userID})
+	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserRecord{ID: userID})
 	if err != nil {
 		return err
 	}
 
-	if strings.ToLower(string(foundUser.Name.String())) == "admin" {
+	if strings.ToLower(string(foundUser.Name)) == "admin" {
 		return &appErrors.BadRequestError{Msg: "It is not possible to delete the admin user"}
 	}
 
-	err = s.usersRepo.Delete(ctx, domain.UserEntity{ID: userID})
+	err = s.usersRepo.Delete(ctx, domain.UserRecord{ID: userID})
 	if err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error deleting the user", InternalError: err}
 	}

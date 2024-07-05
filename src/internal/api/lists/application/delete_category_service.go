@@ -16,7 +16,7 @@ func NewDeleteCategoryService(repo domain.CategoriesRepository) *DeleteCategoryS
 }
 
 func (s *DeleteCategoryService) DeleteCategory(ctx context.Context, categoryID int32, userID int32) error {
-	foundCategory, err := s.repo.FindCategory(ctx, domain.CategoryEntity{ID: categoryID, UserID: userID})
+	foundCategory, err := s.repo.FindCategory(ctx, domain.CategoryRecord{ID: categoryID, UserID: userID})
 	if err != nil {
 		return err
 	}

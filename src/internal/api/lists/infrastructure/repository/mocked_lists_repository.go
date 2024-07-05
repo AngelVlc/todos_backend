@@ -15,13 +15,13 @@ func NewMockedListsRepository() *MockedListsRepository {
 	return &MockedListsRepository{}
 }
 
-func (m *MockedListsRepository) FindList(ctx context.Context, query domain.ListRecord) (domain.ListRecord, error) {
+func (m *MockedListsRepository) FindList(ctx context.Context, query domain.ListRecord) (*domain.ListRecord, error) {
 	args := m.Called(ctx, query)
 	if args.Get(0) == nil {
-		return domain.ListRecord{}, args.Error(1)
+		return nil, args.Error(1)
 	}
 
-	return args.Get(0).(domain.ListRecord), args.Error(1)
+	return args.Get(0).(*domain.ListRecord), args.Error(1)
 }
 
 func (m *MockedListsRepository) ExistsList(ctx context.Context, query domain.ListRecord) (bool, error) {
@@ -30,22 +30,13 @@ func (m *MockedListsRepository) ExistsList(ctx context.Context, query domain.Lis
 	return args.Bool(0), args.Error(1)
 }
 
-func (m *MockedListsRepository) GetAllLists(ctx context.Context) ([]domain.ListRecord, error) {
-	args := m.Called(ctx)
+func (m *MockedListsRepository) GetLists(ctx context.Context, query domain.ListRecord) (domain.ListRecords, error) {
+	args := m.Called(ctx, query)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 
-	return args.Get(0).([]domain.ListRecord), args.Error(1)
-}
-
-func (m *MockedListsRepository) GetAllListsForUser(ctx context.Context, userID int32) ([]domain.ListRecord, error) {
-	args := m.Called(ctx, userID)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-
-	return args.Get(0).([]domain.ListRecord), args.Error(1)
+	return args.Get(0).(domain.ListRecords), args.Error(1)
 }
 
 func (m *MockedListsRepository) CreateList(ctx context.Context, record *domain.ListRecord) error {

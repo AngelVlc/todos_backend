@@ -19,13 +19,13 @@ func orderItems(db *gorm.DB) *gorm.DB {
 	return db.Order("position ASC")
 }
 
-func (r *MySqlListsRepository) FindList(ctx context.Context, query domain.ListRecord) (domain.ListRecord, error) {
+func (r *MySqlListsRepository) FindList(ctx context.Context, query domain.ListRecord) (*domain.ListRecord, error) {
 	foundList := domain.ListRecord{}
 	if err := r.db.WithContext(ctx).Where(query).Preload("Items", orderItems).Take(&foundList).Error; err != nil {
-		return domain.ListRecord{}, err
+		return nil, err
 	}
 
-	return foundList, nil
+	return &foundList, nil
 }
 
 func (r *MySqlListsRepository) ExistsList(ctx context.Context, query domain.ListRecord) (bool, error) {
@@ -37,20 +37,10 @@ func (r *MySqlListsRepository) ExistsList(ctx context.Context, query domain.List
 	return count > 0, nil
 }
 
-func (r *MySqlListsRepository) GetAllLists(ctx context.Context) ([]domain.ListRecord, error) {
+func (r *MySqlListsRepository) GetLists(ctx context.Context, query domain.ListRecord) (domain.ListRecords, error) {
 	foundLists := []domain.ListRecord{}
 
-	if err := r.db.WithContext(ctx).Preload("Items", orderItems).Find(&foundLists).Error; err != nil {
-		return nil, err
-	}
-
-	return foundLists, nil
-}
-
-func (r *MySqlListsRepository) GetAllListsForUser(ctx context.Context, userID int32) ([]domain.ListRecord, error) {
-	foundLists := []domain.ListRecord{}
-
-	if err := r.db.WithContext(ctx).Where(domain.ListRecord{UserID: userID}).Find(&foundLists).Error; err != nil {
+	if err := r.db.WithContext(ctx).Where(query).Find(&foundLists).Error; err != nil {
 		return nil, err
 	}
 
@@ -58,11 +48,7 @@ func (r *MySqlListsRepository) GetAllListsForUser(ctx context.Context, userID in
 }
 
 func (r *MySqlListsRepository) CreateList(ctx context.Context, record *domain.ListRecord) error {
-	if err := r.db.WithContext(ctx).Create(record).Error; err != nil {
-		return err
-	}
-
-	return nil
+	return r.db.WithContext(ctx).Create(record).Error
 }
 
 func (r *MySqlListsRepository) DeleteList(ctx context.Context, query domain.ListRecord) error {

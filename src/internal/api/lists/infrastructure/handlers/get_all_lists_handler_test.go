@@ -33,7 +33,7 @@ func TestGetAllListsHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Th
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	mockedRepo.On("GetAllListsForUser", request.Context(), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("GetLists", request.Context(), domain.ListRecord{UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetAllListsHandler(httptest.NewRecorder(), request, h)
 
@@ -47,12 +47,12 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
 
-	found := []domain.ListRecord{
+	found := domain.ListRecords{
 		{ID: 11, Name: "list1", ItemsCount: 4},
 		{ID: 12, Name: "list2", ItemsCount: 8},
 	}
 
-	mockedRepo.On("GetAllListsForUser", request.Context(), int32(1)).Return(found, nil)
+	mockedRepo.On("GetLists", request.Context(), domain.ListRecord{UserID: 1}).Return(found, nil)
 
 	result := GetAllListsHandler(httptest.NewRecorder(), request, h)
 

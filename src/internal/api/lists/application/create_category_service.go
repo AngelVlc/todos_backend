@@ -15,17 +15,21 @@ func NewCreateCategoryService(repo domain.CategoriesRepository) *CreateCategoryS
 	return &CreateCategoryService{repo}
 }
 
-func (s *CreateCategoryService) CreateCategory(ctx context.Context, categoryToCreate *domain.CategoryEntity) (*domain.CategoryEntity, error) {
-	if existsCategory, err := s.repo.ExistsCategory(ctx, domain.CategoryEntity{Name: categoryToCreate.Name, UserID: categoryToCreate.UserID}); err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error checking if a category with the same name already exists", InternalError: err}
+func (s *CreateCategoryService) CreateCategory(ctx context.Context, categoryToCreate *domain.CategoryEntity) error {
+	if existsCategory, err := s.repo.ExistsCategory(ctx, domain.CategoryRecord{Name: categoryToCreate.Name.String(), UserID: categoryToCreate.UserID}); err != nil {
+		return &appErrors.UnexpectedError{Msg: "Error checking if a category with the same name already exists", InternalError: err}
 	} else if existsCategory {
-		return nil, &appErrors.BadRequestError{Msg: "A category with the same name already exists", InternalError: nil}
+		return &appErrors.BadRequestError{Msg: "A category with the same name already exists", InternalError: nil}
 	}
 
-	createdList, err := s.repo.CreateCategory(ctx, categoryToCreate)
+	record := categoryToCreate.ToCategoryRecord()
+
+	err := s.repo.CreateCategory(ctx, record)
 	if err != nil {
-		return nil, &appErrors.UnexpectedError{Msg: "Error creating the user category", InternalError: err}
+		return &appErrors.UnexpectedError{Msg: "Error creating the user category", InternalError: err}
 	}
 
-	return createdList, nil
+	categoryToCreate.ID = record.ID
+
+	return nil
 }

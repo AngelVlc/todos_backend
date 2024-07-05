@@ -42,7 +42,7 @@ func TestUpdateCategoryHandler_Returns_An_Error_If_The_Query_To_Find_The_Categor
 
 	request := updateCategoryRequest()
 
-	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindCategory", request.Context(), domain.CategoryRecord{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := UpdateCategoryHandler(httptest.NewRecorder(), request, h)
 
@@ -60,10 +60,8 @@ func TestUpdateCategoryHandler_Returns_An_Error_Result_With_An_UnexpectedError_I
 
 	request := updateCategoryRequest()
 
-	oldCategoryName, _ := domain.NewCategoryNameValueObject("oldName")
-	list := domain.CategoryEntity{ID: 11, Name: oldCategoryName}
-	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(&list, nil).Once()
-	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryEntity{Name: nvo, UserID: 1}).Return(false, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindCategory", request.Context(), domain.CategoryRecord{ID: 11, UserID: 1}).Return(&domain.CategoryRecord{ID: 11, Name: "oldName"}, nil).Once()
+	mockedRepo.On("ExistsCategory", request.Context(), domain.CategoryRecord{Name: "category1", UserID: 1}).Return(false, fmt.Errorf("some error")).Once()
 
 	result := UpdateCategoryHandler(httptest.NewRecorder(), request, h)
 
@@ -81,13 +79,13 @@ func TestUpdateCategoryHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If
 
 	request := updateCategoryRequest()
 
-	category := domain.CategoryEntity{
+	category := domain.CategoryRecord{
 		ID:     int32(11),
-		Name:   nvo,
+		Name:   "category1",
 		UserID: 1,
 	}
-	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(&category, nil).Once()
-	mockedRepo.On("UpdateCategory", request.Context(), &category).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindCategory", request.Context(), domain.CategoryRecord{ID: 11, UserID: 1}).Return(&domain.CategoryRecord{ID: 11, Name: "category1"}, nil).Once()
+	mockedRepo.On("UpdateCategory", request.Context(), &category).Return(fmt.Errorf("some error")).Once()
 
 	result := UpdateCategoryHandler(httptest.NewRecorder(), request, h)
 
@@ -105,13 +103,13 @@ func TestUpdateCategoryHandler_Updates_The_Category(t *testing.T) {
 
 	request := updateCategoryRequest()
 
-	listToUpdate := domain.CategoryEntity{
-		ID:     int32(11),
-		Name:   nvo,
+	recordToUpdate := domain.CategoryRecord{
+		ID:     11,
+		Name:   "category1",
 		UserID: 1,
 	}
-	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(&listToUpdate, nil).Once()
-	mockedRepo.On("UpdateCategory", request.Context(), &listToUpdate).Return(&listToUpdate, nil).Once()
+	mockedRepo.On("FindCategory", request.Context(), domain.CategoryRecord{ID: 11, UserID: 1}).Return(&recordToUpdate, nil).Once()
+	mockedRepo.On("UpdateCategory", request.Context(), &recordToUpdate).Return(nil).Once()
 
 	result := UpdateCategoryHandler(httptest.NewRecorder(), request, h)
 

@@ -17,10 +17,10 @@ func CreateCategoryHandler(w http.ResponseWriter, r *http.Request, h handler.Han
 	categoryEntity.UserID = userID
 
 	srv := application.NewCreateCategoryService(h.CategoriesRepository)
-	createdList, err := srv.CreateCategory(r.Context(), categoryEntity)
+	err := srv.CreateCategory(r.Context(), categoryEntity)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
 
-	return results.OkResult{Content: createdList, StatusCode: http.StatusCreated}
+	return results.OkResult{Content: categoryEntity, StatusCode: http.StatusCreated}
 }

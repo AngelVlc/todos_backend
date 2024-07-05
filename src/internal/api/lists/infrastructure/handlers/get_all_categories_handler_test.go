@@ -33,7 +33,7 @@ func TestGetAllCategoriesHandler_Returns_An_ErrorResult_With_An_UnexpectedError_
 	mockedRepo := listsRepository.MockedCategoriesRepository{}
 	h := handler.Handler{CategoriesRepository: &mockedRepo}
 
-	mockedRepo.On("GetAllCategoriesForUser", request.Context(), int32(1)).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("GetCategories", request.Context(), domain.CategoryRecord{UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetAllCategoriesHandler(httptest.NewRecorder(), request, h)
 
@@ -47,14 +47,12 @@ func TestGetAllCategoriesHandler_Returns_The_Categories(t *testing.T) {
 	mockedRepo := listsRepository.MockedCategoriesRepository{}
 	h := handler.Handler{CategoriesRepository: &mockedRepo}
 
-	c1vo, _ := domain.NewCategoryNameValueObject("list1")
-	c2vo, _ := domain.NewCategoryNameValueObject("list2")
-	found := []*domain.CategoryEntity{
-		{ID: 11, Name: c1vo},
-		{ID: 12, Name: c2vo},
+	found := domain.CategoryRecords{
+		{ID: 11, Name: "category1"},
+		{ID: 12, Name: "category2"},
 	}
 
-	mockedRepo.On("GetAllCategoriesForUser", request.Context(), int32(1)).Return(found, nil)
+	mockedRepo.On("GetCategories", request.Context(), domain.CategoryRecord{UserID: 1}).Return(found, nil)
 
 	result := GetAllCategoriesHandler(httptest.NewRecorder(), request, h)
 
@@ -64,9 +62,9 @@ func TestGetAllCategoriesHandler_Returns_The_Categories(t *testing.T) {
 
 	require.Equal(t, len(categoriesRes), 2)
 	assert.Equal(t, int32(11), categoriesRes[0].ID)
-	assert.Equal(t, "list1", categoriesRes[0].Name.String())
+	assert.Equal(t, "category1", categoriesRes[0].Name.String())
 	assert.Equal(t, int32(12), categoriesRes[1].ID)
-	assert.Equal(t, "list2", categoriesRes[1].Name.String())
+	assert.Equal(t, "category2", categoriesRes[1].Name.String())
 
 	mockedRepo.AssertExpectations(t)
 }

@@ -22,14 +22,12 @@ func TestUpdateSearchIndexDocumentProcessor(t *testing.T) {
 		UserID: 2,
 		Name:   "list1",
 	}
-	mockedRepo.On("FindList", ctx, domain.ListRecord{ID: 12}).Return(foundList, nil).Once()
-
-	l1vo, _ := domain.NewListNameValueObject("list1")
+	mockedRepo.On("FindList", ctx, domain.ListRecord{ID: 12}).Return(&foundList, nil).Once()
 
 	listDocument := domain.ListSearchDocument{
 		ObjectID:          "12",
 		UserID:            2,
-		Name:              l1vo,
+		Name:              "list1",
 		ItemsTitles:       []string{},
 		ItemsDescriptions: []string{},
 	}

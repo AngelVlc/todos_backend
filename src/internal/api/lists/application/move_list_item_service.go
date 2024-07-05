@@ -48,11 +48,11 @@ func (s *MoveListItemService) MoveListItem(ctx context.Context, originListID int
 
 	foundOriginList.Items = append(foundOriginList.Items[:indexToRemove], foundOriginList.Items[indexToRemove+1:]...)
 
-	if err = s.repo.UpdateList(ctx, &foundOriginList); err != nil {
+	if err = s.repo.UpdateList(ctx, foundOriginList); err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error updating the original list", InternalError: err}
 	}
 
-	if err = s.repo.UpdateList(ctx, &foundDestinationList); err != nil {
+	if err = s.repo.UpdateList(ctx, foundDestinationList); err != nil {
 		return &appErrors.UnexpectedError{Msg: "Error updating the destination list", InternalError: err}
 	}
 

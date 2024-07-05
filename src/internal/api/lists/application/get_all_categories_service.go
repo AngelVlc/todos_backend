@@ -16,10 +16,10 @@ func NewGetAllCategoriesService(repo domain.CategoriesRepository) *GetAllCategor
 }
 
 func (s *GetAllCategoriesService) GetAllCategories(ctx context.Context, userID int32) ([]*domain.CategoryEntity, error) {
-	foundCategories, err := s.repo.GetAllCategoriesForUser(ctx, userID)
+	foundCategories, err := s.repo.GetCategories(ctx, domain.CategoryRecord{UserID: userID})
 	if err != nil {
 		return nil, &appErrors.UnexpectedError{Msg: "Error getting all user categories", InternalError: err}
 	}
 
-	return foundCategories, nil
+	return foundCategories.ToCategoriesEntities(), nil
 }

@@ -15,5 +15,10 @@ func NewGetCategoryService(repo domain.CategoriesRepository) *GetCategoryService
 }
 
 func (s *GetCategoryService) GetCategory(ctx context.Context, categoryID int32, userID int32) (*domain.CategoryEntity, error) {
-	return s.repo.FindCategory(ctx, domain.CategoryEntity{ID: categoryID, UserID: userID})
+	foundCategory, err := s.repo.FindCategory(ctx, domain.CategoryRecord{ID: categoryID, UserID: userID})
+	if err != nil {
+		return nil, err
+	}
+
+	return foundCategory.ToCategoryEntity(), nil
 }

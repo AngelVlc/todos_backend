@@ -27,7 +27,7 @@ func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (stri
 
 	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
-	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserEntity{ID: rtInfo.UserID})
+	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserRecord{ID: rtInfo.UserID})
 	if err != nil {
 		return "", err
 	}
@@ -38,7 +38,9 @@ func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (stri
 		return "", &appErrors.UnauthorizedError{Msg: "The refresh token is not valid"}
 	}
 
-	token, err := s.tokenSrv.GenerateToken(foundUser)
+	entity := foundUser.ToUserEntity()
+
+	token, err := s.tokenSrv.GenerateToken(entity)
 	if err != nil {
 		return "", &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}

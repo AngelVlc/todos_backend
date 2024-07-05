@@ -106,7 +106,6 @@ func TestCreateListHandler_Creates_A_New_List_And_Sends_The_ListCreatedOrUpdated
 	listToCreate := domain.ListEntity{
 		Name:   listName,
 		UserID: 1,
-		Items:  []*domain.ListItemEntity{},
 	}
 
 	mockedRepo.On("CreateList", request.Context(), listToCreate.ToListRecord()).Run(func(args mock.Arguments) {

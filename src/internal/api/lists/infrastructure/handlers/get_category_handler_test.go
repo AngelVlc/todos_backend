@@ -37,7 +37,7 @@ func TestGetCategoryHandler_Returns_An_Error_If_The_Query_To_Find_The_Category_F
 	mockedRepo := listsRepository.MockedCategoriesRepository{}
 	h := handler.Handler{CategoriesRepository: &mockedRepo}
 
-	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
+	mockedRepo.On("FindCategory", request.Context(), domain.CategoryRecord{ID: 11, UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
 	result := GetCategoryHandler(httptest.NewRecorder(), request, h)
 
@@ -51,9 +51,8 @@ func TestGetCategoryHandler_Returns_The_Category(t *testing.T) {
 	mockedRepo := listsRepository.MockedCategoriesRepository{}
 	h := handler.Handler{CategoriesRepository: &mockedRepo}
 
-	nvo, _ := domain.NewCategoryNameValueObject("category1")
-	foundCategory := domain.CategoryEntity{ID: 11, Name: nvo}
-	mockedRepo.On("FindCategory", request.Context(), domain.CategoryEntity{ID: 11, UserID: 1}).Return(&foundCategory, nil).Once()
+	foundCategory := domain.CategoryRecord{ID: 11, Name: "category1"}
+	mockedRepo.On("FindCategory", request.Context(), domain.CategoryRecord{ID: 11, UserID: 1}).Return(&foundCategory, nil).Once()
 
 	result := GetCategoryHandler(httptest.NewRecorder(), request, h)
 

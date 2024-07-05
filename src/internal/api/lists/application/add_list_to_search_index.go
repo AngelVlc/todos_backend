@@ -23,7 +23,5 @@ func (s *AddListToSearchIndexService) AddListToSearchIndexService(ctx context.Co
 		return &errors.UnexpectedError{Msg: "Error getting the list", InternalError: err}
 	}
 
-	listEntity := foundList.ToListEntity()
-
-	return s.searchClient.SaveObjects(listEntity.ToListSearchDocument())
+	return s.searchClient.SaveObjects(foundList.ToListSearchDocument())
 }

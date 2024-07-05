@@ -28,7 +28,7 @@ func TestMySqlCategoriesRepository_FindCategory_WhenTheQueryFails(t *testing.T) 
 		WithArgs(categoryID).
 		WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.FindCategory(context.Background(), domain.CategoryEntity{ID: categoryID})
+	res, err := repo.FindCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -47,13 +47,13 @@ func TestMySqlCategoriesRepository_FindCategory_WhenTheQueryDoesNotFail(t *testi
 		WillReturnRows(sqlmock.NewRows(categoryColumns).
 			AddRow(categoryID, "name", "description"))
 
-	res, err := repo.FindCategory(context.Background(), domain.CategoryEntity{ID: categoryID})
+	res, err := repo.FindCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
 
 	require.NotNil(t, res)
-	require.IsType(t, &domain.CategoryEntity{}, res)
+	require.IsType(t, &domain.CategoryRecord{}, res)
 	assert.Equal(t, categoryID, res.ID)
-	assert.Equal(t, "name", res.Name.String())
-	assert.Equal(t, "description", res.Description.String())
+	assert.Equal(t, "name", res.Name)
+	assert.Equal(t, "description", res.Description)
 
 	assert.Nil(t, err)
 
@@ -67,9 +67,7 @@ func TestMySqlCategoriesRepository_ExistsCategory_WhenTheQueryFails(t *testing.T
 		WillReturnError(fmt.Errorf("some error"))
 
 	repo := NewMySqlCategoriesRepository(db)
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{Name: nvo, Description: dvo}
+	category := domain.CategoryRecord{Name: "name", Description: "category description"}
 
 	res, err := repo.ExistsCategory(context.Background(), category)
 
@@ -86,9 +84,7 @@ func TestMySqlCategoriesRepository_ExistsCategory_WhenItDoesNotFail(t *testing.T
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
 	repo := NewMySqlCategoriesRepository(db)
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{Name: nvo, Description: dvo}
+	category := domain.CategoryRecord{Name: "name", Description: "category description"}
 
 	res, err := repo.ExistsCategory(context.Background(), category)
 
@@ -98,17 +94,16 @@ func TestMySqlCategoriesRepository_ExistsCategory_WhenItDoesNotFail(t *testing.T
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlCategoriesRepository_GetAllCategoriesForUser_WhenItFails(t *testing.T) {
+func TestMySqlCategoriesRepository_GetCategories_WhenItFails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	userID := int32(1)
 
 	repo := NewMySqlCategoriesRepository(db)
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`userId` = ?")).
-		WithArgs(userID).
+		WithArgs(1).
 		WillReturnError(fmt.Errorf("some error"))
 
-	res, err := repo.GetAllCategoriesForUser(context.Background(), userID)
+	res, err := repo.GetCategories(context.Background(), domain.CategoryRecord{UserID: 1})
 
 	assert.Nil(t, res)
 	assert.EqualError(t, err, "some error")
@@ -116,29 +111,28 @@ func TestMySqlCategoriesRepository_GetAllCategoriesForUser_WhenItFails(t *testin
 	helpers.CheckSqlMockExpectations(mock, t)
 }
 
-func TestMySqlCategoriesRepository_GetAllCategoriesForUser_When_It_Does_Not_Fail_Including_Items(t *testing.T) {
+func TestMySqlCategoriesRepository_GetCategories_When_It_Does_Not_Fail_Including_Items(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
-	userID := int32(1)
 
 	repo := NewMySqlCategoriesRepository(db)
 
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`userId` = ?")).
-		WithArgs(userID).
+		WithArgs(1).
 		WillReturnRows(sqlmock.NewRows(categoryColumns).
 			AddRow(11, "category1", "desc 1").
 			AddRow(12, "category2", "desc 2"))
 
-	res, err := repo.GetAllCategoriesForUser(context.Background(), userID)
+	res, err := repo.GetCategories(context.Background(), domain.CategoryRecord{UserID: 1})
 
 	assert.Nil(t, err)
 	require.NotNil(t, res)
 	require.Equal(t, 2, len(res))
 	assert.Equal(t, int32(11), res[0].ID)
-	assert.Equal(t, "category1", res[0].Name.String())
-	assert.Equal(t, "desc 1", res[0].Description.String())
+	assert.Equal(t, "category1", res[0].Name)
+	assert.Equal(t, "desc 1", res[0].Description)
 	assert.Equal(t, int32(12), res[1].ID)
-	assert.Equal(t, "category2", res[1].Name.String())
-	assert.Equal(t, "desc 2", res[1].Description.String())
+	assert.Equal(t, "category2", res[1].Name)
+	assert.Equal(t, "desc 2", res[1].Description)
 
 	helpers.CheckSqlMockExpectations(mock, t)
 }
@@ -151,13 +145,11 @@ func TestMySqlCategoriesRepository_CreateCategory_When_The_Create_Fails(t *testi
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{Name: nvo, Description: dvo, UserID: 2}
+	category := domain.CategoryRecord{Name: "name", Description: "category description", UserID: 2}
 
 	repo := NewMySqlCategoriesRepository(db)
 
-	_, err := repo.CreateCategory(context.Background(), &category)
+	err := repo.CreateCategory(context.Background(), &category)
 
 	assert.EqualError(t, err, "some error")
 
@@ -172,16 +164,12 @@ func TestMySqlCategoriesRepository_CreateCategory_When_It_Does_Not_Fail(t *testi
 		WillReturnResult(sqlmock.NewResult(12, 0))
 	mock.ExpectCommit()
 
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{Name: nvo, Description: dvo, UserID: 2}
+	category := domain.CategoryRecord{Name: "name", Description: "category description", UserID: 2}
 
 	repo := NewMySqlCategoriesRepository(db)
 
-	res, err := repo.CreateCategory(context.Background(), &category)
+	err := repo.CreateCategory(context.Background(), &category)
 
-	require.NotNil(t, res)
-	assert.IsType(t, &domain.CategoryEntity{}, res)
 	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)
@@ -199,7 +187,7 @@ func TestMySqlCategoriesRepository_DeleteCategory_When_Deleting_Fails(t *testing
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	err := repo.DeleteCategory(context.Background(), domain.CategoryEntity{ID: categoryID})
+	err := repo.DeleteCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
 
 	assert.EqualError(t, err, "some error")
 
@@ -218,7 +206,7 @@ func TestMySqlCategoriesRepository_DeleteCategory_When_It_Does_Not_Fail(t *testi
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
-	err := repo.DeleteCategory(context.Background(), domain.CategoryEntity{ID: categoryID})
+	err := repo.DeleteCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
 
 	assert.Nil(t, err)
 
@@ -234,11 +222,9 @@ func TestMySqlCategoriesRepository_UpdateCategory_When_The_Update_Fails(t *testi
 	mock.ExpectRollback()
 
 	repo := NewMySqlCategoriesRepository(db)
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{ID: 11, Name: nvo, Description: dvo}
+	category := domain.CategoryRecord{ID: 11, Name: "name", Description: "category description"}
 
-	_, err := repo.UpdateCategory(context.Background(), &category)
+	err := repo.UpdateCategory(context.Background(), &category)
 
 	assert.EqualError(t, err, "some error")
 
@@ -254,14 +240,10 @@ func TestMySqlCategoriesRepository_UpdateCategory_When_The_Update_Does_Not_Fail(
 	mock.ExpectCommit()
 
 	repo := NewMySqlCategoriesRepository(db)
-	nvo, _ := domain.NewCategoryNameValueObject("name")
-	dvo, _ := domain.NewCategoryDescriptionValueObject("category description")
-	category := domain.CategoryEntity{ID: 11, Name: nvo, Description: dvo}
+	category := domain.CategoryRecord{ID: 11, Name: "name", Description: "category description"}
 
-	updatedCategory, err := repo.UpdateCategory(context.Background(), &category)
+	err := repo.UpdateCategory(context.Background(), &category)
 
-	assert.Nil(t, err)
-	assert.IsType(t, &domain.CategoryEntity{}, updatedCategory)
 	assert.Nil(t, err)
 
 	helpers.CheckSqlMockExpectations(mock, t)

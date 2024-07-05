@@ -56,7 +56,7 @@ func InitRequireAdminMiddleware() domain.Middleware {
 	return requireAdminMiddleware
 }
 
-func initRequestIdMiddleware(db *gorm.DB) domain.Middleware {
+func initRequestIdMiddleware() domain.Middleware {
 	requestIdMiddleware := reqid.NewRequestIdMiddleware()
 	return requestIdMiddleware
 }
@@ -166,11 +166,11 @@ func InitAuthMiddleware(db *gorm.DB) authmdw.AuthMiddleware {
 	}
 }
 
-func InitRequestIdMiddleware(db *gorm.DB) domain.Middleware {
+func InitRequestIdMiddleware() domain.Middleware {
 	if inTestingMode() {
 		return initFakeMiddleware()
 	} else {
-		return initRequestIdMiddleware(db)
+		return initRequestIdMiddleware()
 	}
 }
 

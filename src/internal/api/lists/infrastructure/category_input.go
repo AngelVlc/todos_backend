@@ -9,12 +9,14 @@ import (
 type CategoryInput struct {
 	Name        domain.CategoryNameValueObject        `json:"name"`
 	Description domain.CategoryDescriptionValueObject `json:"description"`
+	IsFavourite bool                                  `json:"isFavourite"`
 }
 
 func (i *CategoryInput) UnmarshalJSON(data []byte) error {
 	var realInput struct {
 		Name        string `json:"name"`
 		Description string `json:"description"`
+		IsFavourite bool   `json:"isFavourite"`
 	}
 
 	if err := json.Unmarshal(data, &realInput); err != nil {
@@ -34,6 +36,7 @@ func (i *CategoryInput) UnmarshalJSON(data []byte) error {
 	*i = CategoryInput{
 		Name:        nvo,
 		Description: dvo,
+		IsFavourite: realInput.IsFavourite,
 	}
 
 	return nil
@@ -43,6 +46,7 @@ func (i *CategoryInput) ToCategoryEntity() *domain.CategoryEntity {
 	list := &domain.CategoryEntity{
 		Name:        i.Name,
 		Description: i.Description,
+		IsFavourite: i.IsFavourite,
 	}
 
 	return list

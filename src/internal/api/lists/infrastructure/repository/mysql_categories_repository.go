@@ -52,5 +52,8 @@ func (r *MySqlCategoriesRepository) DeleteCategory(ctx context.Context, query do
 }
 
 func (r *MySqlCategoriesRepository) UpdateCategory(ctx context.Context, record *domain.CategoryRecord) error {
-	return r.db.WithContext(ctx).Session(&gorm.Session{FullSaveAssociations: true}).Updates(record).Error
+	return r.db.Debug().WithContext(ctx).
+		Session(&gorm.Session{FullSaveAssociations: true}).
+		Model(record).
+		Updates(map[string]interface{}{"name": record.Name, "description": record.Description, "isFavourite": record.IsFavourite}).Error
 }

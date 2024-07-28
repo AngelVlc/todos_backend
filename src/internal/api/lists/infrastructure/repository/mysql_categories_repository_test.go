@@ -140,12 +140,12 @@ func TestMySqlCategoriesRepository_GetCategories_When_It_Does_Not_Fail_Including
 func TestMySqlCategoriesRepository_CreateCategory_When_The_Create_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `categories` (`name`,`description`,`userId`) VALUES (?,?,?)")).
-		WithArgs("name", "category description", 2).
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `categories` (`name`,`description`,`userId`,`isFavourite`) VALUES (?,?,?,?)")).
+		WithArgs("name", "category description", 2, false).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
-	category := domain.CategoryRecord{Name: "name", Description: "category description", UserID: 2}
+	category := domain.CategoryRecord{Name: "name", Description: "category description", UserID: 2, IsFavourite: false}
 
 	repo := NewMySqlCategoriesRepository(db)
 
@@ -159,12 +159,12 @@ func TestMySqlCategoriesRepository_CreateCategory_When_The_Create_Fails(t *testi
 func TestMySqlCategoriesRepository_CreateCategory_When_It_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `categories` (`name`,`description`,`userId`) VALUES (?,?,?)")).
-		WithArgs("name", "category description", 2).
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `categories` (`name`,`description`,`userId`,`isFavourite`) VALUES (?,?,?,?)")).
+		WithArgs("name", "category description", 2, true).
 		WillReturnResult(sqlmock.NewResult(12, 0))
 	mock.ExpectCommit()
 
-	category := domain.CategoryRecord{Name: "name", Description: "category description", UserID: 2}
+	category := domain.CategoryRecord{Name: "name", Description: "category description", UserID: 2, IsFavourite: true}
 
 	repo := NewMySqlCategoriesRepository(db)
 
@@ -216,13 +216,13 @@ func TestMySqlCategoriesRepository_DeleteCategory_When_It_Does_Not_Fail(t *testi
 func TestMySqlCategoriesRepository_UpdateCategory_When_The_Update_Fails(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `categories` SET `name`=?,`description`=? WHERE `id` = ?")).
-		WithArgs("name", "category description", 11).
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `categories` SET `description`=?,`isFavourite`=?,`name`=? WHERE `id` = ?")).
+		WithArgs("category description", true, "name", 11).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
 
 	repo := NewMySqlCategoriesRepository(db)
-	category := domain.CategoryRecord{ID: 11, Name: "name", Description: "category description"}
+	category := domain.CategoryRecord{ID: 11, Name: "name", Description: "category description", IsFavourite: true}
 
 	err := repo.UpdateCategory(context.Background(), &category)
 
@@ -234,13 +234,13 @@ func TestMySqlCategoriesRepository_UpdateCategory_When_The_Update_Fails(t *testi
 func TestMySqlCategoriesRepository_UpdateCategory_When_The_Update_Does_Not_Fail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("UPDATE `categories` SET `name`=?,`description`=? WHERE `id` = ?")).
-		WithArgs("name", "category description", 11).
+	mock.ExpectExec(regexp.QuoteMeta("UPDATE `categories` SET `description`=?,`isFavourite`=?,`name`=? WHERE `id` = ?")).
+		WithArgs("category description", false, "name", 11).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
 
 	repo := NewMySqlCategoriesRepository(db)
-	category := domain.CategoryRecord{ID: 11, Name: "name", Description: "category description"}
+	category := domain.CategoryRecord{ID: 11, Name: "name", Description: "category description", UserID: 1, IsFavourite: false}
 
 	err := repo.UpdateCategory(context.Background(), &category)
 

@@ -1,0 +1,1 @@
+ALTER TABLE `categories` ADD `isFavourite` tinyint(1) NULL;

@@ -5,6 +5,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -27,6 +28,14 @@ func getAllRequest() *http.Request {
 	return request.WithContext(ctx)
 }
 
+func getAllRequestWithCategory() *http.Request {
+	request, _ := http.NewRequest(http.MethodGet, "/wadus?categoryId=2", nil)
+	ctx := request.Context()
+	ctx = context.WithValue(ctx, consts.ReqContextUserIDKey, int32(1))
+
+	return request.WithContext(ctx)
+}
+
 func TestGetAllListsHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_The_Query_Fails(t *testing.T) {
 	request := getAllRequest()
 
@@ -35,14 +44,15 @@ func TestGetAllListsHandler_Returns_An_ErrorResult_With_An_UnexpectedError_If_Th
 
 	mockedRepo.On("GetLists", request.Context(), domain.ListRecord{UserID: 1}).Return(nil, fmt.Errorf("some error")).Once()
 
-	result := GetAllListsHandler(httptest.NewRecorder(), request, h)
+	result := GetListsHandler(httptest.NewRecorder(), request, h)
 
 	results.CheckUnexpectedErrorResult(t, result, "Error getting all user lists")
 	mockedRepo.AssertExpectations(t)
+
 }
 
-func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
-	request := getAllRequest()
+func TestGetAllListsHandler_With_Category_Returns_The_Lists(t *testing.T) {
+	request := getAllRequestWithCategory()
 
 	mockedRepo := listsRepository.MockedListsRepository{}
 	h := handler.Handler{ListsRepository: &mockedRepo}
@@ -52,9 +62,9 @@ func TestGetAllListsHandler_Returns_The_Lists(t *testing.T) {
 		{ID: 12, Name: "list2", ItemsCount: 8},
 	}
 
-	mockedRepo.On("GetLists", request.Context(), domain.ListRecord{UserID: 1}).Return(found, nil)
+	mockedRepo.On("GetLists", request.Context(), domain.ListRecord{UserID: 1, CategoryID: &sql.NullInt32{Int32: int32(2), Valid: true}}).Return(found, nil)
 
-	result := GetAllListsHandler(httptest.NewRecorder(), request, h)
+	result := GetListsHandler(httptest.NewRecorder(), request, h)
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
 	listRes, isOk := okRes.Content.([]*domain.ListEntity)

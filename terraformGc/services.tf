@@ -4,10 +4,8 @@ resource "google_project_service" "resource_manager" {
   disable_dependent_services = true
 }
 
-resource "google_project_service" "container_registry" {
-  service = "containerregistry.googleapis.com"
-
-  disable_dependent_services = true
+resource "google_project_service" "artifact_registry" {
+  service = "artifactregistry.googleapis.com"
 }
 
 resource "google_project_service" "run" {

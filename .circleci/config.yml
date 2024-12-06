@@ -64,17 +64,17 @@ commands:
         -var algolia_app_id=$ALGOLIA_APP_ID
         -var algolia_api_key=$ALGOLIA_API_KEY
         -var algolia_search_only_key=$ALGOLIA_SEARCH_ONLY_KEY
-  push_image_to_gcr:
+  push_image_to_artifact_registry:
     steps:
-      - run: docker build --target release -t eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest -f src/Dockerfile src/
-      - run: gcloud auth configure-docker
+      - run: docker build --target release -t us-central1-docker.pkg.dev/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest -f src/Dockerfile src/
+      - run: gcloud auth configure-docker us-central1-docker.pkg.dev
       - run: gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS --project=$GCLOUD_PROJECT_ID
-      - run: docker push eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest
-      - run: echo 'export CONTAINER_IMAGE=`docker images --format "{{.Repository}}@{{.Digest}}" --filter "reference=eu.gcr.io/$GCLOUD_PROJECT_ID/$APP_NAME/release"`' >> $BASH_ENV
+      - run: docker push us-central1-docker.pkg.dev/$GCLOUD_PROJECT_ID/$APP_NAME/release:latest
+      - run: echo 'export CONTAINER_IMAGE=`docker images --format "{{.Repository}}@{{.Digest}}" --filter "reference=us-central1-docker.pkg.dev/$GCLOUD_PROJECT_ID/$APP_NAME/release"`' >> $BASH_ENV
 jobs:
   test:
     machine:
-      image: ubuntu-2004:202111-01
+      image: ubuntu-2204:2024.11.1
     steps:
       - checkout
       - build_test_image
@@ -86,7 +86,7 @@ jobs:
           command: plan
   deploy:
     machine:
-      image: ubuntu-2004:202111-01
+      image: ubuntu-2204:2024.11.1
     steps:
       - checkout
       - configure_gcloud_credentials
@@ -95,14 +95,16 @@ jobs:
       - plan_or_apply_terraform:
           command: apply -target=google_project_service.resource_manager -input=false -auto-approve
       - plan_or_apply_terraform:
-          command: apply -target=google_project_service.container_registry -input=false -auto-approve
-      - push_image_to_gcr
+          command: apply -target=google_project_service.artifact_registry -input=false -auto-approve
+      - plan_or_apply_terraform:
+          command: apply -target=google_artifact_registry_repository.todos_backend_repo -input=false -auto-approve
+      - push_image_to_artifact_registry
       - plan_or_apply_terraform:
           command: apply -input=false -auto-approve -var container_image=$CONTAINER_IMAGE
       - run: curl --data "deploy[environment]=production&deploy[local_username]=$CIRCLE_PR_USERNAME&deploy[revision]=$(git rev-parse --short HEAD)&api_key=$HONEYBADGER_API_KEY" "https://api.honeybadger.io/v1/deploys"
   smoke:
     machine:
-      image: ubuntu-2004:202111-01
+      image: ubuntu-2204:2024.11.1
     steps:
       - checkout
       - build_test_image

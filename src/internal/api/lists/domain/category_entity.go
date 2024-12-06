@@ -5,6 +5,7 @@ type CategoryEntity struct {
 	Name        CategoryNameValueObject        `json:"name"`
 	UserID      int32                          `json:"-"`
 	Description CategoryDescriptionValueObject `json:"description"`
+	IsFavourite bool                           `json:"isFavourite"`
 }
 
 func (e *CategoryEntity) ToCategoryRecord() *CategoryRecord {
@@ -13,5 +14,6 @@ func (e *CategoryEntity) ToCategoryRecord() *CategoryRecord {
 		Name:        e.Name.String(),
 		UserID:      e.UserID,
 		Description: e.Description.String(),
+		IsFavourite: e.IsFavourite,
 	}
 }

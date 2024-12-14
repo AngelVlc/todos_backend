@@ -98,15 +98,16 @@ func TestUpdateCategoryHandler_Updates_The_Category(t *testing.T) {
 	nvo, _ := domain.NewCategoryNameValueObject("category1")
 	h := handler.Handler{
 		CategoriesRepository: &mockedRepo,
-		RequestInput:         &infrastructure.CategoryInput{Name: nvo},
+		RequestInput:         &infrastructure.CategoryInput{Name: nvo, IsFavourite: false},
 	}
 
 	request := updateCategoryRequest()
 
 	recordToUpdate := domain.CategoryRecord{
-		ID:     11,
-		Name:   "category1",
-		UserID: 1,
+		ID:          11,
+		Name:        "category1",
+		UserID:      1,
+		IsFavourite: false,
 	}
 	mockedRepo.On("FindCategory", request.Context(), domain.CategoryRecord{ID: 11, UserID: 1}).Return(&recordToUpdate, nil).Once()
 	mockedRepo.On("UpdateCategory", request.Context(), &recordToUpdate).Return(nil).Once()

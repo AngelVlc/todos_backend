@@ -211,3 +211,69 @@ func TestMySqlAuthRepository_DeleteRefreshTokensByID_Deletes_The_RefreshTokens(t
 	assert.Nil(t, err)
 	helpers.CheckSqlMockExpectations(mock, t)
 }
+
+func TestMySqlAuthRepository_ReplaceRefreshToken_Returns_An_Error_If_The_Delete_Fails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlAuthRepository(db)
+
+	oldToken := "oldRefreshToken"
+	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
+	newToken := &domain.RefreshTokenEntity{UserID: 1, RefreshToken: "newRefreshToken", ExpirationDate: expDate}
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE refreshToken = ? AND userId = ?")).
+		WithArgs(oldToken, newToken.UserID).
+		WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectRollback()
+
+	err := repo.ReplaceRefreshToken(context.Background(), oldToken, newToken)
+
+	assert.EqualError(t, err, "some error")
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlAuthRepository_ReplaceRefreshToken_Returns_An_Error_If_The_Create_Fails(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlAuthRepository(db)
+
+	oldToken := "oldRefreshToken"
+	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
+	newToken := &domain.RefreshTokenEntity{UserID: 1, RefreshToken: "newRefreshToken", ExpirationDate: expDate}
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE refreshToken = ? AND userId = ?")).
+		WithArgs(oldToken, newToken.UserID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?)")).
+		WithArgs(newToken.UserID, newToken.RefreshToken, newToken.ExpirationDate).
+		WillReturnError(fmt.Errorf("some error"))
+	mock.ExpectRollback()
+
+	err := repo.ReplaceRefreshToken(context.Background(), oldToken, newToken)
+
+	assert.EqualError(t, err, "some error")
+	helpers.CheckSqlMockExpectations(mock, t)
+}
+
+func TestMySqlAuthRepository_ReplaceRefreshToken_Replaces_The_RefreshToken(t *testing.T) {
+	mock, db := helpers.GetMockedDb(t)
+	repo := NewMySqlAuthRepository(db)
+
+	oldToken := "oldRefreshToken"
+	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
+	newToken := &domain.RefreshTokenEntity{UserID: 1, RefreshToken: "newRefreshToken", ExpirationDate: expDate}
+
+	mock.ExpectBegin()
+	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE refreshToken = ? AND userId = ?")).
+		WithArgs(oldToken, newToken.UserID).
+		WillReturnResult(sqlmock.NewResult(0, 1))
+	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?)")).
+		WithArgs(newToken.UserID, newToken.RefreshToken, newToken.ExpirationDate).
+		WillReturnResult(sqlmock.NewResult(12, 1))
+	mock.ExpectCommit()
+
+	err := repo.ReplaceRefreshToken(context.Background(), oldToken, newToken)
+
+	assert.Nil(t, err)
+	helpers.CheckSqlMockExpectations(mock, t)
+}

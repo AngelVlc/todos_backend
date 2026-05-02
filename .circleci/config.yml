@@ -61,6 +61,8 @@ commands:
         -var mysql_user=$MYSQL_USER
         -var mysql_password=$MYSQL_PASSWORD
         -var delete_expired_refresh_token_interval=$DELETE_EXPIRED_REFRESH_TOKEN_INTERVAL
+        -var token_expiration_time=$TOKEN_EXPIRATION_TIME
+        -var refresh_token_expiration_time=$REFRESH_TOKEN_EXPIRATION_TIME
         -var algolia_app_id=$ALGOLIA_APP_ID
         -var algolia_api_key=$ALGOLIA_API_KEY
         -var algolia_search_only_key=$ALGOLIA_SEARCH_ONLY_KEY

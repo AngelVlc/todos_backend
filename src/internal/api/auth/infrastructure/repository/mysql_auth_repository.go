@@ -70,3 +70,21 @@ func (r *MySqlAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids [
 
 	return nil
 }
+
+func (r *MySqlAuthRepository) ReplaceRefreshToken(ctx context.Context, oldToken string, newToken *domain.RefreshTokenEntity) error {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+
+	tx := r.db.WithContext(ctx).Begin()
+	defer tx.Rollback()
+
+	if err := tx.Delete(&domain.RefreshTokenRecord{}, "refreshToken = ? AND userId = ?", oldToken, newToken.UserID).Error; err != nil {
+		return err
+	}
+
+	if err := tx.Create(newToken.ToRefreshTokenRecord()).Error; err != nil {
+		return err
+	}
+
+	return tx.Commit().Error
+}

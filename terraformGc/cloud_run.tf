@@ -51,6 +51,14 @@ resource "google_cloud_run_service" "run_service" {
           value = var.delete_expired_refresh_token_interval
         }
         env {
+          name  = "TOKEN_EXPIRATION_TIME"
+          value = var.token_expiration_time
+        }
+        env {
+          name  = "REFRESH_TOKEN_EXPIRATION_TIME"
+          value = var.refresh_token_expiration_time
+        }
+        env {
           name  = "ALGOLIA_APP_ID"
           value = var.algolia_app_id
         }

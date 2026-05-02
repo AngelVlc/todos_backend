@@ -57,3 +57,9 @@ func (m *MockedAuthRepository) DeleteRefreshTokensByID(ctx context.Context, ids 
 
 	return args.Error(0)
 }
+
+func (m *MockedAuthRepository) ReplaceRefreshToken(ctx context.Context, oldToken string, newToken *domain.RefreshTokenEntity) error {
+	args := m.Called(ctx, oldToken, newToken)
+
+	return args.Error(0)
+}

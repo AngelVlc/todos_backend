@@ -31,6 +31,16 @@ variable "delete_expired_refresh_token_interval" {
   description = "Interval for the delete expired tokens process. Valid time units are s, m or h"
 }
 
+variable "token_expiration_time" {
+  description = "Access token expiration time (e.g., 5m)"
+  default     = "5m"
+}
+
+variable "refresh_token_expiration_time" {
+  description = "Refresh token expiration time (e.g., 24h)"
+  default     = "24h"
+}
+
 variable "mysql_host" {}
 variable "mysql_user" {}
 variable "mysql_password" {}

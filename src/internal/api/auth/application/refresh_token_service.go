@@ -19,31 +19,36 @@ func NewRefreshTokenService(authRepo domain.AuthRepository, usersRepo domain.Use
 	return &RefreshTokenService{authRepo, usersRepo, cfgSvr, tokenSrv}
 }
 
-func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (string, error) {
+func (s *RefreshTokenService) RefreshToken(ctx context.Context, rt string) (string, string, error) {
 	parsedRt, err := s.tokenSrv.ParseToken(rt)
 	if err != nil {
-		return "", &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}
+		return "", "", &appErrors.UnauthorizedError{Msg: "Invalid refresh token", InternalError: err}
 	}
 
 	rtInfo := s.tokenSrv.GetRefreshTokenInfo(parsedRt)
 
 	foundUser, err := s.usersRepo.FindUser(ctx, domain.UserRecord{ID: rtInfo.UserID})
 	if err != nil {
-		return "", err
-	}
-
-	if existsRt, err := s.authRepo.ExistsRefreshToken(ctx, domain.RefreshTokenEntity{RefreshToken: rt, UserID: rtInfo.UserID}); err != nil {
-		return "", &appErrors.UnexpectedError{Msg: "Error getting the refresh token", InternalError: err}
-	} else if !existsRt {
-		return "", &appErrors.UnauthorizedError{Msg: "The refresh token is not valid"}
+		return "", "", err
 	}
 
 	entity := foundUser.ToUserEntity()
 
 	token, err := s.tokenSrv.GenerateToken(entity)
 	if err != nil {
-		return "", &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
+		return "", "", &appErrors.UnexpectedError{Msg: "Error creating jwt token", InternalError: err}
 	}
 
-	return token, nil
+	refreshTokenExpDate := s.cfgSvr.GetRefreshTokenExpirationTime()
+
+	refreshToken, err := s.tokenSrv.GenerateRefreshToken(entity, refreshTokenExpDate)
+	if err != nil {
+		return "", "", &appErrors.UnexpectedError{Msg: "Error creating jwt refresh token", InternalError: err}
+	}
+
+	if err := s.authRepo.ReplaceRefreshToken(ctx, rt, &domain.RefreshTokenEntity{UserID: rtInfo.UserID, RefreshToken: refreshToken, ExpirationDate: refreshTokenExpDate}); err != nil {
+		return "", "", &appErrors.UnexpectedError{Msg: "Error replacing refresh token", InternalError: err}
+	}
+
+	return token, refreshToken, nil
 }

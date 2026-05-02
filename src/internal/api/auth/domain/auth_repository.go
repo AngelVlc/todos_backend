@@ -13,4 +13,5 @@ type AuthRepository interface {
 	DeleteExpiredRefreshTokens(ctx context.Context, expTime time.Time) error
 	GetAllRefreshTokens(ctx context.Context, paginationInfo *sharedDomain.PaginationInfo) ([]*RefreshTokenEntity, error)
 	DeleteRefreshTokensByID(ctx context.Context, ids []int32) error
+	ReplaceRefreshToken(ctx context.Context, oldToken string, newToken *RefreshTokenEntity) error
 }

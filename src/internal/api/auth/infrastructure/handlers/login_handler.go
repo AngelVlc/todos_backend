@@ -19,7 +19,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) han
 	input, _ := h.RequestInput.(*infrastructure.LoginInput)
 
 	srv := application.NewLoginService(h.AuthRepository, h.UsersRepository, h.CfgSrv, h.TokenSrv)
-	t, rt, u, err := srv.Login(r.Context(), input.UserName, input.Password)
+	t, rt, _, err := srv.Login(r.Context(), input.UserName, input.Password)
 	if err != nil {
 		return results.ErrorResult{Err: err}
 	}
@@ -27,7 +27,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request, h handler.Handler) han
 	addTokenCookie(w, t)
 	addRefreshTokenCookie(w, rt)
 
-	res := infrastructure.UserResponse{ID: u.ID, Name: u.Name.String(), IsAdmin: u.IsAdmin}
+	res := infrastructure.LoginResponse{Token: t}
 
 	return results.OkResult{Content: res, StatusCode: http.StatusOK}
 }

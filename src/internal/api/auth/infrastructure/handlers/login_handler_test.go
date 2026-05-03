@@ -168,11 +168,9 @@ func TestLoginHandler_Returns_An_OkResult_With_A_LoginResponse_And_Creates_The_C
 	mockedAuthRepo.Wg.Wait()
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
-	res, isOk := okRes.Content.(infrastructure.UserResponse)
-	require.Equal(t, true, isOk, "should be a user response")
-	assert.Equal(t, int32(1), res.ID)
-	assert.Equal(t, "user", res.Name)
-	assert.True(t, res.IsAdmin)
+	res, isOk := okRes.Content.(infrastructure.LoginResponse)
+	require.Equal(t, true, isOk, "should be a login response")
+	assert.Equal(t, "theToken", res.Token)
 
 	require.Equal(t, 2, len(recorder.Result().Cookies()))
 	assert.Equal(t, "token", recorder.Result().Cookies()[0].Name)
@@ -220,11 +218,9 @@ func TestLoginHandler_Returns_An_OkResult_With_A_LoginResponse_And_Creates_The_C
 	mockedAuthRepo.Wg.Wait()
 
 	okRes := results.CheckOkResult(t, result, http.StatusOK)
-	res, isOk := okRes.Content.(infrastructure.UserResponse)
+	res, isOk := okRes.Content.(infrastructure.LoginResponse)
 	require.Equal(t, true, isOk, "should be a login response")
-	assert.Equal(t, int32(1), res.ID)
-	assert.Equal(t, "user", res.Name)
-	assert.True(t, res.IsAdmin)
+	assert.Equal(t, "theToken", res.Token)
 
 	require.Equal(t, 2, len(recorder.Result().Cookies()))
 	assert.Equal(t, "token", recorder.Result().Cookies()[0].Name)

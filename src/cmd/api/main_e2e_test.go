@@ -77,7 +77,7 @@ func TestEndtoEnd(t *testing.T) {
 	res, err = client.Do(req)
 	require.Nil(t, err)
 	require.Equal(t, 200, res.StatusCode)
-	require.Equal(t, 1, len(res.Cookies()))
+	require.Equal(t, 2, len(res.Cookies()))
 
 	// Removes a list
 	req = createRequest(t, "DELETE", baseURL+"/lists/"+string(listID), nil, loginResCookies)

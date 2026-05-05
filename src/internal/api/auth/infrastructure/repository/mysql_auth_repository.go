@@ -75,16 +75,11 @@ func (r *MySqlAuthRepository) ReplaceRefreshToken(ctx context.Context, oldToken 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	tx := r.db.WithContext(ctx).Begin()
-	defer tx.Rollback()
-
-	if err := tx.Delete(&domain.RefreshTokenRecord{}, "refreshToken = ? AND userId = ?", oldToken, newToken.UserID).Error; err != nil {
+	if err := r.db.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).Delete(&domain.RefreshTokenRecord{}, "refreshToken = ? AND userId = ?", oldToken, newToken.UserID).Error; err != nil {
 		return err
 	}
 
-	if err := tx.Create(newToken.ToRefreshTokenRecord()).Error; err != nil {
-		return err
-	}
-
-	return tx.Commit().Error
+	return r.db.WithContext(ctx).Session(&gorm.Session{SkipDefaultTransaction: true}).Clauses(clause.OnConflict{
+		UpdateAll: true,
+	}).Create(newToken.ToRefreshTokenRecord()).Error
 }

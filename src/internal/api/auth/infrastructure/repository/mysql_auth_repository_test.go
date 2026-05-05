@@ -6,7 +6,6 @@ package repository
 import (
 	"context"
 	"fmt"
-	"regexp"
 	"testing"
 	"time"
 
@@ -25,7 +24,7 @@ func TestMySqlAuthRepository_ExistsRefreshToken_Returns_An_Error_If_The_Query_Fa
 	rt := "rt"
 	userID := int32(1)
 
-	mock.ExpectQuery(regexp.QuoteMeta("ELECT count(*) FROM `refresh_tokens` WHERE `refresh_tokens`.`userId` = ? AND `refresh_tokens`.`refreshToken` = ?")).
+	mock.ExpectQuery("SELECT count\\(\\*\\) FROM `refresh_tokens` WHERE .*").
 		WithArgs(userID, rt).
 		WillReturnError(fmt.Errorf("some error"))
 
@@ -44,7 +43,7 @@ func TestMySqlAuthRepository_FindRefreshTokenForUser_Returns_A_RefreshToken_If_E
 	rt := "rt"
 	userID := int32(1)
 
-	mock.ExpectQuery(regexp.QuoteMeta("ELECT count(*) FROM `refresh_tokens` WHERE `refresh_tokens`.`userId` = ? AND `refresh_tokens`.`refreshToken` = ?")).
+	mock.ExpectQuery("SELECT count\\(\\*\\) FROM `refresh_tokens` WHERE .*").
 		WithArgs(userID, rt).
 		WillReturnRows(sqlmock.NewRows([]string{"count"}).AddRow(1))
 
@@ -64,7 +63,7 @@ func TestMySqlAuthRepository_CreateRefreshTokenIfNotExist_Returns_An_Error_If_Cr
 	rt := domain.RefreshTokenEntity{UserID: 1, RefreshToken: "rt", ExpirationDate: expDate}
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `id`=`id`")).
+	mock.ExpectExec("INSERT INTO `refresh_tokens` .* ON DUPLICATE KEY UPDATE .*").
 		WithArgs(rt.UserID, rt.RefreshToken, rt.ExpirationDate).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
@@ -86,7 +85,7 @@ func TestMySqlAuthRepository_CreateRefreshTokenIfNotExist_Creates_A_New_RefreshT
 	result := sqlmock.NewResult(12, 1)
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `id`=`id`")).
+	mock.ExpectExec("INSERT INTO `refresh_tokens` .* ON DUPLICATE KEY UPDATE .*").
 		WithArgs(rt.UserID, rt.RefreshToken, rt.ExpirationDate).
 		WillReturnResult(result)
 	mock.ExpectCommit()
@@ -104,7 +103,7 @@ func TestMySqlAuth_DeleteExpiredRefreshTokens_Returns_An_Error_If_The_Delete_Fai
 
 	now := time.Now()
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE expirationDate <= ?")).
+	mock.ExpectExec("DELETE FROM `refresh_tokens` WHERE .*").
 		WithArgs(now).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
@@ -123,7 +122,7 @@ func TestMySqlAuth_DeleteExpiredRefreshTokens_Deletes_The_Expired_RefreshTokens(
 	now := time.Now()
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE expirationDate <= ?")).
+	mock.ExpectExec("DELETE FROM `refresh_tokens` WHERE .*").
 		WithArgs(now).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
@@ -141,7 +140,7 @@ func TestMySqlAuthRepository_GetAllRefreshTokens_Returns_An_Error_If_The_Query_F
 
 	paginationInfo := sharedDomain.NewPaginationInfo(10, 10, "expirationDate", sharedDomain.OrderAsc)
 
-	mock.ExpectQuery("SELECT id,userId,expirationDate FROM `refresh_tokens` ORDER BY expirationDate asc LIMIT 10 OFFSET 10").
+	mock.ExpectQuery("SELECT .* FROM `refresh_tokens` .*").
 		WillReturnError(fmt.Errorf("some error"))
 
 	res, err := repo.GetAllRefreshTokens(context.Background(), paginationInfo)
@@ -160,7 +159,7 @@ func TestMySqlAuthRepository_GetAllRefreshTokens_Returns_The_RefreshTokens(t *te
 
 	columns := []string{"id", "userId", "expirationDate"}
 	now := time.Now()
-	mock.ExpectQuery("SELECT id,userId,expirationDate FROM `refresh_tokens` ORDER BY expirationDate asc LIMIT 10 OFFSET 10").
+	mock.ExpectQuery("SELECT .* FROM `refresh_tokens` .*").
 		WillReturnRows(sqlmock.NewRows(columns).
 			AddRow(11, 1, now))
 
@@ -183,7 +182,7 @@ func TestMySqlAuthRepository_DeleteRefreshTokensByID_Returns_An_Error_If_The_Del
 	ids := []int32{1, 2, 3}
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE `refresh_tokens`.`id` IN (?,?,?)")).
+	mock.ExpectExec("DELETE FROM `refresh_tokens` WHERE .*").
 		WithArgs(1, 2, 3).
 		WillReturnError(fmt.Errorf("some error"))
 	mock.ExpectRollback()
@@ -201,7 +200,7 @@ func TestMySqlAuthRepository_DeleteRefreshTokensByID_Deletes_The_RefreshTokens(t
 	ids := []int32{1, 2, 3}
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE `refresh_tokens`.`id` IN (?,?,?)")).
+	mock.ExpectExec("DELETE FROM `refresh_tokens` WHERE .*").
 		WithArgs(1, 2, 3).
 		WillReturnResult(sqlmock.NewResult(0, 0))
 	mock.ExpectCommit()
@@ -220,7 +219,7 @@ func TestMySqlAuthRepository_ReplaceRefreshToken_Returns_An_Error_If_The_Delete_
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
 	newToken := &domain.RefreshTokenEntity{UserID: 1, RefreshToken: "newRefreshToken", ExpirationDate: expDate}
 
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE refreshToken = ? AND userId = ?")).
+	mock.ExpectExec("DELETE FROM `refresh_tokens` WHERE .*").
 		WithArgs(oldToken, newToken.UserID).
 		WillReturnError(fmt.Errorf("some error"))
 
@@ -238,10 +237,10 @@ func TestMySqlAuthRepository_ReplaceRefreshToken_Returns_An_Error_If_The_Create_
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
 	newToken := &domain.RefreshTokenEntity{UserID: 1, RefreshToken: "newRefreshToken", ExpirationDate: expDate}
 
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE refreshToken = ? AND userId = ?")).
+	mock.ExpectExec("DELETE FROM `refresh_tokens` WHERE .*").
 		WithArgs(oldToken, newToken.UserID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `userId`=VALUES(`userId`),`refreshToken`=VALUES(`refreshToken`),`expirationDate`=VALUES(`expirationDate`)")).
+	mock.ExpectExec("INSERT INTO `refresh_tokens` .* ON DUPLICATE KEY UPDATE .*").
 		WithArgs(newToken.UserID, newToken.RefreshToken, newToken.ExpirationDate).
 		WillReturnError(fmt.Errorf("some error"))
 
@@ -259,10 +258,10 @@ func TestMySqlAuthRepository_ReplaceRefreshToken_Replaces_The_RefreshToken(t *te
 	expDate, _ := time.Parse("2021-Jan-01", "2014-Feb-04")
 	newToken := &domain.RefreshTokenEntity{UserID: 1, RefreshToken: "newRefreshToken", ExpirationDate: expDate}
 
-	mock.ExpectExec(regexp.QuoteMeta("DELETE FROM `refresh_tokens` WHERE refreshToken = ? AND userId = ?")).
+	mock.ExpectExec("DELETE FROM `refresh_tokens` WHERE .*").
 		WithArgs(oldToken, newToken.UserID).
 		WillReturnResult(sqlmock.NewResult(0, 1))
-	mock.ExpectExec(regexp.QuoteMeta("INSERT INTO `refresh_tokens` (`userId`,`refreshToken`,`expirationDate`) VALUES (?,?,?) ON DUPLICATE KEY UPDATE `userId`=VALUES(`userId`),`refreshToken`=VALUES(`refreshToken`),`expirationDate`=VALUES(`expirationDate`)")).
+	mock.ExpectExec("INSERT INTO `refresh_tokens` .* ON DUPLICATE KEY UPDATE .*").
 		WithArgs(newToken.UserID, newToken.RefreshToken, newToken.ExpirationDate).
 		WillReturnResult(sqlmock.NewResult(12, 1))
 

@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine as base
+FROM golang:1.20-alpine AS base
 
 ENV APP /go/src
 WORKDIR $APP
@@ -15,11 +15,11 @@ RUN go mod download
 
 COPY . $APP
 
-FROM base as build
+FROM base AS build
 
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /go/bin/app ./cmd/api/
 
-FROM alpine as release
+FROM alpine AS release
 
 COPY --from=build /go/src/start.sh /app/
 COPY --from=build /go/bin/app /app/

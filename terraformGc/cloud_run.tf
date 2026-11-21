@@ -133,7 +133,6 @@ resource "google_cloud_run_service" "run_service" {
   depends_on = [
     google_project_service.run,
     google_project_service.sqladmin,
-    google_project_iam_member.cloudsql_client,
   ]
 }
 

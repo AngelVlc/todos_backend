@@ -2,7 +2,6 @@ package application
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"time"
@@ -15,14 +14,17 @@ func NewRealConfigurationService() *RealConfigurationService {
 }
 
 func (c *RealConfigurationService) GetDatasource() string {
-	host := c.getEnvOrFallback("MYSQL_HOST", "localhost")
-	port := c.getEnvOrFallback("MYSQL_PORT", "3306")
 	user := c.getEnvOrFallback("MYSQL_USER", "root")
 	pass := c.getEnvOrFallback("MYSQL_PASSWORD", "pass")
 	dbname := c.getEnvOrFallback("MYSQL_DATABASE", "todos")
-	options := fmt.Sprintf("allowFallbackToPlaintext=true&charset=utf8&parseTime=True&loc=Local")
+	options := "allowFallbackToPlaintext=true&charset=utf8&parseTime=True&loc=Local"
 
-	log.Println(fmt.Sprintf("%v:%v@%v:%v/%v?%v", user, pass, host, port, dbname, options))
+	if socket, ok := os.LookupEnv("MYSQL_UNIX_SOCKET"); ok && socket != "" {
+		return fmt.Sprintf("%v:%v@unix(%v)/%v?%v", user, pass, socket, dbname, options)
+	}
+
+	host := c.getEnvOrFallback("MYSQL_HOST", "localhost")
+	port := c.getEnvOrFallback("MYSQL_PORT", "3306")
 
 	return fmt.Sprintf("%v:%v@(%v:%v)/%v?%v", user, pass, host, port, dbname, options)
 }

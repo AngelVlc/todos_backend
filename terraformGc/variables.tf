@@ -24,7 +24,7 @@ variable "gc_project_id" {
 
 variable "container_image" {
   description = "Container imaged used in the Cloud Run service"
-  default = "image"
+  default     = "image"
 }
 
 variable "delete_expired_refresh_token_interval" {
@@ -41,12 +41,12 @@ variable "refresh_token_expiration_time" {
   default     = "24h"
 }
 
-variable "mysql_host" {}
+variable "cloud_sql_instance_connection_name" {
+  description = "Cloud SQL instance connection name (project:region:instance)"
+}
+
 variable "mysql_user" {}
 variable "mysql_password" {}
-variable "mysql_port" {
-  default = "3306"
-}
 variable "mysql_database" {}
 
 variable "algolia_app_id" {}

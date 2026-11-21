@@ -3,20 +3,33 @@ resource "google_cloud_run_service" "run_service" {
   location = local.region
 
   template {
+    metadata {
+      annotations = {
+        "run.googleapis.com/container-dependencies" = jsonencode({ (var.app_name) = ["cloudsql-proxy"] })
+      }
+    }
+
     spec {
       containers {
+        name  = var.app_name
         image = var.container_image
+
+        ports {
+          container_port = 8080
+        }
+
+        volume_mounts {
+          name       = "cloudsql"
+          mount_path = "/cloudsql"
+        }
+
         env {
           name  = "ENVIRONMENT"
           value = "production"
         }
         env {
-          name  = "MYSQL_HOST"
-          value = var.mysql_host
-        }
-        env {
-          name  = "MYSQL_PORT"
-          value = var.mysql_port
+          name  = "MYSQL_UNIX_SOCKET"
+          value = "/cloudsql/${var.cloud_sql_instance_connection_name}"
         }
         env {
           name  = "MYSQL_DATABASE"
@@ -70,8 +83,45 @@ resource "google_cloud_run_service" "run_service" {
           name  = "ALGOLIA_SEARCH_ONLY_KEY"
           value = var.algolia_search_only_key
         }
+
+        startup_probe {
+          tcp_socket {
+            port = 8080
+          }
+        }
       }
-      service_account_name = "todos-service-account"
+
+      containers {
+        name  = "cloudsql-proxy"
+        image = "gcr.io/cloud-sql-connectors/cloud-sql-proxy:2.28.0"
+        args = [
+          "--structured-logs",
+          "--unix-socket=/cloudsql/${var.cloud_sql_instance_connection_name}",
+          "--health-check",
+          "--http-address=0.0.0.0",
+        ]
+
+        volume_mounts {
+          name       = "cloudsql"
+          mount_path = "/cloudsql"
+        }
+
+        startup_probe {
+          http_get {
+            path = "/startup"
+            port = 9090
+          }
+        }
+      }
+
+      volumes {
+        name = "cloudsql"
+        empty_dir {
+          medium = "Memory"
+        }
+      }
+
+      service_account_name = local.service_account_name
     }
   }
 
@@ -80,7 +130,11 @@ resource "google_cloud_run_service" "run_service" {
     latest_revision = true
   }
 
-  depends_on = [google_project_service.run]
+  depends_on = [
+    google_project_service.run,
+    google_project_service.sqladmin,
+    google_project_iam_member.cloudsql_client,
+  ]
 }
 
 resource "google_cloud_run_service_iam_member" "allUsers" {

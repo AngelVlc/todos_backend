@@ -55,8 +55,7 @@ commands:
         -var honeybadger_api_key=$HONEYBADGER_API_KEY
         -var app_name=$APP_NAME
         -var gc_project_id=$GCLOUD_PROJECT_ID
-        -var mysql_host=$MYSQL_HOST
-        -var mysql_port=$MYSQL_PORT
+        -var cloud_sql_instance_connection_name=$CLOUD_SQL_INSTANCE_CONNECTION_NAME
         -var mysql_database=$MYSQL_DATABASE
         -var mysql_user=$MYSQL_USER
         -var mysql_password=$MYSQL_PASSWORD
@@ -96,6 +95,8 @@ jobs:
       - init_terraform
       - plan_or_apply_terraform:
           command: apply -target=google_project_service.resource_manager -input=false -auto-approve
+      - plan_or_apply_terraform:
+          command: apply -target=google_project_service.sqladmin -input=false -auto-approve
       - plan_or_apply_terraform:
           command: apply -target=google_project_service.artifact_registry -input=false -auto-approve
       - plan_or_apply_terraform:

@@ -24,8 +24,8 @@ func TestMySqlCategoriesRepository_FindCategory_WhenTheQueryFails(t *testing.T) 
 
 	categoryID := int32(11)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`id` = ?")).
-		WithArgs(categoryID).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`id` = ?")+" LIMIT .*").
+		WithArgs(categoryID, 1).
 		WillReturnError(fmt.Errorf("some error"))
 
 	res, err := repo.FindCategory(context.Background(), domain.CategoryRecord{ID: categoryID})
@@ -42,8 +42,8 @@ func TestMySqlCategoriesRepository_FindCategory_WhenTheQueryDoesNotFail(t *testi
 
 	categoryID := int32(11)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`id` = ?")).
-		WithArgs(categoryID).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `categories` WHERE `categories`.`id` = ?")+" LIMIT .*").
+		WithArgs(categoryID, 1).
 		WillReturnRows(sqlmock.NewRows(categoryColumns).
 			AddRow(categoryID, "name", "description"))
 

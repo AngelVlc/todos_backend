@@ -22,8 +22,8 @@ var (
 func TestMySqlUsersRepository_FindUser_WhenTheQueryFails(t *testing.T) {
 	userID := int32(1)
 	mock, db := helpers.GetMockedDb(t)
-	mock.ExpectQuery("SELECT .* FROM `users` WHERE .* LIMIT 1").
-		WithArgs(userID).
+	mock.ExpectQuery("SELECT .* FROM `users` WHERE .* LIMIT .*").
+		WithArgs(userID, 1).
 		WillReturnError(fmt.Errorf("some error"))
 
 	repo := NewMySqlUsersRepository(db)
@@ -39,8 +39,8 @@ func TestMySqlUsersRepository_FindUser_WhenTheQueryFails(t *testing.T) {
 func TestMySqlUsersRepository_FindUser_WhenTheQueryDoesNotFail(t *testing.T) {
 	mock, db := helpers.GetMockedDb(t)
 
-	mock.ExpectQuery("SELECT .* FROM `users` WHERE .* LIMIT 1").
-		WithArgs("userName").
+	mock.ExpectQuery("SELECT .* FROM `users` WHERE .* LIMIT .*").
+		WithArgs("userName", 1).
 		WillReturnRows(sqlmock.NewRows(userColumns).AddRow(1, "userName", "hash", true))
 
 	repo := NewMySqlUsersRepository(db)

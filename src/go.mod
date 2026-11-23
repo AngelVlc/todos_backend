@@ -5,7 +5,7 @@ go 1.27
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/algolia/algoliasearch-client-go/v3 v3.32.1
-	github.com/golang-jwt/jwt v3.2.2+incompatible
+	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.7.0
 	github.com/gorilla/handlers v1.5.2

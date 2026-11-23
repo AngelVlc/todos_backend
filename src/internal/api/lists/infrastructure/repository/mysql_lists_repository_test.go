@@ -29,8 +29,8 @@ func TestMySqlListsRepository_FindList_WhenTheQueryFails(t *testing.T) {
 	listID := int32(11)
 	userID := int32(1)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")).
-		WithArgs(listID, userID).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")+" LIMIT .*").
+		WithArgs(listID, userID, 1).
 		WillReturnError(fmt.Errorf("some error"))
 
 	_, err := repo.FindList(context.Background(), domain.ListRecord{ID: listID, UserID: userID})
@@ -47,8 +47,8 @@ func TestMySqlListsRepository_FindList_WhenTheQueryDoesNotFail(t *testing.T) {
 	listID := int32(11)
 	userID := int32(1)
 
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")).
-		WithArgs(listID, userID).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `lists` WHERE `lists`.`id` = ? AND `lists`.`userId` = ?")+" LIMIT .*").
+		WithArgs(listID, userID, 1).
 		WillReturnRows(sqlmock.NewRows(listColumns).
 			AddRow(listID, "list1", userID, 3))
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM `listItems` WHERE `listItems`.`listId` = ? ORDER BY position ASC")).

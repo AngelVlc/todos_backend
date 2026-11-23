@@ -5,7 +5,7 @@ import (
 	"time"
 
 	sharedApp "github.com/AngelVlc/todos_backend/src/internal/api/shared/application"
-	"github.com/golang-jwt/jwt"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type RealTokenService struct {

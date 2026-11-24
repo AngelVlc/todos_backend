@@ -78,7 +78,7 @@ func NewServer(db *gorm.DB, eb events.EventBus, newRelicApp *newrelic.Applicatio
 	router.HandleFunc("/", rootHandler).Methods(http.MethodGet)
 
 	listsSubRouter := router.PathPrefix("/lists").Subrouter()
-	listsSubRouter.Handle("", s.getHandler(listsHandlers.GetAllListsHandler, nil)).Methods(http.MethodGet)
+	listsSubRouter.Handle("", s.getHandler(listsHandlers.GetListsHandler, nil)).Methods(http.MethodGet)
 	listsSubRouter.Handle("", s.getHandler(listsHandlers.CreateListHandler, &listsInfra.ListInput{})).Methods(http.MethodPost)
 	listsSubRouter.Handle("/search-key", s.getHandler((listsHandlers.GetSearchSecureKeyHandler), nil)).Methods(http.MethodGet)
 	listsSubRouter.Handle("/{id:[0-9]+}", s.getHandler(listsHandlers.GetListHandler, nil)).Methods(http.MethodGet)

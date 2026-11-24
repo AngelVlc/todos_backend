@@ -5,6 +5,7 @@ type CategoryRecord struct {
 	Name        string `gorm:"type:varchar(12)"`
 	Description string `gorm:"type:varchar(200)"`
 	UserID      int32  `gorm:"column:userId;type:int(32)"`
+	IsFavourite bool   `gorm:"column:isFavourite;type:tinyint"`
 }
 
 type CategoryRecords []CategoryRecord
@@ -22,6 +23,7 @@ func (r *CategoryRecord) ToCategoryEntity() *CategoryEntity {
 		Name:        nvo,
 		Description: dvo,
 		UserID:      r.UserID,
+		IsFavourite: r.IsFavourite,
 	}
 }
 
